@@ -1,0 +1,273 @@
+=====================================================================
+  MSIHub CRM — Full Build Summary
+  Maxsave Insurance Solutions
+  Created: June 2026
+=====================================================================
+
+WHAT IS THIS FILE?
+This is a plain-text summary of everything built into the MSIHub CRM
+(maxsave_crm.html) so you can pick up exactly where we left off on
+any device.
+
+---------------------------------------------------------------------
+THE FILE
+---------------------------------------------------------------------
+  Filename:   maxsave_crm.html
+  Location:   C:\Users\Tony Ballo\OneDrive\Desktop\MSICRM\
+  Type:       Single-file HTML/CSS/JavaScript app — open in any browser
+  Lines:      ~5,000+
+
+Copy this one file to your laptop and open it in Chrome or Edge.
+No installation, no internet, no server needed.
+
+---------------------------------------------------------------------
+BRANDING
+---------------------------------------------------------------------
+  App Name:   MSIHub
+  Tagline:    Maxsave · Powered Up
+  Logo:       Custom SVG shield + "M|H" mark (no image file needed)
+  Colors:     Navy  #1C2B4B  (primary)
+              Green #3BAA47  (accent)
+  Fonts:      Sora (headings) + Outfit (body) — loaded from Google Fonts
+
+---------------------------------------------------------------------
+LEFT SIDEBAR — NAVIGATION PAGES
+---------------------------------------------------------------------
+  1.  Dashboard          — KPI overview, charts, clickable stats
+  2.  Leads              — Lead list + board view + lead profiles
+  3.  Customers          — Customer list + customer profiles
+  4.  Calendar           — Visual monthly calendar + appointment list
+  5.  Activity Log       — Daily stats per agent (calls, texts, inbound)
+  6.  Bulk Text          — (button in sidebar, works from any page)
+  7.  Live View          — Stub page (future feature)
+  8.  Carriers           — Stub page (future feature)
+  9.  E-Signatures       — Stub page (future feature)
+  10. Payment Terminal   — Stub page (future feature)
+  11. Reputation Manager — Stub page (future feature)
+  12. My Agency          — Stub page (future feature)
+  13. Logout             — At the bottom of the sidebar
+
+  Dark Mode toggle is in the top-right corner of every page.
+
+---------------------------------------------------------------------
+DASHBOARD PAGE
+---------------------------------------------------------------------
+  - Total Policies (Pay Period) — clickable, goes to filtered customer list
+  - Total Premium Volume
+  - Broker Fees Collected
+  - Open Balances (HCC Outstanding) — clickable, shows customers with balance
+  - Policies Written Today
+  - Active Customers
+  - Renewal ring charts: 30-day, 31-60 day, 61-90 day windows — all clickable
+  - Goal wheel with progress percentage
+  - Leaderboard (top agents ranked by policies)
+  - Recent activity timeline
+  - Clean card-based layout — not cluttered
+
+  Clicking any KPI tile navigates to the Customers page pre-filtered
+  to show exactly that data (e.g., clicking "Open Balances" shows only
+  customers with outstanding HCC fees).
+
+---------------------------------------------------------------------
+LEADS PAGE
+---------------------------------------------------------------------
+  Two views (toggle button top-right of lead list):
+    LIST VIEW  — table with columns, pagination (50 per page), sortable
+    BOARD VIEW — Kanban columns: New | Contacted | Quoted | Sold
+
+  Lead statuses (visible in list): New Lead, Quoted, Appointment Set, Bad Lead
+  (Bad Lead and Sold leads are removed from the list automatically)
+
+  Lead list features:
+    - Search bar, date filter, agent filter, source filter, SR-22 filter
+    - Click lead NAME to open their full profile
+    - Checkbox + select all for bulk actions
+    - Bulk Text button (appears when leads are checked)
+    - Power Dial button (appears when leads are checked)
+    - Call and Text icon buttons on every row
+    - Board view: drag leads between columns
+
+  Bulk Text (from leads page):
+    - Select leads with checkboxes
+    - Click "Bulk Text" button
+    - Modal opens with: message box, template dropdown, insert tokens
+      ({{name}}, {{phone}}, {{agent}}, {{policy}}), opt-out footer
+      checkbox, skip DNC checkbox, schedule for later option, preview
+    - Template dropdown has "Edit Templates" button inside it
+
+---------------------------------------------------------------------
+LEAD PROFILES
+---------------------------------------------------------------------
+  Top bar buttons:
+    📞 Call    💬 Text    📅 Appointment    🆕 New Sale    📤 Quote Export
+
+  PERSONAL INFORMATION section:
+    First/last name, gender, date of birth, address, license status,
+    marital status
+
+  LEAD INFORMATION section:
+    Lead type, received at, insured/uninsured, requested coverage,
+    violations, vehicle info (VIN, primary use), SR-22, language,
+    prior coverage, best time to call, lead score
+
+  QUOTED section:
+    Add quote details — carrier, premium, deductible, coverage notes
+
+  NOTES section:
+    Free-text notes per lead
+
+  FILES section (bottom right):
+    Upload files, view all attachments
+
+  DISPOSITION button:
+    Options: Quoted, Bad Lead, Do Not Call, Refund, HR, Already Sold,
+    Spanish, Rewrite, Cancelled, Follow Up
+
+  TEXT CONVERSATION (click 💬 Text):
+    Full chat-style thread showing the whole conversation with that lead.
+    Includes template dropdown and attachment option.
+
+  NEW SALE button:
+    Triggers confetti animation + popup form with:
+      Primary Producer, Carrier, Policy Type, Policy #,
+      Broker Fee Total, Broker Fee Collected, Broker Fee Extended,
+      Premium Total, Towing Premium, Effective Date,
+      Additional Policies (yes/no, add lines), File upload box
+
+  QUOTE EXPORT (📤 button):
+    Exports customer info pre-filled into Turborater rater format
+
+  APPOINTMENT button:
+    Opens form to set date/time and add to Calendar page
+
+---------------------------------------------------------------------
+CUSTOMERS PAGE
+---------------------------------------------------------------------
+  Four tabs at top:
+    Active | Upcoming Renewals (🔄) | Cancelled | Pending Cancellation
+
+  "Upcoming Renewals" tab shows Active customers whose policy expires
+  in 7 days or less. Count shows in amber badge.
+
+  Filter panel (click Filter button):
+    Carrier, City, ZIP, Age range (min/max)
+
+  Search bar — search by name, phone, or policy number
+
+  Customer list columns:
+    [ ] | Customer | Carrier/Policy # | Sold By | Account Agent |
+    City/ZIP | Age | Lines | LTV | Open Balance | Renewal | Risk | Actions
+
+  Multi-select:
+    - Checkbox on each row + select-all header checkbox
+    - When customers are selected: "Bulk Text" and "Power Dial" buttons
+      appear in the header
+    - Switching tabs clears the selection
+
+  Bulk Text works from Customers page the same as from Leads page.
+  Power Dial combines both selected leads AND selected customers.
+
+---------------------------------------------------------------------
+CUSTOMER PROFILES
+---------------------------------------------------------------------
+  Top bar buttons:
+    📞 Call    💬 Text    📤 Quote Export
+
+  Sections:
+    - Personal Info (name, DOB, gender, marital, address, contact prefs)
+    - Policies table (each policy: carrier, number, sold by, dates,
+      premium, fee total, fee collected, fee extended, HCC collected,
+      status)
+    - Balance logic: if HCC Collected = yes → balance is $0
+                     if HCC Collected = no  → balance = fee extended
+    - Vehicles (year, make, model, VIN, use, garaging, value, lien)
+    - Drivers (name, DOB, gender, license, violations, primary)
+    - Claims history
+    - Files (upload + view)
+    - Risk score, SR-22 flag, referrals, cross-sell opportunities
+    - Customer since date, language, communication preference
+
+---------------------------------------------------------------------
+CALENDAR PAGE
+---------------------------------------------------------------------
+  - Full monthly calendar with navigation (prev/next month)
+  - Appointments shown on each day tile
+  - Appointment details: lead name, phone, agent, type, status,
+    call count, text count, days since contact
+  - Follow-up indicator: shows if an appointment needs a follow-up
+    (no-show, quoted but not contacted in 2+ days, etc.)
+  - Color-coded by status (Quoted, No-Show, Sold, Confirmed, etc.)
+  - Add appointment from lead profile or directly in calendar
+
+---------------------------------------------------------------------
+ACTIVITY LOG PAGE
+---------------------------------------------------------------------
+  Per-agent daily stats:
+    - Total leads for the day
+    - Outbound calls made
+    - Outbound texts sent
+    - Inbound calls received
+    - Outbound % and Inbound % with visual bars
+
+---------------------------------------------------------------------
+TEXT TEMPLATES (global, saved in browser memory)
+---------------------------------------------------------------------
+  Pre-built templates:
+    1. Quote Ready
+    2. Follow-Up
+    3. Renewal Reminder
+    4. Request Documents
+    5. Confirm Appointment
+    6. Payment Link
+    7. Español — Cotización
+    8. Español — Cita
+
+  Template tokens:  {{name}}  {{phone}}  {{agent}}  {{policy}}
+  Agents can add, edit, and delete templates using the Template Manager
+  (accessed from inside the Bulk Text modal).
+
+---------------------------------------------------------------------
+KNOWN ISSUES FIXED IN THIS BUILD
+---------------------------------------------------------------------
+  1. Dark mode sidebar turned white — FIXED
+     (sidebar now stays dark in dark mode)
+
+  2. KPI cards stayed white in dark mode — FIXED
+     (converted to CSS variable-based backgrounds)
+
+  3. Bulk Text modal said "element missing, reload page" — FIXED
+     (modal now injects itself into the page on first use, works from
+     any page including the Leads list and Customers list)
+
+  4. Apostrophe in template text broke JavaScript — FIXED
+     (template strings re-quoted to avoid conflicts)
+
+  5. Table row hover color didn't respect dark mode — FIXED
+
+---------------------------------------------------------------------
+WHAT IS NOT YET BUILT (stub pages / future work)
+---------------------------------------------------------------------
+  - Google Sheets live data connection (all data is sample data)
+  - Live View
+  - Carriers page
+  - E-Signatures
+  - Payment Terminal
+  - Reputation Manager
+  - My Agency page
+  - Agent profile pages
+  - Real SMS / calling integration (buttons simulate actions for now)
+
+---------------------------------------------------------------------
+HOW TO CONTINUE ON YOUR LAPTOP
+---------------------------------------------------------------------
+  1. Copy maxsave_crm.html to your laptop (OneDrive syncs automatically
+     if both computers are signed in to the same OneDrive account)
+  2. Open the file in Chrome or Edge
+  3. Start a new Claude Code session
+  4. Tell Claude: "I'm continuing work on MSIHub (maxsave_crm.html).
+     Here is a summary of what's been built:" and paste this file.
+
+=====================================================================
+  Last updated: June 2026
+  Built with Claude Code for Tony Ballo / Maxsave Insurance Solutions
+=====================================================================
