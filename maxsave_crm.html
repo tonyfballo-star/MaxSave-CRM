@@ -193,7 +193,7 @@ body.dark-mode .nav-item.nav-logout { color: rgba(255,110,110,0.75); }
 body.dark-mode .nav-item.nav-logout:hover { background: rgba(239,68,68,0.12); color: rgba(255,130,130,1); }
 
 /* ===== SIDEBAR DARK MODE — keep it dark, not light ===== */
-body.dark-mode .sidebar { background: linear-gradient(175deg, #080E18 0%, #0E1F35 100%); }
+body.dark-mode .sidebar { background: linear-gradient(180deg, #0F1D33 0%, #163054 100%); }
 body.dark-mode .sidebar-logo { border-bottom-color: rgba(255,255,255,0.07); }
 body.dark-mode .sidebar-footer { border-top-color: rgba(255,255,255,0.07); }
 body.dark-mode .sidebar > div[style*="border-top"] { border-top-color: rgba(255,255,255,0.07) !important; }
@@ -256,7 +256,7 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 
 .app { display: flex; height: 100vh; overflow: hidden; }
 
-.sidebar { width: 130px; background: linear-gradient(175deg, #0A1624 0%, #122B47 100%); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; position: relative; }
+.sidebar { width: 130px; background: linear-gradient(180deg, #162C4F 0%, #1F5FA0 100%); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; position: relative; }
 .sidebar::before { display: none; }
 .sidebar-logo { padding: 18px 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; gap: 10px; }
 .logo-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--green-500) 0%, var(--green-700) 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(59,170,71,0.35), inset 0 1px 0 rgba(255,255,255,0.20); position: relative; overflow: hidden; }
@@ -376,15 +376,8 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; white-space: nowrap; }
 .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-.b-new { background: var(--blue-light); color: #0E2340; } .b-new::before { background: #0E2340; }
-.b-contacted { background: var(--teal-light); color: #0F766E; } .b-contacted::before { background: #0F766E; }
-.b-quoted { background: var(--amber-light); color: #B45309; } .b-quoted::before { background: #B45309; }
-.b-followup { background: var(--purple-light); color: #6D28D9; } .b-followup::before { background: #6D28D9; }
-.b-submitted { background: var(--green-100); color: var(--green-800); } .b-submitted::before { background: var(--green-500); }
-.b-sold { background: var(--green-50); color: var(--green-900); border: 1px solid var(--green-200); } .b-sold::before { background: var(--green-600); }
-.b-lost { background: var(--red-light); color: #991B1B; } .b-lost::before { background: var(--red); }
-.b-pending { background: var(--gray-100); color: var(--gray-600); } .b-pending::before { background: var(--gray-400); }
-.b-noanswer { background: var(--gray-100); color: var(--gray-500); } .b-noanswer::before { background: var(--gray-300); }
+.b-new,.b-contacted,.b-quoted,.b-followup,.b-submitted,.b-sold,.b-lost,.b-pending,.b-noanswer { background: var(--blue-light); color: #0C2040; }
+.b-new::before,.b-contacted::before,.b-quoted::before,.b-followup::before,.b-submitted::before,.b-sold::before,.b-lost::before,.b-pending::before,.b-noanswer::before { background: #163D6B; }
 
 .tier { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: var(--radius-full); font-size: 11px; font-weight: 700; letter-spacing: 0.2px; }
 .tier-bronze { background: #FFF7ED; color: #92400E; border: 1px solid #FDE68A; }
@@ -1578,6 +1571,7 @@ const tierClass = t => ({ Elite:'tier-elite', Platinum:'tier-platinum', Gold:'ti
 const statusBadge = s => ({ 'New Lead':'b-new','Quoted':'b-quoted','Appointment Set':'b-followup','Bad Lead':'b-lost','Contacted':'b-contacted','In Follow-Up':'b-followup','App Submitted':'b-submitted','Pending Docs':'b-pending','Bound/Sold':'b-sold','Lost':'b-lost','No Answer':'b-noanswer','Do Not Contact':'b-lost' })[s] || 'b-noanswer';
 const agentAv = name => ({ 'Sarah Kim':'av-purple','Marcus Rivera':'av-navy','Jordan Torres':'av-green','Ashley Lee':'av-amber','Chris Park':'av-teal','Nina Reyes':'av-red','Brian Walsh':'av-navy','Unassigned':'' })[name] || 'av-navy';
 const initials = name => name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+const sourceAbbrev = s => ({'Everquote':'EQ','EverQuote':'EQ','MediaAlpha':'MA','Media Alpha':'MA','Facebook Ads':'FB','Facebook':'FB','Google Ads':'GGL','Google':'GGL','Direct Call':'Direct','Referral':'Ref','Referrals':'Ref','LinkedIn':'LI','TikTok':'TT','Instagram':'IG','Twitter':'TW','Yahoo':'YH','NetQuote':'NQ','SmartFinancial':'SF','Other':'Other'})[s] || (s||'').substring(0,3).toUpperCase();
 
 // ===== DATA =====
 const AGENTS = [
@@ -2305,16 +2299,16 @@ function renderLeadsPage(){
         onclick="if(!event.target.closest('.board-card-action'))nav('leaddetail',null)"
         style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-md);padding:11px 13px;margin-bottom:8px;cursor:grab;box-shadow:var(--shadow-sm);transition:transform 0.15s,box-shadow 0.15s,opacity 0.15s">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
-          <div style="font-weight:700;font-size:14px;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.name}</div>
+          <div style="font-weight:800;font-size:15px;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.name}</div>
           ${l.fee>0?`<div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--green-700);white-space:nowrap">${fmt$(l.fee)}</div>`:''}
         </div>
-        <div style="font-size:12px;color:var(--gray-500);margin-bottom:8px">${l.phone}</div>
+        <div style="font-size:13px;color:var(--gray-500);margin-bottom:8px">${l.phone}</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-          <div style="display:flex;align-items:center;gap:6px;min-width:0"><div class="avatar ${agentAv(l.agent)}" style="width:22px;height:22px;font-size:9px">${initials(l.agent)}</div><span style="font-size:11.5px;color:var(--gray-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.agent}</span></div>
-          <span style="font-size:10.5px;color:var(--gray-400);white-space:nowrap">${l.received}</span>
+          <span style="font-size:13px;font-weight:800;color:#0C2040;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.agent}</span>
+          <span style="font-size:12px;color:var(--gray-400);white-space:nowrap">${l.received}</span>
         </div>
         <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:8px;border-top:1px dashed var(--border)">
-          <span style="font-size:10.5px;color:var(--gray-400);font-weight:600">${l.source}</span>
+          <span style="font-size:12px;color:#163D6B;font-weight:700">${sourceAbbrev(l.source)}</span>
           <div style="display:flex;gap:5px">
             <button type="button" class="board-card-action" title="Call" onclick="event.stopPropagation();alert('Calling ${l.name} at ${l.phone}…')" style="background:var(--green-50);border:1px solid var(--green-200);color:var(--green-700);width:28px;height:28px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px">📞</button>
             <button type="button" class="board-card-action" title="Text" onclick="event.stopPropagation();openTextThread()" style="background:var(--blue-light);border:1px solid #C3D6E8;color:#0E2340;width:28px;height:28px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px">💬</button>
@@ -2357,29 +2351,24 @@ function renderLeadsPage(){
     <table class="data-table leads-table">
       <thead><tr>
         <th style="width:42px"><input type="checkbox" ${allOnPageSelected?'checked':''} onchange="toggleSelectAll(this.checked)" style="cursor:pointer;width:16px;height:16px"></th>
-        <th>Lead Name</th><th>Status</th><th>Age</th><th>Received</th><th>Source</th><th>Assigned To</th><th>Actions</th>
+        <th>Lead Name</th><th>Status</th><th>Received</th><th>Assigned To</th><th>Source</th><th>Actions</th>
       </tr></thead>
       <tbody>
-        ${pageLeads.length === 0 ? '<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--gray-400);font-size:14px">No leads match the current filters.</td></tr>' : pageLeads.map(l=>{
-          const att = l.attempts || {calls:0,texts:0};
-          const totalAtt = att.calls + att.texts;
-          const age = leadAgeDays(l);
-          const ageColor = age >= 5 ? 'var(--red)' : age >= 3 ? '#B45309' : 'var(--gray-700)';
+        ${pageLeads.length === 0 ? '<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--gray-400);font-size:14px">No leads match the current filters.</td></tr>' : pageLeads.map(l=>{
           return `<tr style="${sel.has(l.phone)?'background:var(--green-50)':''}">
           <td><input type="checkbox" ${sel.has(l.phone)?'checked':''} onchange="toggleSelectLead('${l.phone}',this.checked)" style="cursor:pointer;width:16px;height:16px"></td>
           <td>
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-              <div class="lead-name-link" onclick="nav('leaddetail',null)" style="font-weight:700;color:var(--navy-900);cursor:pointer;font-size:15px">${l.name}</div>
+              <div class="lead-name-link" onclick="nav('leaddetail',null)" style="font-weight:800;color:var(--navy-900);cursor:pointer;font-size:16px">${l.name}</div>
               ${l.sr22?'<span style="background:#FEF2F2;color:#991B1B;border:1px solid #FCA5A5;padding:1px 7px;border-radius:var(--radius-full);font-size:9.5px;font-weight:800;letter-spacing:0.4px">SR-22</span>':''}
               ${l.language==='Spanish'?'<span title="Spanish-speaking" style="font-size:13px">🇪🇸</span>':''}
             </div>
-            <div style="font-size:13px;color:var(--gray-500);margin-top:2px">${l.phone}</div>
+            <div style="font-size:14px;color:var(--gray-500);margin-top:2px">${l.phone}</div>
           </td>
-          <td><span class="badge ${statusBadge(l.status)}" style="font-size:12.5px;padding:4px 12px">${l.status}</span></td>
-          <td><span style="font-weight:700;font-size:13.5px;color:${ageColor}">${age}d</span></td>
-          <td style="font-size:14px;color:var(--gray-700);font-weight:500">${l.received}</td>
-          <td style="font-size:13.5px;color:var(--gray-600)">${l.source}</td>
-          <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar ${agentAv(l.agent)}" style="width:30px;height:30px;font-size:11px">${initials(l.agent)}</div><span style="font-size:14px;font-weight:500">${l.agent}</span></div></td>
+          <td><span class="badge ${statusBadge(l.status)}" style="font-size:13px;padding:4px 12px">${l.status}</span></td>
+          <td style="font-size:15px;color:var(--gray-700);font-weight:600">${l.received}</td>
+          <td><span style="font-size:15px;font-weight:800;color:#0C2040">${l.agent}</span></td>
+          <td style="font-size:14px;color:#163D6B;font-weight:700">${sourceAbbrev(l.source)}</td>
           <td>
             <div style="display:flex;gap:6px;align-items:center">
               <button type="button" title="View" onclick="nav('leaddetail',null)" style="width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px">👁</button>
