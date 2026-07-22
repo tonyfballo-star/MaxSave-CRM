@@ -193,7 +193,7 @@ body.dark-mode .nav-item.nav-logout { color: rgba(255,110,110,0.75); }
 body.dark-mode .nav-item.nav-logout:hover { background: rgba(239,68,68,0.12); color: rgba(255,130,130,1); }
 
 /* ===== SIDEBAR DARK MODE — keep it dark, not light ===== */
-body.dark-mode .sidebar { background: linear-gradient(180deg, #0F1D33 0%, #163054 100%); }
+body.dark-mode .sidebar { background: linear-gradient(175deg, #08101A 0%, #0E1F35 100%); }
 body.dark-mode .sidebar-logo { border-bottom-color: rgba(255,255,255,0.07); }
 body.dark-mode .sidebar-footer { border-top-color: rgba(255,255,255,0.07); }
 body.dark-mode .sidebar > div[style*="border-top"] { border-top-color: rgba(255,255,255,0.07) !important; }
@@ -256,7 +256,7 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 
 .app { display: flex; height: 100vh; overflow: hidden; }
 
-.sidebar { width: 130px; background: linear-gradient(180deg, #162C4F 0%, #1F5FA0 100%); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; position: relative; }
+.sidebar { width: 130px; background: linear-gradient(175deg, #0A1624 0%, #122B47 100%); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; position: relative; }
 .sidebar::before { display: none; }
 .sidebar-logo { padding: 18px 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; gap: 10px; }
 .logo-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--green-500) 0%, var(--green-700) 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(59,170,71,0.35), inset 0 1px 0 rgba(255,255,255,0.20); position: relative; overflow: hidden; }
@@ -1224,6 +1224,23 @@ function saveQuote() {
   document.getElementById('quoteForm').style.display = 'none';
 }
 
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓';
+    btn.style.color = 'var(--green-400)';
+    btn.style.borderColor = 'var(--green-500)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 1600);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓';
+    setTimeout(() => { btn.innerHTML = orig; }, 1600);
+  });
+}
 function setDisposition(value) {
   if (!value) return;
   const removeStatuses = ['Quoted','Bad Lead','Do Not Call','Refund','HR','Already Sold','Cancelled'];
@@ -2862,113 +2879,103 @@ PAGES.leaddetail = `
   </button>
 </div>
 
+<!-- LEAD INFORMATION — unified rater card -->
+<div style="background:linear-gradient(135deg,#1C2B4B 0%,#253659 60%,#2E4168 100%);border-radius:var(--radius-xl);padding:22px 26px;margin-bottom:14px;position:relative;overflow:hidden;box-shadow:0 8px 28px rgba(28,43,75,0.35)">
+  <div style="position:absolute;top:-50px;right:-20px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(59,170,71,0.10) 0%,transparent 70%);pointer-events:none"></div>
+
+  <!-- Section header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+    <div style="font-family:var(--font-display);font-size:15px;font-weight:800;color:#fff;letter-spacing:-0.2px">Lead Information</div>
+    <span style="font-size:10px;color:rgba(255,255,255,0.45)">Click 📋 to copy any field</span>
+  </div>
+
+  <!-- CONTACT -->
+  <div style="margin-bottom:18px">
+    <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">Contact</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px">
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">First Name</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Maria</span><button onclick="copyToClipboard('Maria',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Last Name</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Gonzalez</span><button onclick="copyToClipboard('Gonzalez',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Date of Birth</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">03/14/1982</span><button onclick="copyToClipboard('03/14/1982',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Gender</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Female</span><button onclick="copyToClipboard('Female',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Marital Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Married</span><button onclick="copyToClipboard('Married',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Language</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Spanish</span><button onclick="copyToClipboard('Spanish',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Phone</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">(619) 555-0124</span><button onclick="copyToClipboard('(619) 555-0124',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Email</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">maria.g@email.com</span><button onclick="copyToClipboard('maria.g@email.com',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div style="grid-column:span 1"><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Address</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">1234 Main St, San Diego CA 92101</span><button onclick="copyToClipboard('1234 Main St, San Diego CA 92101',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s;flex-shrink:0">📋</button></div></div>
+    </div>
+  </div>
+
+  <!-- LICENSE -->
+  <div style="margin-bottom:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.10)">
+    <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">License</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px">
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">License #</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">CA — DL #B1234567</span><button onclick="copyToClipboard('B1234567',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">License State</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">California</span><button onclick="copyToClipboard('California',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">SR-22 Required</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:var(--green-400)">No</span><button onclick="copyToClipboard('No',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+    </div>
+  </div>
+
+  <!-- POLICY -->
+  <div style="margin-bottom:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.10)">
+    <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">Policy</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px">
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Coverage Needed</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Liability + UM/UIM</span><button onclick="copyToClipboard('Liability + UM/UIM',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">CSL Limits</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">50/100</span><button onclick="copyToClipboard('50/100',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Prior Coverage</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">State Farm</span><button onclick="copyToClipboard('State Farm',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Insurance Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#FCA5A5">Uninsured — lapse 18d</span><button onclick="copyToClipboard('Uninsured — lapse 18 days',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Violations</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#FCD34D">1 minor speeding (2024)</span><button onclick="copyToClipboard('1 minor speeding (2024)',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Best Contact Time</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Evenings</span><button onclick="copyToClipboard('Evenings',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+    </div>
+  </div>
+
+  <!-- VEHICLE 1 -->
+  <div style="margin-bottom:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.10)">
+    <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">Vehicle 1 — Primary</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px">
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Year</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">2021</span><button onclick="copyToClipboard('2021',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Make</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Honda</span><button onclick="copyToClipboard('Honda',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Model</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">CR-V EX</span><button onclick="copyToClipboard('CR-V EX',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">VIN</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff;font-family:monospace">2HKRW2H58MH123456</span><button onclick="copyToClipboard('2HKRW2H58MH123456',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Annual Mileage</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">12,000 mi/yr</span><button onclick="copyToClipboard('12000',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Primary Use</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Commute</span><button onclick="copyToClipboard('Commute',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+    </div>
+  </div>
+
+  <!-- DRIVER 1 -->
+  <div style="margin-bottom:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.10)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:1.4px">Driver 1 — Maria Gonzalez</div>
+      <span style="background:var(--green-600);color:#fff;font-size:9px;font-weight:700;padding:1px 8px;border-radius:var(--radius-full)">Primary</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px">
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Date of Birth</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">03/14/1982</span><button onclick="copyToClipboard('03/14/1982',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Gender</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Female</span><button onclick="copyToClipboard('Female',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">License #</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">B1234567</span><button onclick="copyToClipboard('B1234567',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Marital Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Married</span><button onclick="copyToClipboard('Married',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Violations</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#FCD34D">1 minor speeding (2024)</span><button onclick="copyToClipboard('1 minor speeding (2024)',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">SR-22</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:var(--green-400)">No</span><button onclick="copyToClipboard('No',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+    </div>
+  </div>
+
+  <!-- DRIVER 2 -->
+  <div style="padding-top:14px;border-top:1px solid rgba(255,255,255,0.10)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:1.4px">Driver 2 — Carlos Gonzalez</div>
+      <span style="background:rgba(255,255,255,0.18);color:#fff;font-size:9px;font-weight:700;padding:1px 8px;border-radius:var(--radius-full)">Additional</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px">
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Date of Birth</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">07/04/1980</span><button onclick="copyToClipboard('07/04/1980',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Gender</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Male</span><button onclick="copyToClipboard('Male',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">License #</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">C9876543</span><button onclick="copyToClipboard('C9876543',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Marital Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Married</span><button onclick="copyToClipboard('Married',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Violations</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:var(--green-400)">None</span><button onclick="copyToClipboard('None',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">SR-22</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:var(--green-400)">No</span><button onclick="copyToClipboard('No',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
+    </div>
+  </div>
+</div>
+
 <div class="ld-layout">
   <div>
-
-    <!-- PERSONAL INFORMATION -->
-    <div class="card" style="margin-bottom:14px">
-      <div class="card-header" style="background:#1C2B4B;border-radius:var(--radius-lg) var(--radius-lg) 0 0"><div class="card-title" style="color:#fff">Personal Information</div><button class="btn btn-ghost" style="font-size:11.5px;color:rgba(255,255,255,0.75);border-color:rgba(255,255,255,0.22)">✏ Edit</button></div>
-      <div class="card-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">
-          <div>
-            <div class="field-row"><div class="field-key">First Name</div><div class="field-val">Maria</div></div>
-            <div class="field-row"><div class="field-key">Last Name</div><div class="field-val">Gonzalez</div></div>
-            <div class="field-row"><div class="field-key">Gender</div><div class="field-val">Female</div></div>
-            <div class="field-row"><div class="field-key">Date of Birth</div><div class="field-val">03/14/1982 (44)</div></div>
-            <div class="field-row"><div class="field-key">Phone</div><div class="field-val link">(619) 555-0124</div></div>
-            <div class="field-row"><div class="field-key">Email</div><div class="field-val link">maria.g@email.com</div></div>
-          </div>
-          <div>
-            <div class="field-row"><div class="field-key">Address</div><div class="field-val">1234 Main St, San Diego CA 92101</div></div>
-            <div class="field-row"><div class="field-key">License Status</div><div class="field-val">Valid CA — DL #B1234567</div></div>
-            <div class="field-row"><div class="field-key">Marital Status</div><div class="field-val">Married</div></div>
-          </div>
-        </div>
-
-        <!-- DRIVERS -->
-        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <div style="font-size:12px;font-weight:800;color:#fff;background:#1C2B4B;padding:5px 12px;border-radius:var(--radius-md);letter-spacing:0.2px">Drivers (2)</div>
-            <button class="btn btn-ghost" style="font-size:11.5px">+ Add Driver</button>
-          </div>
-
-          <!-- Driver 1 -->
-          <div style="border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:8px;overflow:hidden">
-            <div style="background:#1C2B4B;color:#fff;padding:8px 13px;display:flex;align-items:center;justify-content:space-between">
-              <div style="font-weight:700;font-size:12.5px">Driver 1 — Maria Gonzalez</div>
-              <span style="font-size:10px;background:var(--green-500);color:#fff;padding:2px 9px;border-radius:var(--radius-full);font-weight:700">Primary</span>
-            </div>
-            <div style="padding:10px 13px;display:grid;grid-template-columns:1fr 1fr;gap:0 20px">
-              <div class="field-row" style="border-color:var(--border)"><div class="field-key">Date of Birth</div><div class="field-val">03/14/1982 (44)</div></div>
-              <div class="field-row" style="border-color:var(--border)"><div class="field-key">Gender</div><div class="field-val">Female</div></div>
-              <div class="field-row" style="border-color:var(--border)"><div class="field-key">License #</div><div class="field-val">CA — DL #B1234567</div></div>
-              <div class="field-row" style="border-color:var(--border)"><div class="field-key">Marital Status</div><div class="field-val">Married</div></div>
-              <div class="field-row" style="border-color:var(--border);border-bottom:none"><div class="field-key">Violations</div><div class="field-val warn">1 minor speeding (2024)</div></div>
-              <div class="field-row" style="border-color:var(--border);border-bottom:none"><div class="field-key">SR-22</div><div class="field-val" style="color:var(--green-700);font-weight:700">No</div></div>
-            </div>
-          </div>
-
-          <!-- Driver 2 -->
-          <div style="border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden">
-            <div style="background:#253659;color:#fff;padding:8px 13px;display:flex;align-items:center;justify-content:space-between">
-              <div style="font-weight:700;font-size:12.5px">Driver 2 — Carlos Gonzalez</div>
-              <span style="font-size:10px;background:rgba(255,255,255,0.18);color:#fff;padding:2px 9px;border-radius:var(--radius-full);font-weight:700">Additional</span>
-            </div>
-            <div style="padding:10px 13px;display:grid;grid-template-columns:1fr 1fr;gap:0 20px">
-              <div class="field-row" style="border-color:var(--border)"><div class="field-key">Date of Birth</div><div class="field-val">07/04/1980 (45)</div></div>
-              <div class="field-row" style="border-color:var(--border)"><div class="field-key">Gender</div><div class="field-val">Male</div></div>
-              <div class="field-row" style="border-color:var(--border)"><div class="field-key">License #</div><div class="field-val">CA — DL #C9876543</div></div>
-              <div class="field-row" style="border-color:var(--border)"><div class="field-key">Marital Status</div><div class="field-val">Married</div></div>
-              <div class="field-row" style="border-color:var(--border);border-bottom:none"><div class="field-key">Violations</div><div class="field-val" style="color:var(--gray-500)">None</div></div>
-              <div class="field-row" style="border-color:var(--border);border-bottom:none"><div class="field-key">SR-22</div><div class="field-val" style="color:var(--green-700);font-weight:700">No</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- LEAD & POLICY INFORMATION -->
-    <div class="card" style="margin-bottom:14px">
-      <div class="card-header" style="background:#1C2B4B;border-radius:var(--radius-lg) var(--radius-lg) 0 0"><div class="card-title" style="color:#fff">Lead &amp; Policy Information</div><button class="btn btn-ghost" style="font-size:11.5px;color:rgba(255,255,255,0.75);border-color:rgba(255,255,255,0.22)">✏ Edit</button></div>
-      <div class="card-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">
-          <div>
-            <div class="field-row"><div class="field-key">Lead Type</div><div class="field-val">Non-Standard Auto</div></div>
-            <div class="field-row"><div class="field-key">Received At</div><div class="field-val">Apr 22, 2026 · 9:14 AM</div></div>
-            <div class="field-row"><div class="field-key">Source</div><div class="field-val">Everquote · Spring batch</div></div>
-            <div class="field-row"><div class="field-key">Insured / Uninsured</div><div class="field-val">Currently Uninsured (lapse 18 days)</div></div>
-            <div class="field-row"><div class="field-key">Coverage Needed</div><div class="field-val">Liability + UM/UIM · CSL 50/100</div></div>
-            <div class="field-row"><div class="field-key">SR-22 Required</div><div class="field-val" style="color:var(--green-700);font-weight:700">No</div></div>
-            <div class="field-row"><div class="field-key">Language</div><div class="field-val">Spanish 🇪🇸</div></div>
-          </div>
-          <div>
-            <div class="field-row"><div class="field-key">Prior Coverage</div><div class="field-val">State Farm <span style="color:var(--red);font-size:11px;font-weight:700">⚠ Lapsed 18d</span></div></div>
-            <div class="field-row"><div class="field-key">Violations</div><div class="field-val warn">1 minor speeding (2024) · 0 at-fault accidents</div></div>
-            <div class="field-row"><div class="field-key">Best Contact Time</div><div class="field-val">Evenings</div></div>
-          </div>
-        </div>
-
-        <!-- VEHICLES -->
-        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <div style="font-size:12px;font-weight:800;color:#fff;background:#1C2B4B;padding:5px 12px;border-radius:var(--radius-md)">Vehicles (1)</div>
-            <button class="btn btn-ghost" style="font-size:11.5px">+ Add Vehicle</button>
-          </div>
-          <div style="border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden">
-            <div style="background:#1C2B4B;color:#fff;padding:8px 13px;display:flex;align-items:center;justify-content:space-between">
-              <div style="font-weight:700;font-size:12.5px">Vehicle 1 — 2021 Honda CR-V EX</div>
-              <span style="font-size:10px;background:var(--green-500);color:#fff;padding:2px 9px;border-radius:var(--radius-full);font-weight:700">Primary</span>
-            </div>
-            <div style="padding:10px 13px;display:grid;grid-template-columns:1fr 1fr;gap:0 20px">
-              <div class="field-row" style="border-color:var(--border)"><div class="field-key">Year / Make / Model</div><div class="field-val">2021 Honda CR-V EX</div></div>
-              <div class="field-row" style="border-color:var(--border)"><div class="field-key">Primary Use</div><div class="field-val">Commute · 12 mi/day</div></div>
-              <div class="field-row" style="border-color:var(--border);border-bottom:none"><div class="field-key">VIN</div><div class="field-val" style="font-family:monospace;font-size:11.5px">2HKRW2H58MH123456</div></div>
-              <div class="field-row" style="border-color:var(--border);border-bottom:none"><div class="field-key">Annual Mileage</div><div class="field-val">12,000 mi/yr</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- NOTES -->
     <div class="card" style="margin-bottom:14px">
