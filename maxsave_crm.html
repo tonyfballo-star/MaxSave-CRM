@@ -4126,38 +4126,36 @@ function renderCustomersPage(){
     <table class="data-table leads-table">
       <thead><tr>
         <th style="width:42px"><input type="checkbox" ${list.length>0 && list.every(c => (window.CUSTOMERS_SELECTED||new Set()).has(c.id)) ? 'checked' : ''} onchange="toggleSelectAllCustomers(this.checked)" style="cursor:pointer;width:16px;height:16px"></th>
-        <th>Customer</th><th>Carrier / Policy #</th><th>Sold By</th><th>Account Agent</th><th>City / ZIP</th><th>Age</th><th>Lines</th><th>LTV</th><th>Open Balance</th><th>Renewal</th><th>Risk</th><th>Actions</th>
+        <th>Customer</th><th>Carrier / Policy #</th><th>Sold By</th><th>City / ZIP</th><th>Age</th><th>Lines</th><th>Broker Fee Total</th><th>Open Balance</th><th>Renewal</th><th>Actions</th>
       </tr></thead>
       <tbody>
-        ${list.length === 0 ? '<tr><td colspan="13" style="text-align:center;padding:36px;color:var(--gray-400);font-size:14px">No customers match the current filters.</td></tr>' : list.map(c=>{
+        ${list.length === 0 ? '<tr><td colspan="11" style="text-align:center;padding:36px;color:var(--gray-400);font-size:14px">No customers match the current filters.</td></tr>' : list.map(c=>{
           const bal = customerOpenBalance(c);
-          const ltv = customerLifetimeValue(c);
+          const brokerFeeTotal = c.policies.reduce((sum,p) => sum + (p.feeTotal||0), 0);
           const renew = daysToRenewal(c);
           const lineCount = c.policies.filter(p => p.status === 'Active' || p.status === 'Pending Cancellation').length;
           const isSel = (window.CUSTOMERS_SELECTED || new Set()).has(c.id);
           return `<tr style="${isSel?'background:var(--green-50)':''}">
             <td><input type="checkbox" ${isSel?'checked':''} onchange="toggleSelectCustomer('${c.id}',this.checked)" style="cursor:pointer;width:16px;height:16px"></td>
             <td>
-              <div style="display:flex;align-items:center;gap:6px">
-                <div class="lead-name-link" onclick="openCustomerDetail('${c.id}')" style="font-weight:700;font-size:15px;color:var(--navy-900);cursor:pointer">${c.first} ${c.last}</div>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                <div class="lead-name-link" onclick="openCustomerDetail('${c.id}')" style="font-weight:800;font-size:16px;color:var(--navy-900);cursor:pointer">${c.first} ${c.last}</div>
                 ${c.sr22?'<span style="background:#FEF2F2;color:#991B1B;border:1px solid #FCA5A5;padding:1px 7px;border-radius:var(--radius-full);font-size:9.5px;font-weight:800;letter-spacing:0.4px">SR-22</span>':''}
                 ${c.language==='Spanish'?'<span title="Spanish-speaking" style="font-size:13px">🇪🇸</span>':''}
               </div>
-              <div style="font-size:12.5px;color:var(--gray-500);margin-top:2px">${c.phone}</div>
+              <div style="font-size:14px;color:var(--gray-500);margin-top:2px">${c.phone}</div>
             </td>
             <td>
-              <div style="font-size:13.5px;font-weight:600">${c.carrier}</div>
-              <div style="font-family:monospace;font-size:11.5px;color:var(--gray-500);margin-top:1px">${c.policyNumber}</div>
+              <div style="font-size:14px;font-weight:600;color:var(--gray-800)">${c.carrier}</div>
+              <div style="font-family:monospace;font-size:12px;color:var(--gray-500);margin-top:1px">${c.policyNumber}</div>
             </td>
-            <td><div style="display:flex;align-items:center;gap:7px"><div class="avatar ${agentAv(c.soldBy)}" style="width:26px;height:26px;font-size:10px">${initials(c.soldBy)}</div><span style="font-size:12.5px;font-weight:600">${c.soldBy}</span></div></td>
-            <td><div style="display:flex;align-items:center;gap:7px"><div class="avatar ${agentAv(c.agent)}" style="width:24px;height:24px;font-size:9px;opacity:0.85">${initials(c.agent)}</div><span style="font-size:12px;color:var(--gray-600)">${c.agent}</span></div></td>
-            <td><div style="font-size:13px;font-weight:500">${c.city}</div><div style="font-size:11.5px;color:var(--gray-400)">${c.zip}</div></td>
-            <td style="font-size:13.5px">${c.age}</td>
-            <td><span style="background:var(--navy-50);color:var(--navy-700);font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:var(--radius-full);border:1px solid var(--navy-100)">${lineCount} line${lineCount!==1?'s':''}</span></td>
-            <td style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--green-700)">${fmtK(ltv)}</td>
-            <td style="font-family:var(--font-display);font-weight:700;font-size:14px;color:${bal>0?'var(--red)':'var(--gray-300)'}">${bal>0?fmt$(bal):'$0'}</td>
+            <td><span style="font-size:15px;font-weight:800;color:#0C2040">${c.soldBy}</span></td>
+            <td><div style="font-size:14px;font-weight:600;color:var(--gray-700)">${c.city}</div><div style="font-size:12px;color:var(--gray-400)">${c.zip}</div></td>
+            <td style="font-size:15px;font-weight:600;color:var(--gray-700)">${c.age}</td>
+            <td><span style="background:var(--navy-50);color:var(--navy-700);font-size:12px;font-weight:700;padding:3px 10px;border-radius:var(--radius-full);border:1px solid var(--navy-100)">${lineCount} line${lineCount!==1?'s':''}</span></td>
+            <td style="font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--green-700)">${brokerFeeTotal>0?fmt$(brokerFeeTotal):'—'}</td>
+            <td style="font-family:var(--font-display);font-weight:700;font-size:15px;color:${bal>0?'var(--red)':'var(--gray-300)'}">${bal>0?fmt$(bal):'$0'}</td>
             <td>${renewalChip(renew)}</td>
-            <td>${riskTierBadge(c.riskScore)}</td>
             <td>
               <div style="display:flex;gap:6px">
                 <button type="button" title="View" onclick="openCustomerDetail('${c.id}')" style="width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;font-size:14px">👁</button>
