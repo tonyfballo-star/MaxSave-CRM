@@ -256,32 +256,33 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 
 .app { display: flex; height: 100vh; overflow: hidden; }
 
-.sidebar { width: 96px; background: linear-gradient(175deg, #0A1624 0%, #122B47 100%); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; position: relative; }
+.sidebar { width: 130px; background: linear-gradient(175deg, #0A1624 0%, #122B47 100%); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; position: relative; }
 .sidebar::before { display: none; }
-.sidebar-logo { padding: 16px 8px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: center; }
+.sidebar-logo { padding: 18px 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; gap: 10px; }
 .logo-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--green-500) 0%, var(--green-700) 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(59,170,71,0.35), inset 0 1px 0 rgba(255,255,255,0.20); position: relative; overflow: hidden; }
 .logo-mark::before { content: ''; position: absolute; top: -10px; left: -10px; width: 20px; height: 20px; background: rgba(255,255,255,0.18); border-radius: 50%; pointer-events: none; }
 .logo-mark svg { position: relative; z-index: 1; }
-.logo-text { display: none; }
-.logo-name { display: none; }
-.logo-tagline { display: none; }
+.logo-text { display: flex; flex-direction: column; line-height: 1.05; }
+.logo-name { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+.logo-name .accent { color: var(--green-400); }
+.logo-tagline { font-size: 8.5px; font-weight: 600; color: rgba(255,255,255,0.40); letter-spacing: 1.2px; text-transform: uppercase; margin-top: 3px; }
 .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
 .sidebar-nav::-webkit-scrollbar { display: none; }
 .nav-section { margin-bottom: 2px; }
 .nav-section-label { display: none; }
-.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 9px 6px 8px; color: rgba(255,255,255,0.72); cursor: pointer; border: 1.5px solid transparent; border-radius: var(--radius-md); transition: all 0.15s ease; font-family: var(--font-body); font-size: 10px; font-weight: 500; position: relative; user-select: none; margin: 1px 8px; text-align: center; line-height: 1.2; }
+.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 10px 8px 9px; color: rgba(255,255,255,0.78); cursor: pointer; border: 1.5px solid transparent; border-radius: var(--radius-md); transition: all 0.15s ease; font-family: var(--font-body); font-size: 12px; font-weight: 500; position: relative; user-select: none; margin: 1px 8px; text-align: center; line-height: 1.25; }
 .nav-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.96); }
 .nav-item.active { background: rgba(22, 61, 107, 0.45); color: #fff; border-color: rgba(80, 148, 224, 0.55); font-weight: 600; }
 .nav-item.active .nav-ic { opacity: 1; }
-.nav-ic { width: 20px; height: 20px; opacity: 0.75; flex-shrink: 0; }
-.nav-badge { position: absolute; top: 4px; right: 4px; background: var(--red); color: #fff; font-size: 8px; font-weight: 700; padding: 1px 4px; border-radius: var(--radius-full); min-width: 14px; text-align: center; line-height: 1.4; }
+.nav-ic { width: 22px; height: 22px; opacity: 0.75; flex-shrink: 0; }
+.nav-badge { position: absolute; top: 5px; right: 5px; background: var(--red); color: #fff; font-size: 8.5px; font-weight: 700; padding: 1px 5px; border-radius: var(--radius-full); min-width: 15px; text-align: center; line-height: 1.4; }
 .nav-badge.green { background: var(--green-500); }
 .nav-item.nav-logout { color: rgba(255,100,100,0.65); }
 .nav-item.nav-logout:hover { background: rgba(239,68,68,0.10); color: rgba(255,120,120,0.95); }
 .nav-item.nav-logout .nav-ic { opacity: 0.7; }
 
-.sidebar-footer { padding: 10px 8px; border-top: 1px solid rgba(255,255,255,0.07); }
-.user-widget { display: flex; align-items: center; justify-content: center; padding: 8px; border-radius: var(--radius-md); cursor: pointer; transition: background 0.15s; }
+.sidebar-footer { padding: 12px 10px; border-top: 1px solid rgba(255,255,255,0.07); }
+.user-widget { display: flex; align-items: center; gap: 9px; padding: 9px 10px; border-radius: var(--radius-md); cursor: pointer; transition: background 0.15s; }
 .user-widget:hover { background: rgba(255,255,255,0.06); }
 .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: #fff; flex-shrink: 0; font-family: var(--font-display); }
 .av-green { background: var(--green-600); }
@@ -296,7 +297,7 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
 
 /* ===== NOTIFICATION BANNERS ===== */
-.notif-banner { position:fixed; top:56px; left:104px; right:0; z-index:9900; display:flex; align-items:center; gap:16px; padding:13px 22px; box-shadow:0 6px 24px rgba(0,0,0,0.30); animation:notifSlideDown 0.32s cubic-bezier(0.34,1.56,0.64,1); font-family:var(--font-body); }
+.notif-banner { position:fixed; top:56px; left:138px; right:0; z-index:9900; display:flex; align-items:center; gap:16px; padding:13px 22px; box-shadow:0 6px 24px rgba(0,0,0,0.30); animation:notifSlideDown 0.32s cubic-bezier(0.34,1.56,0.64,1); font-family:var(--font-body); }
 .notif-banner.new-lead-banner { background:linear-gradient(135deg,#1A5C22 0%,#2B8035 55%,#33953D 100%); color:#fff; }
 .notif-banner.inbound-call-banner { background:linear-gradient(135deg,#0A1824 0%,#0E2340 60%,#122840 100%); color:#fff; }
 .notif-divider { width:1px; height:42px; background:rgba(255,255,255,0.20); flex-shrink:0; }
@@ -593,6 +594,10 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
         <path d="M9 9 V15 M15 9 V15 M9 12 H15"/>
       </svg>
     </div>
+    <div class="logo-text">
+      <div class="logo-name">MSI<span class="accent">Hub</span></div>
+      <div class="logo-tagline">Maxsave · Powered Up</div>
+    </div>
   </div>
 
   <nav class="sidebar-nav">
@@ -672,7 +677,11 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
 
   <div class="sidebar-footer">
     <div class="user-widget">
-      <div class="avatar av-green" title="Tony Ballo — Admin">TB</div>
+      <div class="avatar av-green">TB</div>
+      <div>
+        <div class="user-name">Tony Ballo</div>
+        <div class="user-role">Admin</div>
+      </div>
     </div>
   </div>
 </div>
