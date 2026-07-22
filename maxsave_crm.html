@@ -8,15 +8,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --navy-950: #0E1726;
-  --navy-900: #1C2B4B;
-  --navy-800: #253659;
-  --navy-700: #2E4168;
-  --navy-600: #3A5080;
-  --navy-400: #6B86B0;
-  --navy-200: #B8C8E0;
-  --navy-100: #E0E8F4;
-  --navy-50:  #F0F4FA;
+  --navy-950: #070F1C;
+  --navy-900: #0C1D33;
+  --navy-800: #112840;
+  --navy-700: #163350;
+  --navy-600: #1B3F62;
+  --navy-400: #3A6A95;
+  --navy-200: #9DB5CC;
+  --navy-100: #CCDAE8;
+  --navy-50:  #E5EEF5;
   --green-900: #1A5C22;
   --green-800: #236B2C;
   --green-700: #2B8035;
@@ -42,8 +42,8 @@
   --amber-light: #FEF9EC;
   --red: #EF4444;
   --red-light: #FEF2F2;
-  --blue: #3B82F6;
-  --blue-light: #EFF6FF;
+  --blue: #163D6B;
+  --blue-light: #E4EEF7;
   --purple: #8B5CF6;
   --purple-light: #F5F3FF;
   --teal: #14B8A6;
@@ -193,7 +193,7 @@ body.dark-mode .nav-item.nav-logout { color: rgba(255,110,110,0.75); }
 body.dark-mode .nav-item.nav-logout:hover { background: rgba(239,68,68,0.12); color: rgba(255,130,130,1); }
 
 /* ===== SIDEBAR DARK MODE — keep it dark, not light ===== */
-body.dark-mode .sidebar { background: #161616; }
+body.dark-mode .sidebar { background: linear-gradient(175deg, #080E18 0%, #0E1F35 100%); }
 body.dark-mode .sidebar-logo { border-bottom-color: rgba(255,255,255,0.07); }
 body.dark-mode .sidebar-footer { border-top-color: rgba(255,255,255,0.07); }
 body.dark-mode .sidebar > div[style*="border-top"] { border-top-color: rgba(255,255,255,0.07) !important; }
@@ -211,7 +211,7 @@ body.dark-mode .pri-med  { background: #2E2010; color: #FCD34D; }
 body.dark-mode .pri-low  { background: #252525; color: #909090; }
 body.dark-mode .alert-red    { background: #2E1A1A; border-color: #7F1D1D; color: #FCA5A5; }
 body.dark-mode .alert-amber  { background: #2A1E10; border-color: #78350F; color: #FCD34D; }
-body.dark-mode .alert-blue   { background: #182030; border-color: #1E3A5F; color: #93C5FD; }
+body.dark-mode .alert-blue   { background: #182030; border-color: #1E3A5F; color: #A8BFD4; }
 body.dark-mode .alert-green  { background: #1A2E1C; border-color: #166534; color: #86EFAC; }
 body.dark-mode .task-item.overdue { background: #2E1A1A; border-color: #7F1D1D; }
 body.dark-mode .task-label { color: #C8C8C8; }
@@ -256,33 +256,32 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 
 .app { display: flex; height: 100vh; overflow: hidden; }
 
-.sidebar { width: 232px; background: var(--navy-900); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; position: relative; }
-.sidebar::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 200px; background: linear-gradient(180deg, rgba(59,170,71,0.08) 0%, transparent 100%); pointer-events: none; }
-.sidebar-logo { padding: 20px 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; gap: 11px; }
-.logo-mark { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--green-500) 0%, var(--green-700) 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(59,170,71,0.35), inset 0 1px 0 rgba(255,255,255,0.20); position: relative; overflow: hidden; }
+.sidebar { width: 96px; background: linear-gradient(175deg, #0A1624 0%, #122B47 100%); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; position: relative; }
+.sidebar::before { display: none; }
+.sidebar-logo { padding: 16px 8px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: center; }
+.logo-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--green-500) 0%, var(--green-700) 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(59,170,71,0.35), inset 0 1px 0 rgba(255,255,255,0.20); position: relative; overflow: hidden; }
 .logo-mark::before { content: ''; position: absolute; top: -10px; left: -10px; width: 20px; height: 20px; background: rgba(255,255,255,0.18); border-radius: 50%; pointer-events: none; }
 .logo-mark svg { position: relative; z-index: 1; }
-.logo-text { display: flex; flex-direction: column; line-height: 1.05; }
-.logo-name { font-family: var(--font-display); font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -0.4px; }
-.logo-name .accent { color: var(--green-400); }
-.logo-tagline { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.40); letter-spacing: 1.4px; text-transform: uppercase; margin-top: 3px; }
-.sidebar-nav { flex: 1; overflow-y: auto; padding: 10px 0; }
+.logo-text { display: none; }
+.logo-name { display: none; }
+.logo-tagline { display: none; }
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
 .sidebar-nav::-webkit-scrollbar { display: none; }
-.nav-section { margin-bottom: 4px; }
-.nav-section-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.40); letter-spacing: 1.5px; text-transform: uppercase; padding: 10px 20px 5px; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 18px; color: rgba(255,255,255,0.75); cursor: pointer; border-left: 2.5px solid transparent; transition: all 0.15s ease; font-family: var(--font-body); font-size: 13px; font-weight: 400; position: relative; user-select: none; }
+.nav-section { margin-bottom: 2px; }
+.nav-section-label { display: none; }
+.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 9px 6px 8px; color: rgba(255,255,255,0.72); cursor: pointer; border: 1.5px solid transparent; border-radius: var(--radius-md); transition: all 0.15s ease; font-family: var(--font-body); font-size: 10px; font-weight: 500; position: relative; user-select: none; margin: 1px 8px; text-align: center; line-height: 1.2; }
 .nav-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.96); }
-.nav-item.active { background: rgba(59,170,71,0.16); color: #fff; border-left-color: var(--green-500); font-weight: 600; }
+.nav-item.active { background: rgba(22, 61, 107, 0.45); color: #fff; border-color: rgba(80, 148, 224, 0.55); font-weight: 600; }
 .nav-item.active .nav-ic { opacity: 1; }
-.nav-ic { width: 16px; height: 16px; opacity: 0.78; flex-shrink: 0; }
-.nav-badge { margin-left: auto; background: var(--red); color: #fff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: var(--radius-full); min-width: 16px; text-align: center; }
+.nav-ic { width: 20px; height: 20px; opacity: 0.75; flex-shrink: 0; }
+.nav-badge { position: absolute; top: 4px; right: 4px; background: var(--red); color: #fff; font-size: 8px; font-weight: 700; padding: 1px 4px; border-radius: var(--radius-full); min-width: 14px; text-align: center; line-height: 1.4; }
 .nav-badge.green { background: var(--green-500); }
-.nav-item.nav-logout { color: rgba(255,100,100,0.70); }
+.nav-item.nav-logout { color: rgba(255,100,100,0.65); }
 .nav-item.nav-logout:hover { background: rgba(239,68,68,0.10); color: rgba(255,120,120,0.95); }
 .nav-item.nav-logout .nav-ic { opacity: 0.7; }
 
-.sidebar-footer { padding: 14px 16px; border-top: 1px solid rgba(255,255,255,0.07); }
-.user-widget { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); cursor: pointer; transition: background 0.15s; }
+.sidebar-footer { padding: 10px 8px; border-top: 1px solid rgba(255,255,255,0.07); }
+.user-widget { display: flex; align-items: center; justify-content: center; padding: 8px; border-radius: var(--radius-md); cursor: pointer; transition: background 0.15s; }
 .user-widget:hover { background: rgba(255,255,255,0.06); }
 .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: #fff; flex-shrink: 0; font-family: var(--font-display); }
 .av-green { background: var(--green-600); }
@@ -297,9 +296,9 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
 
 /* ===== NOTIFICATION BANNERS ===== */
-.notif-banner { position:fixed; top:56px; left:240px; right:0; z-index:9900; display:flex; align-items:center; gap:16px; padding:13px 22px; box-shadow:0 6px 24px rgba(0,0,0,0.30); animation:notifSlideDown 0.32s cubic-bezier(0.34,1.56,0.64,1); font-family:var(--font-body); }
+.notif-banner { position:fixed; top:56px; left:104px; right:0; z-index:9900; display:flex; align-items:center; gap:16px; padding:13px 22px; box-shadow:0 6px 24px rgba(0,0,0,0.30); animation:notifSlideDown 0.32s cubic-bezier(0.34,1.56,0.64,1); font-family:var(--font-body); }
 .notif-banner.new-lead-banner { background:linear-gradient(135deg,#1A5C22 0%,#2B8035 55%,#33953D 100%); color:#fff; }
-.notif-banner.inbound-call-banner { background:linear-gradient(135deg,#1E3A8A 0%,#1D4ED8 60%,#2563EB 100%); color:#fff; }
+.notif-banner.inbound-call-banner { background:linear-gradient(135deg,#0A1824 0%,#0E2340 60%,#122840 100%); color:#fff; }
 .notif-divider { width:1px; height:42px; background:rgba(255,255,255,0.20); flex-shrink:0; }
 .notif-chip { background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); padding:5px 12px; border-radius:var(--radius-full); font-size:11.5px; font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
 .notif-chip:hover { background:rgba(255,255,255,0.25); }
@@ -327,13 +326,13 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .icon-btn:hover { background: var(--white); border-color: var(--navy-200); }
 .notif-dot { width: 7px; height: 7px; background: var(--red); border: 2px solid var(--white); border-radius: 50%; position: absolute; top: 5px; right: 5px; }
 
-.content { flex: 1; overflow-y: auto; padding: 22px 24px; scroll-behavior: smooth; }
+.content { flex: 1; overflow-y: auto; padding: 22px 64px; scroll-behavior: smooth; }
 .content::-webkit-scrollbar { width: 5px; }
 .content::-webkit-scrollbar-track { background: transparent; }
 .content::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 3px; }
 
 .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.page-header-left h1 { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--navy-900); letter-spacing: -0.3px; }
+.page-header-left h1 { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--navy-900); letter-spacing: -0.3px; }
 .page-header-left p { font-size: 12.5px; color: var(--gray-500); margin-top: 2px; }
 .btn-group { display: flex; gap: 8px; }
 
@@ -354,7 +353,7 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .kpi-card.accent-amber { border-left: 3.5px solid var(--amber); }
 .kpi-card.accent-red { border-left: 3.5px solid var(--red); }
 .kpi-label { font-size: 10.5px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
-.kpi-value { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--navy-900); line-height: 1; letter-spacing: -0.5px; }
+.kpi-value { font-family: var(--font-display); font-size: 28px; font-weight: 600; color: var(--navy-900); line-height: 1; letter-spacing: -0.5px; }
 .kpi-value.green { color: var(--green-700); }
 .kpi-value.red { color: var(--red); }
 .kpi-value.amber { color: #B45309; }
@@ -367,7 +366,7 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 
 .card { background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; }
 .card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
-.card-title { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--navy-900); }
+.card-title { font-family: var(--font-display); font-size: 14px; font-weight: 500; color: var(--navy-900); }
 .card-body { padding: 18px 20px; }
 .card-link { font-size: 11.5px; font-weight: 600; color: var(--green-600); cursor: pointer; text-decoration: none; transition: color 0.15s; }
 .card-link:hover { color: var(--green-700); }
@@ -376,7 +375,7 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; white-space: nowrap; }
 .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-.b-new { background: var(--blue-light); color: #1D4ED8; } .b-new::before { background: #1D4ED8; }
+.b-new { background: var(--blue-light); color: #0E2340; } .b-new::before { background: #0E2340; }
 .b-contacted { background: var(--teal-light); color: #0F766E; } .b-contacted::before { background: #0F766E; }
 .b-quoted { background: var(--amber-light); color: #B45309; } .b-quoted::before { background: #B45309; }
 .b-followup { background: var(--purple-light); color: #6D28D9; } .b-followup::before { background: #6D28D9; }
@@ -430,7 +429,7 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .alert-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
 .alert-red { background: var(--red-light); border-color: #FCA5A5; color: #991B1B; }
 .alert-amber { background: var(--amber-light); border-color: #FCD34D; color: #92400E; }
-.alert-blue { background: var(--blue-light); border-color: #93C5FD; color: #1E40AF; }
+.alert-blue { background: var(--blue-light); border-color: #A8BFD4; color: #0C1D33; }
 .alert-green { background: var(--green-50); border-color: var(--green-200); color: var(--green-800); }
 
 .bar-chart { display: flex; align-items: flex-end; gap: 8px; }
@@ -442,7 +441,7 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .tl-item { display: flex; gap: 12px; margin-bottom: 16px; }
 .tl-icon { width: 33px; height: 33px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; border: 2px solid; }
 .tl-call { background: var(--green-50); border-color: var(--green-200); }
-.tl-note { background: var(--blue-light); border-color: #93C5FD; }
+.tl-note { background: var(--blue-light); border-color: #A8BFD4; }
 .tl-status { background: var(--amber-light); border-color: #FCD34D; }
 .tl-email { background: var(--purple-light); border-color: #DDD6FE; }
 .tl-sys { background: var(--gray-100); border-color: var(--gray-200); }
@@ -524,7 +523,7 @@ select.form-control { cursor: pointer; }
 @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .page-content { animation: fadeSlideIn 0.2s ease both; }
 
-.sidebar-accent { height: 3px; background: linear-gradient(90deg, var(--green-500), var(--navy-600)); }
+.sidebar-accent { display: none; }
 .divider { height: 1px; background: var(--border); margin: 14px 0; }
 
 .empty { text-align: center; padding: 48px 24px; }
@@ -587,19 +586,12 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
 
 <!-- ====== SIDEBAR ====== -->
 <div class="sidebar">
-  <div class="sidebar-accent"></div>
   <div class="sidebar-logo">
     <div class="logo-mark" title="MSIHub">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <!-- shield outline -->
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 2 L4 5 V12 C4 17 8 21 12 22 C16 21 20 17 20 12 V5 Z" fill="rgba(255,255,255,0.10)"/>
-        <!-- "H" hub mark -->
         <path d="M9 9 V15 M15 9 V15 M9 12 H15"/>
       </svg>
-    </div>
-    <div class="logo-text">
-      <div class="logo-name">MSI<span class="accent">Hub</span></div>
-      <div class="logo-tagline">Maxsave · Powered Up</div>
     </div>
   </div>
 
@@ -637,7 +629,7 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
     </div>
     <div class="nav-item" onclick="nav('activitylog',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v3.5l2.5 1.5" stroke-linecap="round"/></svg>
-      Activity Log
+      Activity
     </div>
     <div class="nav-item" onclick="nav('tasks',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 8l2.5 2.5L11 5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -650,15 +642,15 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
     </div>
     <div class="nav-item" onclick="nav('esignatures',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12c1-1 2-2.5 3-2.5s1.5 1.5 2.5 1.5S9 9.5 10 9.5" stroke-linecap="round"/><rect x="2" y="2" width="12" height="9" rx="1.5"/><path d="M5 5.5h6M5 7.5h4" stroke-linecap="round"/></svg>
-      E Signatures
+      E-Sign
     </div>
     <div class="nav-item" onclick="nav('payment',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M1 6.5h14" stroke-linecap="round"/><rect x="3" y="9" width="3" height="2" rx=".5" fill="currentColor" stroke="none"/></svg>
-      Payment Terminal
+      Payments
     </div>
     <div class="nav-item" onclick="nav('reputation',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 1.5l1.8 3.6 4 .6-2.9 2.8.7 4L8 10.4l-3.6 1.9.7-4L2.2 5.7l4-.6z" stroke-linejoin="round"/></svg>
-      Reputation Manager
+      Reputation
     </div>
   </nav>
 
@@ -680,11 +672,7 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
 
   <div class="sidebar-footer">
     <div class="user-widget">
-      <div class="avatar av-green">TB</div>
-      <div>
-        <div class="user-name">Tony Ballo</div>
-        <div class="user-role">Admin</div>
-      </div>
+      <div class="avatar av-green" title="Tony Ballo — Admin">TB</div>
     </div>
   </div>
 </div>
@@ -704,7 +692,7 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
     </button>
     <div style="width:1px;height:22px;background:var(--border-strong);margin:0 2px;flex-shrink:0"></div>
     <button onclick="showNewLeadAlert()" title="Simulate incoming lead" style="background:linear-gradient(135deg,#1A5C22,#3BAA47);color:#fff;border:none;padding:6px 13px;border-radius:var(--radius-md);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap">🟢 New Lead</button>
-    <button onclick="showInboundCallAlert()" title="Simulate inbound call" style="background:linear-gradient(135deg,#1E3A8A,#2563EB);color:#fff;border:none;padding:6px 13px;border-radius:var(--radius-md);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap">📞 Inbound</button>
+    <button onclick="showInboundCallAlert()" title="Simulate inbound call" style="background:linear-gradient(135deg,#0A1824,#122840);color:#fff;border:none;padding:6px 13px;border-radius:var(--radius-md);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap">📞 Inbound</button>
     <div class="icon-btn" title="Notifications">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 16 16"><path d="M8 2a5 5 0 0 1 5 5v2.5l1 1.5H2l1-1.5V7a5 5 0 0 1 5-5z"/><path d="M6.5 13.5a1.5 1.5 0 0 0 3 0"/></svg>
       <div class="notif-dot"></div>
@@ -797,7 +785,7 @@ function showInboundCallAlert(call) {
       '</div>' +
     '</div>' +
     '<div style="display:flex;gap:8px;flex-shrink:0;align-items:center">' +
-      '<button class="notif-btn-white" style="color:#1D4ED8" onclick="nav(\'customers\',null);dismissBanner(\'inbound\')">View Profile →</button>' +
+      '<button class="notif-btn-white" style="color:#0E2340" onclick="nav(\'customers\',null);dismissBanner(\'inbound\')">View Profile →</button>' +
       '<button class="notif-btn-end" onclick="dismissBanner(\'inbound\')">End Call</button>' +
     '</div>';
   document.body.appendChild(el);
@@ -1613,7 +1601,7 @@ function leadTemperature(lead){
 function tempChip(t){
   if (t === 'Hot')  return `<span style="background:#FEF2F2;color:#991B1B;border:1px solid #FCA5A5;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px">🔥 Hot</span>`;
   if (t === 'Warm') return `<span style="background:#FEF9EC;color:#B45309;border:1px solid #FCD34D;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px">🌡 Warm</span>`;
-  return `<span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px">❄ Cold</span>`;
+  return `<span style="background:#EFF6FF;color:#0E2340;border:1px solid #C3D6E8;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px">❄ Cold</span>`;
 }
 const LEADS = (function(){
   const now = new Date();
@@ -1687,6 +1675,12 @@ function goToOpenBalances() {
   window.CUSTOMERS_STATE.openBalanceOnly = true;
   nav('customers', document.querySelector('[onclick*="customers"]'));
 }
+function goToBrokerFeeCollected() {
+  window.CUSTOMERS_STATE = window.CUSTOMERS_STATE || {};
+  window.CUSTOMERS_STATE.tab = 'Active';
+  window.CUSTOMERS_STATE.brokerFeeCollectedOnly = true;
+  nav('customers', document.querySelector('[onclick*="customers"]'));
+}
 function goToRenewals(window_days) {
   window.CUSTOMERS_STATE = window.CUSTOMERS_STATE || {};
   window.CUSTOMERS_STATE.tab = 'Active';
@@ -1706,6 +1700,170 @@ function ring(pctVal, size, stroke, color) {
       transform="rotate(-90 ${size/2} ${size/2})"/>
     <text x="${size/2}" y="${size/2+4}" text-anchor="middle" font-family="Sora" font-weight="800" font-size="${size>80?'16':'12'}" fill="var(--navy-900)">${Math.round(pctVal)}%</text>
   </svg>`;
+}
+
+// ==================== SHARED TASK STORE ====================
+window.TASKS_DATA = [
+  { id:1,  icon:'📞', label:'Follow-up call — Maria Gonzalez',  dueDate:'2026-05-01', dueTime:'3:00 PM',  priority:'high', assignedTo:'Admin',         done:false },
+  { id:2,  icon:'📋', label:'Submit application — Priya Patel', dueDate:'2026-05-01', dueTime:'5:00 PM',  priority:'high', assignedTo:'Admin',         done:false },
+  { id:3,  icon:'📧', label:'Send quote email — Kevin Nguyen',  dueDate:'2026-05-01', dueTime:'4:30 PM',  priority:'med',  assignedTo:'Admin',         done:false },
+  { id:4,  icon:'📞', label:'Call — Robert Chen',               dueDate:'2026-05-02', dueTime:'10:00 AM', priority:'med',  assignedTo:'Admin',         done:false },
+  { id:5,  icon:'📋', label:'Docs reminder — Amanda Foster',    dueDate:'2026-05-08', dueTime:'2:00 PM',  priority:'low',  assignedTo:'Admin',         done:false },
+  { id:6,  icon:'📅', label:'Monthly goal review',              dueDate:'2026-05-10', dueTime:'9:00 AM',  priority:'med',  assignedTo:'Admin',         done:false },
+  { id:7,  icon:'📧', label:'Renewal outreach batch',           dueDate:'2026-05-12', dueTime:'11:00 AM', priority:'low',  assignedTo:'Admin',         done:false },
+];
+window._nextTaskId = 8;
+const TODAY_ISO = '2026-05-01';
+
+function getTodayTasks() {
+  return window.TASKS_DATA.filter(t => t.dueDate === TODAY_ISO && !t.done);
+}
+function toggleTaskDone(id) {
+  const t = window.TASKS_DATA.find(t => t.id === id);
+  if (t) t.done = !t.done;
+  // Refresh whichever page is visible
+  if (document.getElementById('focusTasks'))    renderFocusTasks();
+  if (document.getElementById('tasksPageWrap')) refreshTasksPage();
+}
+function deleteTask(id) {
+  window.TASKS_DATA = window.TASKS_DATA.filter(t => t.id !== id);
+  if (document.getElementById('focusTasks'))    renderFocusTasks();
+  if (document.getElementById('tasksPageWrap')) refreshTasksPage();
+}
+function renderFocusTasks() {
+  const el = document.getElementById('focusTasks');
+  if (!el) return;
+  const todays = getTodayTasks();
+  if (!todays.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div style="font-size:9.5px;font-weight:700;color:var(--navy-700);text-transform:uppercase;letter-spacing:1px;margin:12px 0 6px;padding-left:2px">📌 Tasks Added Today</div>
+    ${todays.map(t => `
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--radius-md);background:${t.priority==='high'?'var(--navy-50)':'var(--gray-50)'};border:1px solid ${t.priority==='high'?'var(--navy-200)':'var(--border)'};margin-bottom:6px">
+      <div onclick="toggleTaskDone(${t.id})" style="width:16px;height:16px;border-radius:4px;border:2px solid ${t.done?'var(--green-500)':'var(--gray-300)'};flex-shrink:0;cursor:pointer;background:${t.done?'var(--green-500)':'transparent'};display:flex;align-items:center;justify-content:center">
+        ${t.done?'<svg width="9" height="9" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}
+      </div>
+      <span style="font-size:13px">${t.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:600;color:${t.done?'var(--gray-400)':'var(--navy-900)'};${t.done?'text-decoration:line-through':''};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.label}</div>
+        <div style="font-size:10.5px;color:var(--gray-400);margin-top:1px">${t.dueTime}${t.assignedTo!=='Admin'?' · '+t.assignedTo:''}</div>
+      </div>
+      <span class="pri-badge pri-${t.priority}" style="flex-shrink:0">${t.priority.toUpperCase()}</span>
+      <div onclick="deleteTask(${t.id})" style="flex-shrink:0;cursor:pointer;color:var(--gray-300);font-size:13px;padding:2px 4px;border-radius:4px" onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--gray-300)'">✕</div>
+    </div>`).join('')}`;
+}
+
+// ===== ADD TASK MODAL =====
+function openTaskModal(preAssignTo) {
+  if (document.getElementById('taskModalOverlay')) return;
+  const agentOptions = ['Admin (Tony Ballo)', ...AGENTS.map(a => a.name)];
+  const overlay = document.createElement('div');
+  overlay.id = 'taskModalOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9998;display:flex;align-items:center;justify-content:center';
+  overlay.onclick = e => { if (e.target === overlay) closeTaskModal(); };
+  overlay.innerHTML = `
+  <div style="background:var(--white);border-radius:var(--radius-xl);width:480px;max-width:95vw;box-shadow:var(--shadow-lg);overflow:hidden">
+    <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--navy-900)">Add Task</div>
+      <div onclick="closeTaskModal()" style="cursor:pointer;color:var(--gray-400);font-size:18px;line-height:1;padding:2px 6px;border-radius:4px" onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--gray-400)'">✕</div>
+    </div>
+    <div style="padding:20px 22px;display:flex;flex-direction:column;gap:13px">
+
+      <div class="form-group">
+        <div class="form-label">Task <span style="color:var(--red)">*</span></div>
+        <input id="tm_label" class="form-control" placeholder="e.g. Follow-up call with Maria Gonzalez">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <div class="form-label">Type</div>
+          <select id="tm_type" class="form-control">
+            <option value="📞">📞 Call</option>
+            <option value="📧">📧 Email</option>
+            <option value="📋">📋 Document</option>
+            <option value="📅">📅 Appointment</option>
+            <option value="✅">✅ General</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Priority <span style="color:var(--red)">*</span></div>
+          <select id="tm_priority" class="form-control">
+            <option value="high">High</option>
+            <option value="med" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <div class="form-label">Due Date <span style="color:var(--red)">*</span></div>
+          <input id="tm_date" class="form-control" type="date" value="${TODAY_ISO}">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Due Time</div>
+          <input id="tm_time" class="form-control" type="time" value="09:00">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Assign To <span style="color:var(--red)">*</span></div>
+        <select id="tm_assign" class="form-control">
+          ${agentOptions.map(n => `<option value="${n}" ${(preAssignTo&&n.startsWith(preAssignTo))||(!preAssignTo&&n.startsWith('Admin'))?'selected':''}>${n}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Related Lead / Customer <span style="font-weight:400;color:var(--gray-400)">(optional)</span></div>
+        <input id="tm_related" class="form-control" placeholder="e.g. Maria Gonzalez">
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Notes <span style="font-weight:400;color:var(--gray-400)">(optional)</span></div>
+        <textarea id="tm_notes" class="form-control" rows="2" placeholder="Any additional context…" style="resize:vertical"></textarea>
+      </div>
+
+      <div id="tm_error" style="display:none;background:var(--red-light);border:1px solid #FCA5A5;color:#991B1B;padding:8px 12px;border-radius:var(--radius-md);font-size:12px;font-weight:600"></div>
+
+      <div style="display:flex;gap:10px;padding-top:4px">
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="submitTaskModal()">Add Task</button>
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeTaskModal()">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('tm_label').focus();
+}
+function closeTaskModal() {
+  const el = document.getElementById('taskModalOverlay');
+  if (el) el.remove();
+}
+function submitTaskModal() {
+  const label    = document.getElementById('tm_label').value.trim();
+  const icon     = document.getElementById('tm_type').value;
+  const priority = document.getElementById('tm_priority').value;
+  const dueDate  = document.getElementById('tm_date').value;
+  const rawTime  = document.getElementById('tm_time').value;
+  const assignTo = document.getElementById('tm_assign').value;
+  const related  = document.getElementById('tm_related').value.trim();
+  const notes    = document.getElementById('tm_notes').value.trim();
+  const errEl    = document.getElementById('tm_error');
+  if (!label) { errEl.textContent='Task description is required.'; errEl.style.display='block'; return; }
+  if (!dueDate) { errEl.textContent='Due date is required.'; errEl.style.display='block'; return; }
+  // Format time for display
+  let dueTime = '';
+  if (rawTime) {
+    const [h,m] = rawTime.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    dueTime = ((h%12)||12) + ':' + String(m).padStart(2,'0') + ' ' + ampm;
+  }
+  // Shorten assignedTo for display (strip "(Tony Ballo)" part)
+  const assignLabel = assignTo.startsWith('Admin') ? 'Admin' : assignTo;
+  const task = { id: window._nextTaskId++, icon, label: label + (related?' — '+related:''), dueDate, dueTime, priority, assignedTo: assignLabel, notes, done: false };
+  window.TASKS_DATA.push(task);
+  closeTaskModal();
+  // Refresh visible panels
+  if (document.getElementById('focusTasks'))    renderFocusTasks();
+  if (document.getElementById('tasksPageWrap')) refreshTasksPage();
 }
 
 // ==================== DASHBOARD (REDESIGNED) ====================
@@ -1737,62 +1895,65 @@ PAGES.dashboard = `
 <!-- ==== PRIMARY KPIS — CLICKABLE ==== -->
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px">
 
-  <div onclick="goToPayPeriodPolicies()" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 26px rgba(28,43,75,0.10)';this.style.borderColor='var(--green-500)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--border)'">
+  <div onclick="goToPayPeriodPolicies()" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 26px rgba(28,43,75,0.10)';this.style.borderColor='var(--green-500)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--border)'">
     <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green-500),var(--green-400))"></div>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
       <div>
-        <div style="font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Policies This Period</div>
-        <div style="font-family:var(--font-display);font-size:32px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-1px">28</div>
-        <div style="font-size:11.5px;color:var(--green-700);margin-top:6px;font-weight:700">↑ 4 vs last period</div>
+        <div style="font-size:10.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Policies This Period</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">28</div>
+        <div style="font-size:11px;color:var(--green-700);margin-top:6px;font-weight:600">↑ 4 vs last period</div>
       </div>
-      <div style="flex-shrink:0">${ring(112,58,7,'var(--green-500)')}</div>
+      <div style="flex-shrink:0">${ring(112,54,6,'var(--green-500)')}</div>
     </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--green-600);font-weight:700;display:flex;align-items:center;gap:4px">
+    <div style="margin-top:10px;font-size:11px;color:var(--green-600);font-weight:600;display:flex;align-items:center;gap:4px">
       <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 16 16"><path d="M5 3l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       View these policies →
     </div>
   </div>
 
-  <div onclick="goToPayPeriodPolicies()" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 26px rgba(28,43,75,0.10)';this.style.borderColor='var(--green-500)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--border)'">
+  <div onclick="goToBrokerFeeCollected()" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 26px rgba(28,43,75,0.10)';this.style.borderColor='var(--green-500)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--border)'">
     <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green-500),var(--green-400))"></div>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
       <div>
-        <div style="font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Broker Fee Collected</div>
-        <div style="font-family:var(--font-display);font-size:32px;font-weight:800;color:var(--green-700);line-height:1;letter-spacing:-1px">\$8,330</div>
-        <div style="font-size:11.5px;color:var(--green-700);margin-top:6px;font-weight:700">↑ 12% vs last period</div>
+        <div style="font-size:10.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Broker Fee Collected</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--green-700);line-height:1;letter-spacing:-0.5px">\$8,330</div>
+        <div style="font-size:11px;color:var(--green-700);margin-top:6px;font-weight:600">↑ 12% vs last period</div>
       </div>
-      <div style="flex-shrink:0">${ring(87.5,58,7,'var(--green-500)')}</div>
+      <div style="flex-shrink:0">${ring(87.5,54,6,'var(--green-500)')}</div>
     </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--gray-500);font-weight:600">87.5% collection rate · \$1,190 outstanding</div>
+    <div style="margin-top:10px;font-size:11px;color:var(--green-600);font-weight:600;display:flex;align-items:center;gap:4px">
+      <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 16 16"><path d="M5 3l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      View collected policies →
+    </div>
   </div>
 
-  <div onclick="goToPayPeriodPolicies()" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 26px rgba(28,43,75,0.10)';this.style.borderColor='var(--green-500)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--border)'">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--navy-700),var(--navy-600))"></div>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-      <div>
-        <div style="font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Avg Fee per Policy</div>
-        <div style="font-family:var(--font-display);font-size:32px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-1px">\$340</div>
-        <div style="font-size:11.5px;color:var(--green-700);margin-top:6px;font-weight:700">↑ \$18 vs last period</div>
-      </div>
-      <div style="flex-shrink:0">${ring(68,58,7,'var(--navy-600)')}</div>
-    </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--gray-500);font-weight:600">Goal: \$500 · You're 68% there</div>
-  </div>
-
-  <div onclick="goToOpenBalances()" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 26px rgba(28,43,75,0.10)';this.style.borderColor='var(--amber)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--border)'">
+  <div onclick="goToOpenBalances()" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 26px rgba(28,43,75,0.10)';this.style.borderColor='var(--amber)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--border)'">
     <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--amber),#FCD34D)"></div>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
       <div>
-        <div style="font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Outstanding HCC</div>
-        <div style="font-family:var(--font-display);font-size:32px;font-weight:800;color:#B45309;line-height:1;letter-spacing:-1px">\$1,190</div>
-        <div style="font-size:11.5px;color:var(--gray-500);margin-top:6px;font-weight:600">4 customers · oldest 12 days</div>
+        <div style="font-size:10.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Outstanding HCC</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:#B45309;line-height:1;letter-spacing:-0.5px">\$1,190</div>
+        <div style="font-size:11px;color:var(--gray-500);margin-top:6px;font-weight:500">4 customers · oldest 12 days</div>
       </div>
-      <div style="flex-shrink:0">${ring(12.5,58,7,'var(--amber)')}</div>
+      <div style="flex-shrink:0">${ring(12.5,54,6,'var(--amber)')}</div>
     </div>
-    <div style="margin-top:10px;font-size:11px;color:#B45309;font-weight:700;display:flex;align-items:center;gap:4px">
+    <div style="margin-top:10px;font-size:11px;color:#B45309;font-weight:600;display:flex;align-items:center;gap:4px">
       <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 16 16"><path d="M5 3l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Review collections →
     </div>
+  </div>
+
+  <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--navy-700),var(--navy-600))"></div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+      <div>
+        <div style="font-size:10.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Avg Fee per Policy</div>
+        <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">\$340</div>
+        <div style="font-size:11px;color:var(--green-700);margin-top:6px;font-weight:600">↑ \$18 vs last period</div>
+      </div>
+      <div style="flex-shrink:0">${ring(68,54,6,'var(--navy-600)')}</div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--gray-500);font-weight:500">Goal: \$500 · You're 68% there</div>
   </div>
 </div>
 
@@ -1833,7 +1994,7 @@ PAGES.dashboard = `
         ${[
           ['Tier 1','0–21','25% + \$10','#94A3B8',true,100],
           ['Tier 2','22–30','30% + \$10','#3BAA47',true,87],
-          ['Tier 3','31–38','35% + \$15','#2563EB',false,0],
+          ['Tier 3','31–38','35% + \$15','#122840',false,0],
           ['Tier 4','39+','40%','#8B5CF6',false,0],
         ].map(([n,r,c,col,unlocked,prog],i)=>{
           const here = i===1;
@@ -1859,16 +2020,22 @@ PAGES.dashboard = `
 
   <!-- Today's Focus -->
   <div class="card">
-    <div class="card-header"><div class="card-title">Today's Focus</div><span style="font-size:11px;color:var(--gray-400);font-weight:600">May 1, 2026</span></div>
+    <div class="card-header">
+      <div class="card-title">Today's Focus</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:var(--gray-400);font-weight:600">May 1, 2026</span>
+        <button class="btn btn-primary" style="font-size:11px;padding:5px 12px" onclick="openTaskModal()">+ Add Task</button>
+      </div>
+    </div>
     <div class="card-body" style="padding:14px 16px">
 
-      <div style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--radius-md);background:#EFF6FF;border:1px solid #BFDBFE;margin-bottom:8px;cursor:pointer" onclick="nav('calendar',null)">
-        <div style="width:36px;height:36px;border-radius:var(--radius-md);background:#2563EB;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📅</div>
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--radius-md);background:#EFF6FF;border:1px solid #C3D6E8;margin-bottom:8px;cursor:pointer" onclick="nav('calendar',null)">
+        <div style="width:36px;height:36px;border-radius:var(--radius-md);background:#122840;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📅</div>
         <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:#1E40AF">3 Appointments Today</div>
-          <div style="font-size:11.5px;color:#3B82F6;margin-top:2px">10:00 AM &middot; 1:30 PM &middot; 3:45 PM</div>
+          <div style="font-size:13px;font-weight:700;color:#0C1D33">3 Appointments Today</div>
+          <div style="font-size:11.5px;color:#163D6B;margin-top:2px">10:00 AM &middot; 1:30 PM &middot; 3:45 PM</div>
         </div>
-        <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:#2563EB">3</div>
+        <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:#122840">3</div>
       </div>
 
       <div style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--radius-md);background:#FEF2F2;border:1px solid #FCA5A5;margin-bottom:8px;cursor:pointer" onclick="goToOpenBalances()">
@@ -1897,6 +2064,7 @@ PAGES.dashboard = `
           <div style="font-size:11px;color:#B45309;margin-top:4px;font-weight:600">16 more calls to hit goal</div>
         </div>
       </div>
+      <div id="focusTasks"></div>
     </div>
   </div>
 
@@ -1973,7 +2141,7 @@ PAGES.dashboard = `
     <div class="card-body" style="padding:14px 18px">
       ${[
         ['🏠','Renters',7,4830,78,'#3BAA47'],
-        ['⛵','Boat',3,2640,33,'#2563EB'],
+        ['⛵','Boat',3,2640,33,'#122840'],
         ['🚐','RV',2,1980,22,'#8B5CF6'],
         ['🏛','DMV Services',5,750,56,'#F59E0B'],
         ['🛡','Roadside',9,1350,100,'#0D9488'],
@@ -2013,7 +2181,7 @@ PAGES.dashboard = `
       <div style="background:var(--gray-50);border-radius:var(--radius-md);padding:11px;text-align:center"><div style="font-size:9.5px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Best Month</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--navy-900);margin-top:3px">247</div><div style="font-size:10.5px;color:var(--gray-500);margin-top:1px">Mar 2026</div></div>
       <div style="background:var(--gray-50);border-radius:var(--radius-md);padding:11px;text-align:center"><div style="font-size:9.5px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.6px">9-Mo Avg</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--navy-900);margin-top:3px">210</div><div style="font-size:10.5px;color:var(--gray-500);margin-top:1px">apps/month</div></div>
       <div style="background:var(--green-50);border-radius:var(--radius-md);padding:11px;text-align:center;border:1px solid var(--green-200)"><div style="font-size:9.5px;color:var(--green-700);font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Growth</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--green-700);margin-top:3px">+47%</div><div style="font-size:10.5px;color:var(--green-700);margin-top:1px">Jul → Mar</div></div>
-      <div style="background:var(--blue-light);border-radius:var(--radius-md);padding:11px;text-align:center;border:1px solid #BFDBFE"><div style="font-size:9.5px;color:#1D4ED8;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Forecast</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:#1D4ED8;margin-top:3px">263</div><div style="font-size:10.5px;color:#3B82F6;margin-top:1px">Apr (projected)</div></div>
+      <div style="background:var(--blue-light);border-radius:var(--radius-md);padding:11px;text-align:center;border:1px solid #C3D6E8"><div style="font-size:9.5px;color:#0E2340;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Forecast</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:#0E2340;margin-top:3px">263</div><div style="font-size:10.5px;color:#163D6B;margin-top:1px">Apr (projected)</div></div>
     </div>
   </div>
 </div>
@@ -2116,7 +2284,7 @@ function renderLeadsPage(){
   // ===== BOARD VIEW =====
   if (s.view === 'board') {
     const cols = [
-      { key:'New Lead',  title:'New',       color:'#2563EB', match: l => l.status === 'New Lead' },
+      { key:'New Lead',  title:'New',       color:'#122840', match: l => l.status === 'New Lead' },
       { key:'Contacted', title:'Contacted', color:'#0F766E', match: l => l.status === 'Contacted' || l.status === 'Appointment Set' },
       { key:'Quoted',    title:'Quoted',    color:'#B45309', match: l => l.status === 'Quoted' },
       { key:'Sold',      title:'Sold',      color:'#3BAA47', match: l => l.status === 'Sold' },
@@ -2140,7 +2308,7 @@ function renderLeadsPage(){
           <span style="font-size:10.5px;color:var(--gray-400);font-weight:600">${l.source}</span>
           <div style="display:flex;gap:5px">
             <button type="button" class="board-card-action" title="Call" onclick="event.stopPropagation();alert('Calling ${l.name} at ${l.phone}…')" style="background:var(--green-50);border:1px solid var(--green-200);color:var(--green-700);width:28px;height:28px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px">📞</button>
-            <button type="button" class="board-card-action" title="Text" onclick="event.stopPropagation();openTextThread()" style="background:var(--blue-light);border:1px solid #BFDBFE;color:#1D4ED8;width:28px;height:28px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px">💬</button>
+            <button type="button" class="board-card-action" title="Text" onclick="event.stopPropagation();openTextThread()" style="background:var(--blue-light);border:1px solid #C3D6E8;color:#0E2340;width:28px;height:28px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px">💬</button>
           </div>
         </div>
       </div>
@@ -2207,7 +2375,7 @@ function renderLeadsPage(){
             <div style="display:flex;gap:6px;align-items:center">
               <button type="button" title="View" onclick="nav('leaddetail',null)" style="width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px">👁</button>
               <button type="button" title="Call ${l.name}" onclick="alert('Calling ${l.name} at ${l.phone}…')" style="width:32px;height:32px;border-radius:7px;border:1px solid var(--green-200);background:var(--green-50);color:var(--green-700);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px">📞</button>
-              <button type="button" title="Text ${l.name}" onclick="openTextThread()" style="width:32px;height:32px;border-radius:7px;border:1px solid #BFDBFE;background:var(--blue-light);color:#1D4ED8;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px">💬</button>
+              <button type="button" title="Text ${l.name}" onclick="openTextThread()" style="width:32px;height:32px;border-radius:7px;border:1px solid #C3D6E8;background:var(--blue-light);color:#0E2340;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px">💬</button>
             </div>
           </td>
         </tr>`;
@@ -2240,6 +2408,8 @@ function refreshLeads(){
 
 PAGES.leads = ''; // built dynamically by renderLeadsPage()
 window.PAGE_INIT = window.PAGE_INIT || {};
+window.PAGE_INIT = window.PAGE_INIT || {};
+window.PAGE_INIT.dashboard = function() { renderFocusTasks(); };
 window.PAGE_INIT.leads = function(){ refreshLeads(); };
 
 // ===== LEADS VIEW TOGGLE =====
@@ -2831,9 +3001,9 @@ PAGES.leaddetail = `
             <div style="font-size:11px;font-weight:700;color:var(--green-700);margin-top:1px">📞 Calls</div>
             <div style="font-size:10px;color:var(--gray-500);margin-top:3px">Sarah Kim: 2 · Marcus R: 1</div>
           </div>
-          <div style="background:var(--blue-light);border:1px solid #BFDBFE;border-radius:var(--radius-md);padding:9px 12px;text-align:center">
-            <div style="font-size:22px;font-weight:800;font-family:var(--font-display);color:#1D4ED8">4</div>
-            <div style="font-size:11px;font-weight:700;color:#1D4ED8;margin-top:1px">💬 Texts</div>
+          <div style="background:var(--blue-light);border:1px solid #C3D6E8;border-radius:var(--radius-md);padding:9px 12px;text-align:center">
+            <div style="font-size:22px;font-weight:800;font-family:var(--font-display);color:#0E2340">4</div>
+            <div style="font-size:11px;font-weight:700;color:#0E2340;margin-top:1px">💬 Texts</div>
             <div style="font-size:10px;color:var(--gray-500);margin-top:3px">Sarah Kim: 4</div>
           </div>
           <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:9px 12px;text-align:center">
@@ -2852,7 +3022,7 @@ PAGES.leaddetail = `
           </div>
         </div>
         <div class="tl-item">
-          <div class="tl-icon" style="background:var(--blue-light);border-color:#BFDBFE">💬</div>
+          <div class="tl-icon" style="background:var(--blue-light);border-color:#C3D6E8">💬</div>
           <div class="tl-body">
             <div class="tl-title">Outbound Text — Delivered</div>
             <div class="tl-meta">Today, 9:45 AM · <strong>Sarah Kim</strong></div>
@@ -2868,7 +3038,7 @@ PAGES.leaddetail = `
           </div>
         </div>
         <div class="tl-item">
-          <div class="tl-icon" style="background:var(--blue-light);border-color:#BFDBFE">💬</div>
+          <div class="tl-icon" style="background:var(--blue-light);border-color:#C3D6E8">💬</div>
           <div class="tl-body">
             <div class="tl-title">Inbound Text — Received</div>
             <div class="tl-meta">Apr 24, 4:52 PM · <strong>Maria Gonzalez</strong></div>
@@ -2884,7 +3054,7 @@ PAGES.leaddetail = `
           </div>
         </div>
         <div class="tl-item">
-          <div class="tl-icon" style="background:var(--blue-light);border-color:#BFDBFE">💬</div>
+          <div class="tl-icon" style="background:var(--blue-light);border-color:#C3D6E8">💬</div>
           <div class="tl-body">
             <div class="tl-title">Outbound Text — Delivered</div>
             <div class="tl-meta">Apr 23, 11:30 AM · <strong>Sarah Kim</strong></div>
@@ -2892,7 +3062,7 @@ PAGES.leaddetail = `
           </div>
         </div>
         <div class="tl-item">
-          <div class="tl-icon" style="background:var(--blue-light);border-color:#BFDBFE">💬</div>
+          <div class="tl-icon" style="background:var(--blue-light);border-color:#C3D6E8">💬</div>
           <div class="tl-body">
             <div class="tl-title">Outbound Text — Delivered</div>
             <div class="tl-meta">Apr 22, 10:05 AM · <strong>Sarah Kim</strong></div>
@@ -3779,7 +3949,7 @@ function renewalChip(days) {
 }
 function riskTierBadge(score) {
   if (score >= 80) return `<span style="background:var(--green-50);color:var(--green-700);padding:2px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:700;border:1px solid var(--green-200)">A · ${score}</span>`;
-  if (score >= 65) return `<span style="background:var(--blue-light);color:#1D4ED8;padding:2px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:700;border:1px solid #BFDBFE">B · ${score}</span>`;
+  if (score >= 65) return `<span style="background:var(--blue-light);color:#0E2340;padding:2px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:700;border:1px solid #C3D6E8">B · ${score}</span>`;
   if (score >= 50) return `<span style="background:var(--amber-light);color:#B45309;padding:2px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:700;border:1px solid #FCD34D">C · ${score}</span>`;
   return `<span style="background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:700;border:1px solid #FCA5A5">D · ${score}</span>`;
 }
@@ -3860,6 +4030,7 @@ function renderCustomersPage(){
     list = list.filter(c => c.policies.some(p => new Date(p.effective) >= cutoff));
   }
   if (s.openBalanceOnly) list = list.filter(c => customerOpenBalance(c) > 0);
+  if (s.brokerFeeCollectedOnly) list = list.filter(c => c.policies.some(p => (p.feeCollected||0) > 0));
   if (s.renewalWindow) {
     list = list.filter(c => {
       const d = daysToRenewal(c);
@@ -3880,6 +4051,7 @@ function renderCustomersPage(){
   let contextBanner = '';
   if (s.payPeriodOnly) contextBanner = `<div style="background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;padding:13px 18px;border-radius:var(--radius-lg);margin-bottom:14px;display:flex;align-items:center;gap:12px"><span style="font-size:22px">💰</span><div style="flex:1"><div style="font-weight:800;font-size:14px">Pay Period Sales — Last 14 Days</div><div style="font-size:12px;opacity:0.85;margin-top:1px">Showing customers whose policy was effective in the current pay period.</div></div><button class="btn btn-ghost" style="background:rgba(255,255,255,0.18);color:#fff;border-color:rgba(255,255,255,0.30);font-size:12px" onclick="window.CUSTOMERS_STATE.payPeriodOnly=false;refreshCustomers()">Clear ✕</button></div>`;
   else if (s.openBalanceOnly) contextBanner = `<div style="background:linear-gradient(135deg,#F59E0B,#B45309);color:#fff;padding:13px 18px;border-radius:var(--radius-lg);margin-bottom:14px;display:flex;align-items:center;gap:12px"><span style="font-size:22px">💳</span><div style="flex:1"><div style="font-weight:800;font-size:14px">Open Balances — HCC Outstanding</div><div style="font-size:12px;opacity:0.90;margin-top:1px">Showing customers with unpaid extended broker fees.</div></div><button class="btn btn-ghost" style="background:rgba(255,255,255,0.20);color:#fff;border-color:rgba(255,255,255,0.30);font-size:12px" onclick="window.CUSTOMERS_STATE.openBalanceOnly=false;refreshCustomers()">Clear ✕</button></div>`;
+  else if (s.brokerFeeCollectedOnly) contextBanner = `<div style="background:linear-gradient(135deg,var(--green-600),var(--green-800));color:#fff;padding:13px 18px;border-radius:var(--radius-lg);margin-bottom:14px;display:flex;align-items:center;gap:12px"><span style="font-size:22px">✅</span><div style="flex:1"><div style="font-weight:700;font-size:14px">Broker Fee Collected</div><div style="font-size:12px;opacity:0.85;margin-top:1px">Showing customers with broker fee collected this pay period.</div></div><button class="btn btn-ghost" style="background:rgba(255,255,255,0.18);color:#fff;border-color:rgba(255,255,255,0.30);font-size:12px" onclick="window.CUSTOMERS_STATE.brokerFeeCollectedOnly=false;refreshCustomers()">Clear ✕</button></div>`;
   else if (s.renewalWindow) contextBanner = `<div style="background:linear-gradient(135deg,var(--navy-700),var(--navy-900));color:#fff;padding:13px 18px;border-radius:var(--radius-lg);margin-bottom:14px;display:flex;align-items:center;gap:12px"><span style="font-size:22px">🔄</span><div style="flex:1"><div style="font-weight:800;font-size:14px">Renewals — ${s.renewalWindow===30?'Next 30 Days':s.renewalWindow===60?'31–60 Days':'61–90 Days'}</div><div style="font-size:12px;opacity:0.85;margin-top:1px">Active customers approaching renewal in this window.</div></div><button class="btn btn-ghost" style="background:rgba(255,255,255,0.18);color:#fff;border-color:rgba(255,255,255,0.30);font-size:12px" onclick="window.CUSTOMERS_STATE.renewalWindow=null;refreshCustomers()">Clear ✕</button></div>`;
 
   const custSelectedCount = (window.CUSTOMERS_SELECTED || new Set()).size;
@@ -3985,7 +4157,7 @@ function renderCustomersPage(){
               <div style="display:flex;gap:6px">
                 <button type="button" title="View" onclick="openCustomerDetail('${c.id}')" style="width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;font-size:14px">👁</button>
                 <button type="button" title="Call" onclick="alert('Calling ${c.first}…')" style="width:32px;height:32px;border-radius:7px;border:1px solid var(--green-200);background:var(--green-50);cursor:pointer;font-size:14px">📞</button>
-                <button type="button" title="Text" onclick="openTextThread()" style="width:32px;height:32px;border-radius:7px;border:1px solid #BFDBFE;background:var(--blue-light);cursor:pointer;font-size:14px">💬</button>
+                <button type="button" title="Text" onclick="openTextThread()" style="width:32px;height:32px;border-radius:7px;border:1px solid #C3D6E8;background:var(--blue-light);cursor:pointer;font-size:14px">💬</button>
               </div>
             </td>
           </tr>`;
@@ -4214,9 +4386,9 @@ window.PAGE_INIT.customerdetail = function(){
             <span style="font-size:18px">🎉</span>
             <div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--green-700)">Customer Anniversary</div><div style="font-size:11px;color:var(--green-700)">Since ${c.customerSince}</div></div>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;padding:9px;background:var(--blue-light);border-radius:var(--radius-md);border:1px solid #BFDBFE">
+          <div style="display:flex;align-items:center;gap:10px;padding:9px;background:var(--blue-light);border-radius:var(--radius-md);border:1px solid #C3D6E8">
             <span style="font-size:18px">🤝</span>
-            <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#1D4ED8">Referrals Given</div><div style="font-size:11px;color:#3B82F6">${c.referralsGiven} so far · Source: ${c.referredBy}</div></div>
+            <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#0E2340">Referrals Given</div><div style="font-size:11px;color:#163D6B">${c.referralsGiven} so far · Source: ${c.referredBy}</div></div>
           </div>
         </div>
       </div>
@@ -4328,7 +4500,8 @@ function calendarNeedsFollowUp(a) {
 }
 
 function statusBubbleColor(s) {
-  return ({ 'New':'#2563EB','Quoted':'#B45309','Appointment Set':'#6D28D9','Sold':'#3BAA47','No-Show':'#EF4444' })[s] || '#6B7899';
+  // Green = contacted (Quoted/Appt Set/Sold); Navy = not yet contacted or no-show
+  return ({ 'New':'#253659','Quoted':'#33953D','Appointment Set':'#3BAA47','Sold':'#2B8035','No-Show':'#2E4168' })[s] || '#2E4168';
 }
 
 function refreshCalendar(){
@@ -4393,15 +4566,15 @@ function renderCalendarPage() {
     const isToday = iso === todayISO;
     const isSelected = iso === s.selectedDate;
     const followUpCount = dayList.filter(calendarNeedsFollowUp).length;
-    return `<div onclick="selectCalendarDay('${iso}')" style="background:${isSelected?'var(--green-50)':'var(--white)'};border:1px solid ${isSelected?'var(--green-500)':'var(--border)'};border-radius:var(--radius-md);padding:8px 9px;min-height:96px;cursor:pointer;opacity:${c.out?'0.40':'1'};transition:all 0.12s;display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden">
-      ${isToday?'<div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--green-500)"></div>':''}
+    return `<div onclick="selectCalendarDay('${iso}')" style="background:${isSelected?'var(--navy-50)':'var(--white)'};border:1px solid ${isSelected?'var(--navy-600)':'var(--border)'};border-radius:var(--radius-md);padding:8px 9px;min-height:96px;cursor:pointer;opacity:${c.out?'0.40':'1'};transition:all 0.12s;display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden">
+      ${isToday?'<div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--navy-700)"></div>':''}
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="font-family:var(--font-display);font-weight:${isToday?'800':'600'};font-size:13px;color:${isToday?'var(--green-700)':'var(--navy-900)'};display:flex;align-items:center;gap:5px">
+        <div style="font-family:var(--font-display);font-weight:${isToday?'800':'600'};font-size:13px;color:${isToday?'var(--navy-700)':'var(--navy-900)'};display:flex;align-items:center;gap:5px">
           ${c.d.getDate()}
-          ${isToday?'<span style="background:var(--green-500);color:#fff;font-size:8.5px;font-weight:800;padding:1px 5px;border-radius:var(--radius-full);letter-spacing:0.4px">TODAY</span>':''}
+          ${isToday?'<span style="background:var(--navy-700);color:#fff;font-size:8.5px;font-weight:800;padding:1px 5px;border-radius:var(--radius-full);letter-spacing:0.4px">TODAY</span>':''}
         </div>
         ${dayList.length>0?`<span style="background:var(--navy-50);color:var(--navy-700);font-size:9.5px;font-weight:800;padding:1px 6px;border-radius:var(--radius-full)">${dayList.length}</span>`:''}
-        ${followUpCount>0?`<span title="${followUpCount} need follow-up" style="background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:var(--radius-full)">⚠ ${followUpCount}</span>`:''}
+        ${followUpCount>0?`<span title="${followUpCount} need follow-up" style="background:var(--navy-700);color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:var(--radius-full)">⚠ ${followUpCount}</span>`:''}
       </div>
       ${dayList.slice(0,2).map(a=>`<div style="background:${statusBubbleColor(a.status)}15;color:${statusBubbleColor(a.status)};border-left:3px solid ${statusBubbleColor(a.status)};padding:3px 5px;border-radius:3px;font-size:10.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><strong>${a.time}</strong> ${a.lead.split(' ')[0]}</div>`).join('')}
       ${dayList.length>2?`<div style="font-size:10px;color:var(--gray-500);font-weight:600">+${dayList.length-2} more</div>`:''}
@@ -4429,7 +4602,7 @@ function renderCalendarPage() {
               const fu = calendarNeedsFollowUp(a);
               const c = statusBubbleColor(a.status);
               return `
-              <div style="border:1px solid ${fu?'#FCA5A5':'var(--border)'};border-left:4px solid ${c};border-radius:var(--radius-md);padding:12px 13px;margin-bottom:10px;background:${fu?'#FEF7F7':'var(--white)'}">
+              <div style="border:1px solid ${fu?'var(--navy-200)':'var(--border)'};border-left:4px solid ${c};border-radius:var(--radius-md);padding:12px 13px;margin-bottom:10px;background:${fu?'var(--navy-50)':'var(--white)'}">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
                   <div style="font-family:var(--font-display);font-weight:800;font-size:14px;color:var(--navy-900)">${a.time} <span style="font-size:11px;color:var(--gray-400);font-weight:500;font-family:var(--font-body)">· ${a.dur} min</span></div>
                   <span style="background:${c}15;color:${c};border:1px solid ${c}55;padding:2px 9px;border-radius:var(--radius-full);font-size:10.5px;font-weight:700">${a.status}</span>
@@ -4449,21 +4622,21 @@ function renderCalendarPage() {
 
                 <div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">
                   <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--green-700);font-weight:700"><span>📞</span><span>${a.calls}</span></div>
-                  <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:#1D4ED8;font-weight:700"><span>💬</span><span>${a.texts}</span></div>
+                  <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--navy-600);font-weight:700"><span>💬</span><span>${a.texts}</span></div>
                   <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray-500)"><div class="avatar ${agentAv(a.agent)}" style="width:20px;height:20px;font-size:8.5px">${initials(a.agent)}</div><span>${a.agent}</span></div>
                 </div>
 
                 ${a.notes?`<div style="font-size:11.5px;color:var(--gray-600);margin-top:8px;padding:7px 10px;background:var(--gray-50);border-radius:var(--radius-sm);font-style:italic">"${a.notes}"</div>`:''}
 
-                ${fu?`<div style="margin-top:9px;padding:7px 10px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:var(--radius-md);display:flex;align-items:center;gap:7px">
-                  <span style="font-size:14px">🔥</span>
-                  <div style="flex:1;font-size:11.5px;color:#991B1B;font-weight:700">Follow up needed — ${a.daysSinceContact}d since last contact${a.status==='Quoted'?', not yet sold':''}</div>
+                ${fu?`<div style="margin-top:9px;padding:7px 10px;background:var(--navy-50);border:1px solid var(--navy-200);border-radius:var(--radius-md);display:flex;align-items:center;gap:7px">
+                  <span style="font-size:14px">⚠️</span>
+                  <div style="flex:1;font-size:11.5px;color:var(--navy-800);font-weight:700">Follow up needed — ${a.daysSinceContact}d since last contact${a.status==='Quoted'?', not yet sold':''}</div>
                 </div>`:''}
                 ${a.sold?`<div style="margin-top:9px;padding:7px 10px;background:var(--green-50);border:1px solid var(--green-200);border-radius:var(--radius-md);font-size:11.5px;color:var(--green-700);font-weight:700">✓ Sold — moved to Customers</div>`:''}
 
                 <div style="display:flex;gap:6px;margin-top:9px">
                   <button class="btn" style="flex:1;justify-content:center;background:var(--green-500);color:#fff;font-size:11.5px;padding:6px 0">📞 Call</button>
-                  <button class="btn" style="flex:1;justify-content:center;background:var(--blue);color:#fff;font-size:11.5px;padding:6px 0" onclick="openTextThread()">💬 Text</button>
+                  <button class="btn" style="flex:1;justify-content:center;background:var(--navy-700);color:#fff;font-size:11.5px;padding:6px 0" onclick="openTextThread()">💬 Text</button>
                   <button class="btn btn-ghost" style="flex:1;justify-content:center;font-size:11.5px;padding:6px 0" onclick="nav('leaddetail',null)">View Lead</button>
                 </div>
               </div>`;
@@ -4497,7 +4670,7 @@ function renderCalendarPage() {
   <div class="kpi-grid" style="margin-bottom:16px">
     <div class="kpi-card accent"><div class="kpi-label">Today's Appointments</div><div class="kpi-value">${todaysAppts.length}</div><div class="kpi-sub">${todaysAppts.filter(a=>a.status==='Appointment Set').length} confirmed · ${todaysAppts.filter(a=>a.status==='Quoted').length} quoted</div></div>
     <div class="kpi-card accent-navy"><div class="kpi-label">This Week</div><div class="kpi-value">${weekAppts.length}</div><div class="kpi-sub">${weekAppts.filter(a=>a.sold).length} closed · ${weekAppts.filter(calendarNeedsFollowUp).length} need follow-up</div></div>
-    <div class="kpi-card accent-red"><div class="kpi-label">Need Follow-Up</div><div class="kpi-value red">${followUpAppts.length}</div><div class="kpi-sub">Quoted & not sold yet</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Need Follow-Up</div><div class="kpi-value">${followUpAppts.length}</div><div class="kpi-sub">Quoted & not sold yet</div></div>
     <div class="kpi-card accent"><div class="kpi-label">Booked-to-Sold</div><div class="kpi-value green">${soldRate}%</div><div class="kpi-sub">Conversion this month</div></div>
   </div>
 
@@ -4518,17 +4691,17 @@ function renderCalendarPage() {
   <!-- NEEDS FOLLOW-UP STRIP -->
   ${followUpAppts.length > 0 ? `
   <div class="card">
-    <div class="card-header"><div class="card-title">🔥 Needs Follow-Up — Across All Dates</div><span style="font-size:11px;color:var(--red);font-weight:700">${followUpAppts.length} appointments</span></div>
+    <div class="card-header"><div class="card-title">⚠️ Needs Follow-Up — Across All Dates</div><span style="font-size:11px;color:var(--navy-700);font-weight:700">${followUpAppts.length} appointments</span></div>
     <div class="card-body" style="padding:14px 16px">
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">
         ${followUpAppts.slice(0,8).map(a=>`
-          <div style="border:1px solid #FCA5A5;background:#FEF7F7;border-radius:var(--radius-md);padding:11px 13px;cursor:pointer" onclick="selectCalendarDay('${a.date}')">
+          <div style="border:1px solid var(--navy-200);background:var(--navy-50);border-radius:var(--radius-md);padding:11px 13px;cursor:pointer" onclick="selectCalendarDay('${a.date}')">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-              <div style="font-weight:800;font-size:12.5px;color:var(--navy-900)">${a.lead}</div>
-              <span style="font-size:9.5px;font-weight:800;color:#991B1B;background:#fff;padding:1px 7px;border-radius:var(--radius-full);border:1px solid #FCA5A5">${a.daysSinceContact}d cold</span>
+              <div style="font-weight:700;font-size:12.5px;color:var(--navy-900)">${a.lead}</div>
+              <span style="font-size:9.5px;font-weight:700;color:var(--navy-700);background:var(--white);padding:1px 7px;border-radius:var(--radius-full);border:1px solid var(--navy-200)">${a.daysSinceContact}d cold</span>
             </div>
             <div style="font-size:11px;color:var(--gray-500);margin-bottom:6px">${a.date} at ${a.time} · ${a.status}</div>
-            <div style="display:flex;align-items:center;gap:9px;font-size:11px"><span style="color:var(--green-700);font-weight:700">📞 ${a.calls}</span><span style="color:#1D4ED8;font-weight:700">💬 ${a.texts}</span><span style="color:var(--gray-500);margin-left:auto">${a.agent}</span></div>
+            <div style="display:flex;align-items:center;gap:9px;font-size:11px"><span style="color:var(--green-700);font-weight:700">📞 ${a.calls}</span><span style="color:var(--navy-600);font-weight:700">💬 ${a.texts}</span><span style="color:var(--gray-500);margin-left:auto">${a.agent}</span></div>
           </div>
         `).join('')}
       </div>
@@ -4758,11 +4931,11 @@ function renderLiveView() {
 
         <!-- Broadcast / All Extensions -->
         <div class="drop-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'all-extensions','All Extensions')"
-          style="padding:13px 14px;background:var(--blue-light);border:2px dashed #BFDBFE;border-radius:var(--radius-md);margin-bottom:10px;display:flex;align-items:center;gap:11px">
+          style="padding:13px 14px;background:var(--blue-light);border:2px dashed #C3D6E8;border-radius:var(--radius-md);margin-bottom:10px;display:flex;align-items:center;gap:11px">
           <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px">📡</div>
           <div style="flex:1">
-            <div style="font-weight:700;font-size:12.5px;color:#1E40AF">All Extensions</div>
-            <div style="font-size:10.5px;color:#3B82F6;margin-top:1px">Broadcast to everyone available</div>
+            <div style="font-weight:700;font-size:12.5px;color:#0C1D33">All Extensions</div>
+            <div style="font-size:10.5px;color:#163D6B;margin-top:1px">Broadcast to everyone available</div>
           </div>
         </div>
 
@@ -4811,7 +4984,7 @@ function renderLiveView() {
         ${history.length === 0 ? '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--gray-400)">No calls match this filter.</td></tr>' :
         history.map(h => {
           const dirIco = h.direction === 'outbound' ? '↗ Outbound' : '↙ Inbound';
-          const dirCol = h.direction === 'outbound' ? 'var(--green-700)' : '#1D4ED8';
+          const dirCol = h.direction === 'outbound' ? 'var(--green-700)' : '#0E2340';
           const statusCol = h.status === 'connected' ? 'var(--green-700)' : h.status === 'missed' ? 'var(--red)' : 'var(--gray-500)';
           return `<tr>
             <td><div style="font-weight:600;font-size:12.5px">${h.time}</div><div style="font-size:11px;color:var(--gray-400)">${h.date}</div></td>
@@ -4821,7 +4994,7 @@ function renderLiveView() {
             <td style="font-family:var(--font-display);font-weight:700;color:${statusCol}">${h.duration > 0 ? fmtCallDuration(h.duration) : '—'}</td>
             <td><span style="font-size:11.5px;font-weight:700;color:${statusCol}">${h.outcome}</span></td>
             <td>${h.recording?'<button type="button" class="btn btn-ghost" style="font-size:11px;padding:4px 9px" onclick="alert(\'▶ Playing recording…\')">▶ Play</button>':'<span style="color:var(--gray-300);font-size:11px">—</span>'}</td>
-            <td><div style="display:flex;gap:5px"><button type="button" title="Call back ${h.contact}" onclick="alert('Calling ${h.contact}…')" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--green-200);background:var(--green-50);cursor:pointer;font-size:12px">📞</button><button type="button" title="Text ${h.contact}" onclick="openTextThread('${h.contact.replace(/'/g,"\\'")}','${h.phone}')" style="width:28px;height:28px;border-radius:6px;border:1px solid #BFDBFE;background:var(--blue-light);cursor:pointer;font-size:12px">💬</button></div></td>
+            <td><div style="display:flex;gap:5px"><button type="button" title="Call back ${h.contact}" onclick="alert('Calling ${h.contact}…')" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--green-200);background:var(--green-50);cursor:pointer;font-size:12px">📞</button><button type="button" title="Text ${h.contact}" onclick="openTextThread('${h.contact.replace(/'/g,"\\'")}','${h.phone}')" style="width:28px;height:28px;border-radius:6px;border:1px solid #C3D6E8;background:var(--blue-light);cursor:pointer;font-size:12px">💬</button></div></td>
           </tr>`;
         }).join('')}
       </tbody>
@@ -4840,7 +5013,7 @@ function renderLiveView() {
         const isInbound = t.direction === 'inbound';
         return `
       <div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openTextThread('${safeName}','${t.phone}')">
-        <div style="width:34px;height:34px;border-radius:var(--radius-md);background:${t.direction==='outbound'?'var(--blue-light)':'var(--green-50)'};color:${t.direction==='outbound'?'#1D4ED8':'var(--green-700)'};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${t.direction==='outbound'?'↗':'↙'}</div>
+        <div style="width:34px;height:34px;border-radius:var(--radius-md);background:${t.direction==='outbound'?'var(--blue-light)':'var(--green-50)'};color:${t.direction==='outbound'?'#0E2340':'var(--green-700)'};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${t.direction==='outbound'?'↗':'↙'}</div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:8px">
             <div class="lead-name-link" style="font-weight:700;font-size:13px;color:var(--navy-900);cursor:pointer">${t.contact}</div>
@@ -5051,7 +5224,7 @@ function renderInboxCalls(calls) {
       <tbody>
         ${calls.map(h => {
           const dirIco = h.direction === 'outbound' ? '↗ Outbound' : '↙ Inbound';
-          const dirCol = h.direction === 'outbound' ? 'var(--green-700)' : '#1D4ED8';
+          const dirCol = h.direction === 'outbound' ? 'var(--green-700)' : '#0E2340';
           const statusCol = h.status === 'connected' ? 'var(--green-700)' : h.status === 'missed' ? 'var(--red)' : 'var(--gray-500)';
           const safeName = h.contact.replace(/'/g,"\\'");
           return `<tr>
@@ -5066,7 +5239,7 @@ function renderInboxCalls(calls) {
             <td>
               <div style="display:flex;gap:5px">
                 <button type="button" title="Call back" onclick="alert('Calling ${safeName}…')" style="width:30px;height:30px;border-radius:6px;border:1px solid var(--green-200);background:var(--green-50);cursor:pointer;font-size:13px">📞</button>
-                <button type="button" title="Text" onclick="openTextThread('${safeName}','${h.phone}')" style="width:30px;height:30px;border-radius:6px;border:1px solid #BFDBFE;background:var(--blue-light);cursor:pointer;font-size:13px">💬</button>
+                <button type="button" title="Text" onclick="openTextThread('${safeName}','${h.phone}')" style="width:30px;height:30px;border-radius:6px;border:1px solid #C3D6E8;background:var(--blue-light);cursor:pointer;font-size:13px">💬</button>
                 <button type="button" title="View profile" onclick="nav('leaddetail',null)" style="width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;font-size:13px">👁</button>
               </div>
             </td>
@@ -5206,29 +5379,97 @@ PAGES.reports = `
 `;
 
 // ==================== TASKS ====================
-PAGES.tasks = `
-<div class="page-header">
-  <div class="page-header-left"><h1>Tasks & Follow-Ups</h1><p>14 tasks today · 14 overdue</p></div>
-  <button class="btn btn-primary">+ New Task</button>
-</div>
-<div class="panel-row">
-  <div class="card">
-    <div class="card-header"><div class="card-title">Today — April 7, 2026</div><span style="background:var(--red-light);color:var(--red);font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:var(--radius-full)">3 overdue</span></div>
-    <div class="card-body">
-      <div class="task-item overdue"><div class="task-cb"></div><div style="font-size:14px">📞</div><div style="flex:1"><div class="task-label" style="color:var(--red)">Follow-up call — Maria Gonzalez</div><div class="task-time" style="color:var(--red)">Due: Today 3:00 PM · Overdue</div></div><span class="pri-badge pri-high">HIGH</span></div>
-      <div class="task-item overdue"><div class="task-cb"></div><div style="font-size:14px">📋</div><div style="flex:1"><div class="task-label" style="color:var(--red)">Submit application — Priya Patel</div><div class="task-time" style="color:var(--red)">Due: Today 5:00 PM · Overdue</div></div><span class="pri-badge pri-high">HIGH</span></div>
-      <div class="task-item"><div class="task-cb"></div><div style="font-size:14px">📧</div><div style="flex:1"><div class="task-label">Send quote email — Kevin Nguyen</div><div class="task-time">Due: Today 4:30 PM</div></div><span class="pri-badge pri-med">MED</span></div>
+PAGES.tasks = '';
+window.PAGE_INIT = window.PAGE_INIT || {};
+window.TASKS_STATE = { agentFilter: 'All' };
+window.PAGE_INIT.tasks = function() { refreshTasksPage(); };
+
+function refreshTasksPage() {
+  const c = document.getElementById('content');
+  if (!c) return;
+  c.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'page-content';
+  div.innerHTML = renderTasksPage();
+  c.appendChild(div);
+}
+
+function renderTasksPage() {
+  const filterAgent = window.TASKS_STATE.agentFilter || 'All';
+  const agentList   = ['All', 'Admin', ...AGENTS.map(a => a.name)];
+
+  let tasks = window.TASKS_DATA.slice();
+  if (filterAgent !== 'All') tasks = tasks.filter(t => t.assignedTo === filterAgent);
+
+  const todayTasks    = tasks.filter(t => t.dueDate === TODAY_ISO && !t.done);
+  const upcomingTasks = tasks.filter(t => t.dueDate > TODAY_ISO && !t.done);
+  const doneTasks     = tasks.filter(t => t.done);
+  const totalOpen     = todayTasks.length + upcomingTasks.length;
+
+  const taskRow = (t, isToday) => `
+  <div id="task-row-${t.id}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-md);border:1px solid ${t.done?'var(--border)':t.priority==='high'?'var(--navy-200)':'var(--border)'};margin-bottom:7px;background:${t.done?'var(--gray-50)':t.priority==='high'&&isToday?'var(--navy-50)':'var(--white)'};transition:all 0.15s">
+    <div onclick="toggleTaskDone(${t.id})" style="width:16px;height:16px;border-radius:4px;border:2px solid ${t.done?'var(--green-500)':'var(--gray-300)'};flex-shrink:0;cursor:pointer;background:${t.done?'var(--green-500)':'transparent'};display:flex;align-items:center;justify-content:center">
+      ${t.done?'<svg width="9" height="9" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}
     </div>
-  </div>
-  <div class="card">
-    <div class="card-header"><div class="card-title">Upcoming</div></div>
-    <div class="card-body">
-      ${[['📞','Call — Robert Chen','Tomorrow 10:00 AM','MED'],['📋','Docs reminder — Amanda Foster','Apr 8 2:00 PM','LOW'],['📅','Monthly goal review','Apr 10 9:00 AM','MED'],['📧','Renewal outreach batch','Apr 12 11:00 AM','LOW']].map(([ico,label,time,pri])=>`
-      <div class="task-item"><div class="task-cb"></div><div style="font-size:14px">${ico}</div><div style="flex:1"><div class="task-label">${label}</div><div class="task-time">${time}</div></div><span class="pri-badge pri-${pri.toLowerCase()}">${pri}</span></div>`).join('')}
+    <span style="font-size:14px;flex-shrink:0">${t.icon}</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:12.5px;font-weight:600;color:${t.done?'var(--gray-400)':'var(--navy-900)'};${t.done?'text-decoration:line-through':''}">${t.label}</div>
+      <div style="font-size:11px;color:var(--gray-400);margin-top:1px;display:flex;align-items:center;gap:8px">
+        <span>${t.dueTime||'No time set'}</span>
+        <span style="background:${t.assignedTo==='Admin'?'var(--navy-50)':'var(--green-50)'};color:${t.assignedTo==='Admin'?'var(--navy-700)':'var(--green-700)'};border:1px solid ${t.assignedTo==='Admin'?'var(--navy-200)':'var(--green-200)'};padding:1px 7px;border-radius:var(--radius-full);font-size:10px;font-weight:600">
+          ${t.assignedTo==='Admin'?'👤 Admin':'🧑‍💼 '+t.assignedTo}
+        </span>
+        ${t.notes?`<span style="color:var(--gray-400);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">"${t.notes}"</span>`:''}
+      </div>
     </div>
-  </div>
-</div>
-`;
+    <span class="pri-badge pri-${t.priority}">${t.priority.toUpperCase()}</span>
+    <div onclick="deleteTask(${t.id})" title="Delete" style="flex-shrink:0;cursor:pointer;color:var(--gray-300);font-size:13px;padding:3px 6px;border-radius:4px;margin-left:2px" onmouseenter="this.style.color='var(--red)'" onmouseleave="this.style.color='var(--gray-300)'">✕</div>
+  </div>`;
+
+  const section = (title, list, badge, isToday) => list.length === 0 ? '' : `
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-header">
+      <div class="card-title">${title}</div>
+      ${badge}
+    </div>
+    <div class="card-body" style="padding:14px 16px">
+      ${list.map(t => taskRow(t, isToday)).join('')}
+    </div>
+  </div>`;
+
+  const todayBadge    = `<span style="background:var(--navy-50);color:var(--navy-700);font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:var(--radius-full)">${todayTasks.length} task${todayTasks.length!==1?'s':''}</span>`;
+  const upcomingBadge = `<span style="background:var(--gray-100);color:var(--gray-600);font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:var(--radius-full)">${upcomingTasks.length} upcoming</span>`;
+  const doneBadge     = `<span style="background:var(--green-50);color:var(--green-700);font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:var(--radius-full)">${doneTasks.length} completed</span>`;
+
+  return `
+  <div id="tasksPageWrap">
+    <div class="page-header">
+      <div class="page-header-left" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <h1>Tasks &amp; Follow-Ups</h1>
+          <p>${totalOpen} open · ${doneTasks.length} completed</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;font-weight:600;color:var(--gray-500)">Assign:</span>
+          <select class="filter-select" onchange="window.TASKS_STATE.agentFilter=this.value;refreshTasksPage()" style="font-size:12px">
+            ${agentList.map(n=>`<option value="${n}" ${filterAgent===n?'selected':''}>${n==='All'?'All Assignees':n==='Admin'?'Admin (Tony Ballo)':n}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" style="font-size:12px" onclick="openTaskModal()">+ New Task (Admin)</button>
+        <button class="btn btn-primary" onclick="openTaskModal()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
+          Assign to Agent
+        </button>
+      </div>
+    </div>
+    ${section('Today — May 1, 2026', todayTasks, todayBadge, true)}
+    ${section('Upcoming', upcomingTasks, upcomingBadge, false)}
+    ${section('Completed', doneTasks, doneBadge, false)}
+    ${totalOpen === 0 && doneTasks.length === 0 ? `<div class="card"><div class="empty"><div class="empty-icon">✅</div><div class="empty-title">No tasks yet</div><div class="empty-sub">Add a task using the button above.</div></div></div>` : ''}
+  </div>`;
+}
 
 // ==================== GOALS ====================
 PAGES.goals = `
@@ -5268,28 +5509,599 @@ ${stubPage('💰','Finance Detail','Detailed fee records and collection tracking
 `;
 
 // ==================== ADMIN ====================
-PAGES.admin = `
-<div class="page-header"><div class="page-header-left"><h1>Settings</h1><p>Configure lead statuses, tiers, goals, and more</p></div></div>
-<div class="admin-layout">
-  <div class="card" style="padding:12px">
-    <div style="font-size:10px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:1px;padding:4px 8px 8px">Configuration</div>
-    ${['Lead Statuses','Policy Types','Lead Sources','Goal Templates','Tier Thresholds','Teams & Agents','Roles & Permissions','Notification Rules','Branding','Integrations','Audit Log'].map((item,i)=>`
-    <div class="admin-nav-item${i===3?' active':''}" onclick="document.querySelectorAll('.admin-nav-item').forEach(e=>e.classList.remove('active'));this.classList.add('active')">${item}</div>`).join('')}
-  </div>
-  <div class="card">
-    <div class="card-header"><div class="card-title">Goal Templates</div><button class="btn btn-primary" style="font-size:11.5px">+ New Template</button></div>
-    <div class="card-body">
-      <div class="form-grid">
-        <div class="form-group"><div class="form-label">App Count Target</div><input class="form-control" type="number" value="20"></div>
-        <div class="form-group"><div class="form-label">Broker Fee Target</div><input class="form-control" value="$8,500"></div>
-        <div class="form-group"><div class="form-label">Goal Period</div><select class="form-control"><option>Monthly</option><option>Quarterly</option><option>Annual</option></select></div>
-        <div class="form-group"><div class="form-label">Applies To</div><select class="form-control"><option>All Agents</option><option>Team Alpha</option></select></div>
+PAGES.admin = '';
+window.ADMIN_STATE = { panel: 'agents', addingAgent: false, agentError: '', viewingAgent: null };
+
+function renderAdminPage() {
+  const s = window.ADMIN_STATE;
+  const panels = [
+    { key:'agents',       label:'Teams & Agents',      icon:'👥' },
+    { key:'statuses',     label:'Lead Statuses',        icon:'🏷' },
+    { key:'policytypes',  label:'Policy Types',         icon:'📄' },
+    { key:'leadsources',  label:'Lead Sources',         icon:'📡' },
+    { key:'goals',        label:'Goal Templates',       icon:'🎯' },
+    { key:'tiers',        label:'Tier Thresholds',      icon:'⭐' },
+    { key:'roles',        label:'Roles & Permissions',  icon:'🔒' },
+    { key:'notifs',       label:'Notification Rules',   icon:'🔔' },
+    { key:'branding',     label:'Branding',             icon:'🎨' },
+    { key:'integrations', label:'Integrations',         icon:'🔗' },
+    { key:'auditlog',     label:'Audit Log',            icon:'📋' },
+  ];
+
+  const sidebar = `
+  <div class="card" style="padding:10px">
+    <div style="font-size:9.5px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:1.2px;padding:4px 10px 8px">Configuration</div>
+    ${panels.map(p=>`
+    <div class="admin-nav-item${s.panel===p.key?' active':''}" onclick="window.ADMIN_STATE.panel='${p.key}';window.ADMIN_STATE.addingAgent=false;refreshAdminPage()">
+      <span style="font-size:13px">${p.icon}</span> ${p.label}
+    </div>`).join('')}
+  </div>`;
+
+  let main = '';
+
+  if (s.panel === 'agents') {
+    if (s.addingAgent) {
+      main = renderAddAgentForm();
+    } else if (s.viewingAgent !== null && s.viewingAgent !== undefined) {
+      main = renderAgentProfile(s.viewingAgent);
+    } else {
+      main = renderAgentList();
+    }
+  } else if (s.panel === 'goals') {
+    main = `<div class="card">
+      <div class="card-header"><div class="card-title">Goal Templates</div><button class="btn btn-primary" style="font-size:11.5px">+ New Template</button></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group"><div class="form-label">App Count Target</div><input class="form-control" type="number" value="20"></div>
+          <div class="form-group"><div class="form-label">Broker Fee Target</div><input class="form-control" value="$8,500"></div>
+          <div class="form-group"><div class="form-label">Goal Period</div><select class="form-control"><option>Monthly</option><option>Bi-weekly</option><option>Quarterly</option></select></div>
+          <div class="form-group"><div class="form-label">Applies To</div><select class="form-control"><option>All Agents</option><option>Team Alpha</option></select></div>
+        </div>
+        <button class="btn btn-primary" style="font-size:12.5px">Save Template</button>
       </div>
-      <button class="btn btn-primary" style="font-size:12.5px">Save Template</button>
+    </div>`;
+  } else {
+    const labels = { statuses:'Lead Statuses', policytypes:'Policy Types', leadsources:'Lead Sources', tiers:'Tier Thresholds', roles:'Roles & Permissions', notifs:'Notification Rules', branding:'Branding', integrations:'Integrations', auditlog:'Audit Log' };
+    main = `<div class="card"><div class="card-body" style="text-align:center;padding:60px 24px">
+      <div style="font-size:36px;margin-bottom:12px">${(panels.find(p=>p.key===s.panel)||{}).icon||'🧱'}</div>
+      <div class="empty-title">${labels[s.panel]||'Coming Soon'}</div>
+      <div class="empty-sub">This configuration panel is coming soon.</div>
+    </div></div>`;
+  }
+
+  return `
+  <div class="page-header">
+    <div class="page-header-left"><h1>Settings</h1><p>Admin configuration — manage agents, goals, statuses, and more</p></div>
+  </div>
+  <div class="admin-layout">${sidebar}${main}</div>`;
+}
+
+function renderAgentList() {
+  const avatarColors = ['av-green','av-navy','av-amber','av-teal','av-purple','av-red'];
+  return `
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Teams &amp; Agents</div>
+          <div style="font-size:11.5px;color:var(--gray-500);margin-top:2px">${AGENTS.length} active agents on this platform</div>
+        </div>
+        <button class="btn btn-primary" onclick="window.ADMIN_STATE.addingAgent=true;refreshAdminPage()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
+          Add Agent
+        </button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table leads-table" style="min-width:700px">
+          <thead><tr>
+            <th>Agent</th><th>Role</th><th>Email</th><th>Phone</th><th>License #</th><th>NPN</th><th>Tier</th><th>Status</th><th></th>
+          </tr></thead>
+          <tbody>
+            ${AGENTS.map((a,i)=>{
+              const av = avatarColors[i % avatarColors.length];
+              const ini = a.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+              const isArchived = a._archived || false;
+              return `<tr onclick="window.ADMIN_STATE.viewingAgent=${i};refreshAdminPage()" style="cursor:pointer">
+                <td><div style="display:flex;align-items:center;gap:9px">
+                  <div class="avatar ${av}" style="width:32px;height:32px;font-size:11px;flex-shrink:0;opacity:${isArchived?0.45:1}">${ini}</div>
+                  <div>
+                    <div style="font-weight:600;color:var(--navy-900);display:flex;align-items:center;gap:7px">
+                      ${a.name}
+                      ${isArchived?'<span style="font-size:10px;background:var(--gray-100);color:var(--gray-500);padding:1px 7px;border-radius:var(--radius-full);font-weight:600">Archived</span>':''}
+                    </div>
+                    <div style="font-size:11px;color:var(--gray-500)">Rank #${a.rank} · ${a.apps} policies this period</div>
+                  </div>
+                </div></td>
+                <td><span style="background:var(--navy-50);color:var(--navy-700);padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:600">${a._role||'Agent'}</span></td>
+                <td style="color:var(--gray-600);font-size:12px">${a.name.split(' ')[0].toLowerCase()}.${a.name.split(' ')[1].toLowerCase()}@maxsave.com</td>
+                <td style="color:var(--gray-600);font-size:12px">(619) 555-0${100+i}</td>
+                <td style="font-size:12px;color:var(--navy-800);font-weight:500">CA-${3840000+i*11437}</td>
+                <td style="font-size:12px;color:var(--navy-800)">NPN${19200000+i*8321}</td>
+                <td><span class="tier-${a.tier.toLowerCase()}">${a.tier}</span></td>
+                <td>${isArchived
+                  ? '<span style="background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200);padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:600">⏸ Archived</span>'
+                  : '<span style="background:var(--green-50);color:var(--green-700);border:1px solid var(--green-200);padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:600">● Active</span>'
+                }</td>
+                <td style="color:var(--navy-600);font-size:11.5px;font-weight:500;white-space:nowrap">View Profile →</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderAgentProfile(idx) {
+  const a = AGENTS[idx];
+  if (!a) return '<div class="card"><div class="card-body">Agent not found.</div></div>';
+  const avatarColors = ['av-green','av-navy','av-amber','av-teal','av-purple','av-red'];
+  const av = avatarColors[idx % avatarColors.length];
+  const ini = a.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+  const email = a.name.split(' ')[0].toLowerCase()+'.'+a.name.split(' ')[1].toLowerCase()+'@maxsave.com';
+  const phone = '(619) 555-0'+(100+idx);
+  const licNum = 'CA-'+(3840000+idx*11437);
+  const npn = 'NPN'+(19200000+idx*8321);
+  const isArchived = a._archived || false;
+  const role = a._role || 'Agent';
+
+  const field = (label, value, mono) => `
+    <div class="field-row">
+      <div class="field-key">${label}</div>
+      <div class="field-val${mono?' money':''}">${value}</div>
+    </div>`;
+
+  const statBox = (label, value, color) => `
+    <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;text-align:center">
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${color||'var(--navy-900)'};">${value}</div>
+      <div style="font-size:10.5px;color:var(--gray-500);font-weight:600;margin-top:3px;text-transform:uppercase;letter-spacing:0.5px">${label}</div>
+    </div>`;
+
+  return `
+  <div class="card">
+    <!-- HEADER -->
+    <div style="padding:22px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px">
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex-shrink:0" onclick="window.ADMIN_STATE.viewingAgent=null;refreshAdminPage()">← Back to Agents</button>
+      <div style="flex:1;display:flex;align-items:center;gap:14px">
+        <div class="avatar ${av}" style="width:52px;height:52px;font-size:17px;flex-shrink:0;${isArchived?'opacity:0.5':''}">
+          ${ini}
+        </div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--navy-900);display:flex;align-items:center;gap:8px">
+            ${a.name}
+            ${isArchived
+              ? '<span style="font-size:11px;background:var(--gray-100);color:var(--gray-500);padding:2px 10px;border-radius:var(--radius-full);font-weight:600">⏸ Archived</span>'
+              : '<span style="font-size:11px;background:var(--green-50);color:var(--green-700);border:1px solid var(--green-200);padding:2px 10px;border-radius:var(--radius-full);font-weight:600">● Active</span>'
+            }
+          </div>
+          <div style="font-size:12px;color:var(--gray-500);margin-top:2px">${role} · ${email} · Rank #${a.rank}</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost" style="font-size:12px">✏️ Edit Profile</button>
+    </div>
+
+    <div class="card-body" style="padding:22px 24px">
+
+      <!-- PERFORMANCE STATS -->
+      <div style="font-size:10px;font-weight:700;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:12px">Performance — Current Period</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px">
+        ${statBox('Policies', a.apps, 'var(--navy-900)')}
+        ${statBox('Policy Goal', a.goal, 'var(--gray-600)')}
+        ${statBox('Close Rate', a.close, 'var(--green-700)')}
+        ${statBox('Contact Rate', a.contact, 'var(--navy-700)')}
+        ${statBox('Tier', a.tier, 'var(--navy-800)')}
+      </div>
+
+      <!-- PERSONAL INFO -->
+      <div style="font-size:10px;font-weight:700;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Personal Information</div>
+      <div style="margin-bottom:20px">
+        ${field('Full Name', a.name)}
+        ${field('Email', email)}
+        ${field('Phone', phone)}
+        ${field('Date of Birth', 'On file')}
+        ${field('Language(s)', 'English')}
+        ${field('Start Date', 'Jan 15, 2025')}
+      </div>
+
+      <!-- LICENSE & COMPLIANCE -->
+      <div style="font-size:10px;font-weight:700;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">License &amp; Compliance</div>
+      <div style="margin-bottom:20px">
+        ${field('NPN', npn, true)}
+        ${field('License #', licNum, true)}
+        ${field('License State(s)', 'CA, NV')}
+        ${field('License Exp.', 'Dec 31, 2026')}
+        ${field('E&O Carrier', 'Swiss Re')}
+        ${field('E&O Exp.', 'Jun 30, 2027')}
+      </div>
+
+      <!-- PLATFORM ACCESS -->
+      <div style="font-size:10px;font-weight:700;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Platform Access</div>
+      <div style="margin-bottom:20px">
+        ${field('Login Email', email)}
+        ${field('Role', role)}
+        ${field('Team', 'Team Alpha')}
+        ${field('Last Login', 'Today at 8:42 AM')}
+        ${field('2FA Enabled', 'Yes')}
+      </div>
+
+      <!-- GOALS -->
+      <div style="font-size:10px;font-weight:700;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Goals &amp; Commission</div>
+      <div style="margin-bottom:28px">
+        ${field('Policy Goal', a.goal+' policies / period')}
+        ${field('Broker Fee Goal', '$'+a.feeGoal.toLocaleString()+' / period')}
+        ${field('Goal Period', 'Bi-weekly')}
+        ${field('Commission Tier', a.tier+' — '+({'Elite':'40%','Platinum':'35%','Gold':'30%','Silver':'25%','Bronze':'20%'}[a.tier]||'20%'))}
+        ${field('Total Fees Collected', '$'+a.fee.toLocaleString())}
+      </div>
+
+      <!-- DANGER ZONE -->
+      <div style="border:1px solid #FCA5A5;border-radius:var(--radius-lg);overflow:hidden">
+        <div style="background:#FEF2F2;padding:13px 18px;border-bottom:1px solid #FCA5A5;display:flex;align-items:center;gap:8px">
+          <span style="font-size:15px">⚠️</span>
+          <div>
+            <div style="font-weight:700;font-size:13px;color:#991B1B">Danger Zone</div>
+            <div style="font-size:11.5px;color:#B91C1C;margin-top:1px">These actions affect this agent's access and data. Proceed with caution.</div>
+          </div>
+        </div>
+        <div style="padding:18px 20px;background:var(--white);display:flex;flex-direction:column;gap:14px">
+
+          <!-- ARCHIVE -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-md)">
+            <div>
+              <div style="font-weight:600;font-size:13px;color:var(--navy-900)">${isArchived?'Restore Agent':'Archive Agent'}</div>
+              <div style="font-size:12px;color:var(--gray-500);margin-top:2px">
+                ${isArchived
+                  ? 'Restore this agent\'s access and mark them as active again.'
+                  : 'Suspends login access and hides this agent from active assignments. All data is preserved and can be restored at any time.'
+                }
+              </div>
+            </div>
+            <button class="btn btn-ghost" style="flex-shrink:0;font-size:12.5px;border-color:var(--gray-300);white-space:nowrap"
+              onclick="${isArchived?'restoreAgent('+idx+')':'confirmArchiveAgent('+idx+')'}">${isArchived?'Restore Agent':'⏸ Archive Agent'}</button>
+          </div>
+
+          <!-- DELETE -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid #FCA5A5;border-radius:var(--radius-md);background:#FFFAFA">
+            <div>
+              <div style="font-weight:600;font-size:13px;color:#991B1B">Delete Agent</div>
+              <div style="font-size:12px;color:#B91C1C;margin-top:2px">Permanently removes this agent and all associated records from the platform. <strong>This cannot be undone.</strong></div>
+            </div>
+            <button class="btn" style="flex-shrink:0;font-size:12.5px;background:#DC2626;color:#fff;white-space:nowrap"
+              onclick="confirmDeleteAgent(${idx})">🗑 Delete Agent</button>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </div>
-</div>
-`;
+
+  <!-- ARCHIVE CONFIRM MODAL -->
+  <div id="archiveModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center">
+    <div style="background:var(--white);border-radius:var(--radius-xl);padding:28px 32px;width:400px;box-shadow:var(--shadow-lg)">
+      <div style="font-size:30px;margin-bottom:10px;text-align:center">⏸</div>
+      <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--navy-900);text-align:center;margin-bottom:8px">Archive ${a.name}?</div>
+      <div style="font-size:13px;color:var(--gray-500);text-align:center;margin-bottom:22px;line-height:1.55">Their account will be suspended and they won't be able to log in. All data is preserved — you can restore this agent at any time.</div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="document.getElementById('archiveModal').style.display='none'">Cancel</button>
+        <button class="btn" style="flex:1;justify-content:center;background:var(--navy-800);color:#fff" onclick="archiveAgent(${idx})">Yes, Archive</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRM MODAL -->
+  <div id="deleteModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.50);z-index:9999;align-items:center;justify-content:center">
+    <div style="background:var(--white);border-radius:var(--radius-xl);padding:28px 32px;width:420px;box-shadow:var(--shadow-lg)">
+      <div style="font-size:30px;margin-bottom:10px;text-align:center">🗑</div>
+      <div style="font-family:var(--font-display);font-size:17px;font-weight:700;color:#991B1B;text-align:center;margin-bottom:8px">Delete ${a.name}?</div>
+      <div style="font-size:13px;color:var(--gray-500);text-align:center;margin-bottom:16px;line-height:1.55">This will permanently remove this agent and all of their records. <strong style="color:#991B1B">This action cannot be undone.</strong></div>
+      <div style="margin-bottom:18px">
+        <div style="font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:6px">Type <strong style="color:var(--navy-900)">${a.name}</strong> to confirm:</div>
+        <input id="deleteConfirmInput" class="form-control" placeholder="Full name" oninput="document.getElementById('confirmDeleteBtn').disabled=this.value!=='${a.name}'">
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="document.getElementById('deleteModal').style.display='none'">Cancel</button>
+        <button id="confirmDeleteBtn" class="btn" style="flex:1;justify-content:center;background:#DC2626;color:#fff;opacity:0.5" disabled onclick="deleteAgent(${idx})">Delete Permanently</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function confirmArchiveAgent(idx) {
+  document.getElementById('archiveModal').style.display = 'flex';
+}
+function confirmDeleteAgent(idx) {
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+function archiveAgent(idx) {
+  AGENTS[idx]._archived = true;
+  window.ADMIN_STATE.viewingAgent = null;
+  window.ADMIN_STATE.successMsg = AGENTS[idx].name + ' has been archived.';
+  refreshAdminPage();
+}
+function restoreAgent(idx) {
+  AGENTS[idx]._archived = false;
+  window.ADMIN_STATE.viewingAgent = null;
+  window.ADMIN_STATE.successMsg = AGENTS[idx].name + ' has been restored.';
+  refreshAdminPage();
+}
+function deleteAgent(idx) {
+  const name = AGENTS[idx].name;
+  AGENTS.splice(idx, 1);
+  window.ADMIN_STATE.viewingAgent = null;
+  window.ADMIN_STATE.successMsg = name + ' has been permanently deleted.';
+  refreshAdminPage();
+}
+
+function renderAddAgentForm() {
+  const err = window.ADMIN_STATE.agentError || '';
+  return `
+  <div class="card">
+    <div class="card-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn btn-ghost" style="padding:6px 10px;font-size:12px" onclick="window.ADMIN_STATE.addingAgent=false;window.ADMIN_STATE.agentError='';refreshAdminPage()">← Back</button>
+        <div>
+          <div class="card-title">Add New Agent</div>
+          <div style="font-size:11.5px;color:var(--gray-500);margin-top:1px">All fields marked <span style="color:var(--red)">*</span> are required</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body" style="padding:20px 24px">
+
+      ${err ? `<div style="background:var(--red-light);border:1px solid #FCA5A5;color:#991B1B;padding:10px 14px;border-radius:var(--radius-md);margin-bottom:18px;font-size:12.5px;font-weight:600">${err}</div>` : ''}
+
+      <!-- PERSONAL INFO -->
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Personal Information</div>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="form-group">
+          <div class="form-label">First Name <span style="color:var(--red)">*</span></div>
+          <input id="af_first" class="form-control" placeholder="e.g. Sarah" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Last Name <span style="color:var(--red)">*</span></div>
+          <input id="af_last" class="form-control" placeholder="e.g. Kim" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Email Address <span style="color:var(--red)">*</span></div>
+          <input id="af_email" class="form-control" type="email" placeholder="agent@maxsave.com" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Phone Number <span style="color:var(--red)">*</span></div>
+          <input id="af_phone" class="form-control" type="tel" placeholder="(619) 555-0000" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Date of Birth</div>
+          <input id="af_dob" class="form-control" type="date">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Language(s)</div>
+          <select id="af_lang" class="form-control">
+            <option>English</option>
+            <option>English &amp; Spanish</option>
+            <option>Spanish</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- LICENSE & COMPLIANCE -->
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">License &amp; Compliance</div>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="form-group">
+          <div class="form-label">NPN (National Producer Number) <span style="color:var(--red)">*</span></div>
+          <input id="af_npn" class="form-control" placeholder="e.g. 19283746" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">License Number <span style="color:var(--red)">*</span></div>
+          <input id="af_lic" class="form-control" placeholder="e.g. CA-3840011" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">License State(s) <span style="color:var(--red)">*</span></div>
+          <input id="af_licstate" class="form-control" placeholder="e.g. CA, NV, AZ" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">License Expiration Date <span style="color:var(--red)">*</span></div>
+          <input id="af_licexp" class="form-control" type="date" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">E&amp;O Insurance Carrier <span style="color:var(--red)">*</span></div>
+          <input id="af_eo" class="form-control" placeholder="e.g. Swiss Re, Chubb" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">E&amp;O Expiration Date <span style="color:var(--red)">*</span></div>
+          <input id="af_eoexp" class="form-control" type="date" oninput="clearAgentError()">
+        </div>
+      </div>
+
+      <!-- PLATFORM ACCESS -->
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Platform Access</div>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="form-group">
+          <div class="form-label">Login Email <span style="color:var(--red)">*</span></div>
+          <input id="af_loginemail" class="form-control" type="email" placeholder="Login email address" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Role <span style="color:var(--red)">*</span></div>
+          <select id="af_role" class="form-control">
+            <option>Agent</option>
+            <option>Senior Agent</option>
+            <option>Team Lead</option>
+            <option>Manager</option>
+            <option>Admin</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Temporary Password <span style="color:var(--red)">*</span></div>
+          <input id="af_pass" class="form-control" type="password" placeholder="Min 8 characters" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Confirm Password <span style="color:var(--red)">*</span></div>
+          <input id="af_pass2" class="form-control" type="password" placeholder="Re-enter password" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Start Date <span style="color:var(--red)">*</span></div>
+          <input id="af_start" class="form-control" type="date" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Team Assignment</div>
+          <select id="af_team" class="form-control">
+            <option value="">— No Team —</option>
+            <option>Team Alpha</option>
+            <option>Team Beta</option>
+            <option>Remote</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- GOALS & COMMISSION -->
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Goals &amp; Commission</div>
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="form-group">
+          <div class="form-label">Policy Goal (per period) <span style="color:var(--red)">*</span></div>
+          <input id="af_pgoal" class="form-control" type="number" placeholder="e.g. 20" oninput="clearAgentError()">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Broker Fee Goal (per period)</div>
+          <input id="af_fgoal" class="form-control" placeholder="e.g. $8,500">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Goal Period <span style="color:var(--red)">*</span></div>
+          <select id="af_period" class="form-control">
+            <option>Bi-weekly</option>
+            <option>Monthly</option>
+            <option>Quarterly</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Starting Commission Tier</div>
+          <select id="af_tier" class="form-control">
+            <option>Tier 1 — 25%</option>
+            <option>Tier 2 — 30%</option>
+            <option>Tier 3 — 35%</option>
+            <option>Tier 4 — 40%</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- LEAD PREFERENCES -->
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Lead Preferences</div>
+      <div class="form-grid" style="margin-bottom:24px">
+        <div class="form-group">
+          <div class="form-label">Primary Lead Sources</div>
+          <select id="af_leadsrc" class="form-control" multiple style="height:90px">
+            <option>Everquote</option>
+            <option>Facebook Ads</option>
+            <option>Google Ads</option>
+            <option>Referral</option>
+            <option>Direct Call</option>
+            <option>Cold Call</option>
+          </select>
+          <div style="font-size:10.5px;color:var(--gray-400);margin-top:3px">Hold Ctrl / Cmd to select multiple</div>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Max Daily Lead Cap</div>
+          <input id="af_leadcap" class="form-control" type="number" placeholder="e.g. 15">
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div style="display:flex;align-items:center;gap:10px;padding-top:16px;border-top:1px solid var(--border)">
+        <button class="btn btn-primary" style="padding:9px 24px;font-size:13px" onclick="submitAddAgent()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
+          Create Agent Account
+        </button>
+        <button class="btn btn-ghost" onclick="window.ADMIN_STATE.addingAgent=false;window.ADMIN_STATE.agentError='';refreshAdminPage()">Cancel</button>
+        <span style="font-size:11px;color:var(--gray-400);margin-left:4px">Agent will receive a welcome email with login instructions.</span>
+      </div>
+
+    </div>
+  </div>`;
+}
+
+function clearAgentError() {
+  if (window.ADMIN_STATE.agentError) {
+    window.ADMIN_STATE.agentError = '';
+    const errEl = document.querySelector('#agentFormError');
+    if (errEl) errEl.style.display = 'none';
+  }
+}
+
+function submitAddAgent() {
+  const get = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const required = [
+    ['af_first',      'First Name'],
+    ['af_last',       'Last Name'],
+    ['af_email',      'Email Address'],
+    ['af_phone',      'Phone Number'],
+    ['af_npn',        'NPN'],
+    ['af_lic',        'License Number'],
+    ['af_licstate',   'License State(s)'],
+    ['af_licexp',     'License Expiration Date'],
+    ['af_eo',         'E&O Insurance Carrier'],
+    ['af_eoexp',      'E&O Expiration Date'],
+    ['af_loginemail', 'Login Email'],
+    ['af_pass',       'Temporary Password'],
+    ['af_pass2',      'Confirm Password'],
+    ['af_start',      'Start Date'],
+    ['af_pgoal',      'Policy Goal'],
+  ];
+  for (const [id, label] of required) {
+    if (!get(id)) {
+      window.ADMIN_STATE.agentError = `⚠ "${label}" is required.`;
+      refreshAdminPage();
+      document.querySelector('.card-body').scrollTop = 0;
+      return;
+    }
+  }
+  if (get('af_pass') !== get('af_pass2')) {
+    window.ADMIN_STATE.agentError = '⚠ Passwords do not match.';
+    refreshAdminPage();
+    return;
+  }
+  if (get('af_pass').length < 8) {
+    window.ADMIN_STATE.agentError = '⚠ Password must be at least 8 characters.';
+    refreshAdminPage();
+    return;
+  }
+  const newAgent = {
+    name: get('af_first') + ' ' + get('af_last'),
+    apps: 0, goal: parseInt(get('af_pgoal')) || 20,
+    fee: 0, feeGoal: 8000, premium: 0,
+    tier: 'Bronze', close: '0%', contact: '0%', leads: 0,
+    rank: AGENTS.length + 1
+  };
+  AGENTS.push(newAgent);
+  window.ADMIN_STATE.addingAgent = false;
+  window.ADMIN_STATE.agentError = '';
+  window.ADMIN_STATE.successMsg = get('af_first') + ' ' + get('af_last');
+  refreshAdminPage();
+}
+
+function refreshAdminPage() {
+  const c = document.getElementById('content');
+  if (!c) return;
+  c.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'page-content';
+  div.innerHTML = renderAdminPage();
+  c.appendChild(div);
+  if (window.ADMIN_STATE.successMsg) {
+    const msg = window.ADMIN_STATE.successMsg;
+    window.ADMIN_STATE.successMsg = '';
+    const isDelete = msg.includes('deleted');
+    const isArchive = msg.includes('archived') || msg.includes('restored');
+    setTimeout(() => {
+      const banner = document.createElement('div');
+      banner.style.cssText = 'position:fixed;bottom:24px;right:28px;background:'+(isDelete?'#DC2626':isArchive?'var(--navy-800)':'var(--green-700)')+';color:#fff;padding:13px 20px;border-radius:var(--radius-lg);box-shadow:0 6px 24px rgba(0,0,0,0.25);font-weight:600;font-size:13px;z-index:9999;animation:fadeSlideIn 0.25s ease';
+      banner.textContent = '✓ ' + (isDelete||isArchive ? msg : 'Agent "'+msg+'" has been added.');
+      document.body.appendChild(banner);
+      setTimeout(() => banner.remove(), 3500);
+    }, 50);
+  }
+}
+
+window.PAGE_INIT = window.PAGE_INIT || {};
+window.PAGE_INIT.admin = function() { refreshAdminPage(); };
 
 // ==================== TAB SWITCHER ====================
 function switchTab(el, targetId) {
