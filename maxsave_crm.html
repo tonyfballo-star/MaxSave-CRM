@@ -4130,10 +4130,10 @@ function renderCustomersPage(){
     <table class="data-table leads-table">
       <thead><tr>
         <th style="width:42px"><input type="checkbox" ${list.length>0 && list.every(c => (window.CUSTOMERS_SELECTED||new Set()).has(c.id)) ? 'checked' : ''} onchange="toggleSelectAllCustomers(this.checked)" style="cursor:pointer;width:16px;height:16px"></th>
-        <th>Customer</th><th>Carrier / Policy #</th><th>Sold By</th><th>City / ZIP</th><th>Age</th><th>Lines</th><th>Broker Fee Total</th><th>Open Balance</th><th>Renewal</th><th>Actions</th>
+        <th>Customer</th><th>Carrier / Policy #</th><th>Sold By</th><th>Lines</th><th>Broker Fee Total</th><th>Open Balance</th><th>Renewal</th><th>Actions</th>
       </tr></thead>
       <tbody>
-        ${list.length === 0 ? '<tr><td colspan="11" style="text-align:center;padding:36px;color:var(--gray-400);font-size:14px">No customers match the current filters.</td></tr>' : list.map(c=>{
+        ${list.length === 0 ? '<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--gray-400);font-size:14px">No customers match the current filters.</td></tr>' : list.map(c=>{
           const bal = customerOpenBalance(c);
           const brokerFeeTotal = c.policies.reduce((sum,p) => sum + (p.feeTotal||0), 0);
           const renew = daysToRenewal(c);
@@ -4154,8 +4154,6 @@ function renderCustomersPage(){
               <div style="font-family:monospace;font-size:12px;color:var(--gray-500);margin-top:1px">${c.policyNumber}</div>
             </td>
             <td><span style="font-size:15px;font-weight:800;color:#0C2040">${c.soldBy}</span></td>
-            <td><div style="font-size:14px;font-weight:600;color:var(--gray-700)">${c.city}</div><div style="font-size:12px;color:var(--gray-400)">${c.zip}</div></td>
-            <td style="font-size:15px;font-weight:600;color:var(--gray-700)">${c.age}</td>
             <td><span style="background:var(--navy-50);color:var(--navy-700);font-size:12px;font-weight:700;padding:3px 10px;border-radius:var(--radius-full);border:1px solid var(--navy-100)">${lineCount} line${lineCount!==1?'s':''}</span></td>
             <td style="font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--green-700)">${brokerFeeTotal>0?fmt$(brokerFeeTotal):'—'}</td>
             <td style="font-family:var(--font-display);font-weight:700;font-size:15px;color:${bal>0?'var(--red)':'var(--gray-300)'}">${bal>0?fmt$(bal):'$0'}</td>
