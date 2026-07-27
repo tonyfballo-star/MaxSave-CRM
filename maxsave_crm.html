@@ -692,13 +692,6 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
       <input placeholder="Search leads, agents, notes…">
     </div>
     <button class="btn btn-ghost" style="font-size:12px">⬆ Import</button>
-    <button class="btn btn-primary">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
-      New Lead
-    </button>
-    <div style="width:1px;height:22px;background:var(--border-strong);margin:0 2px;flex-shrink:0"></div>
-    <button onclick="showNewLeadAlert()" title="Simulate incoming lead" style="background:linear-gradient(135deg,#1A5C22,#3BAA47);color:#fff;border:none;padding:6px 13px;border-radius:var(--radius-md);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap">🟢 New Lead</button>
-    <button onclick="showInboundCallAlert()" title="Simulate inbound call" style="background:linear-gradient(135deg,#0A1824,#122840);color:#fff;border:none;padding:6px 13px;border-radius:var(--radius-md);font-family:var(--font-body);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap">📞 Inbound</button>
     <div class="icon-btn" title="Notifications">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 16 16"><path d="M8 2a5 5 0 0 1 5 5v2.5l1 1.5H2l1-1.5V7a5 5 0 0 1 5-5z"/><path d="M6.5 13.5a1.5 1.5 0 0 0 3 0"/></svg>
       <div class="notif-dot"></div>
@@ -2331,8 +2324,8 @@ function renderLeadsPage(){
         <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:8px;border-top:1px dashed var(--border)">
           <span style="font-size:12px;color:#163D6B;font-weight:700">${sourceAbbrev(l.source)}</span>
           <div style="display:flex;gap:5px">
-            <button type="button" class="board-card-action" title="Call" onclick="event.stopPropagation();alert('Calling ${l.name} at ${l.phone}…')" style="background:var(--green-50);border:1px solid var(--green-200);color:var(--green-700);width:28px;height:28px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px">📞</button>
-            <button type="button" class="board-card-action" title="Text" onclick="event.stopPropagation();openTextThread()" style="background:var(--blue-light);border:1px solid #C3D6E8;color:#0E2340;width:28px;height:28px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px">💬</button>
+            <button type="button" class="board-card-action" title="Call" onclick="event.stopPropagation();alert('Calling ${l.name} at ${l.phone}…')" style="background:#1A6ED0;color:#fff;border:none;border-radius:20px;padding:5px 11px;font-size:11.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:var(--font-body);white-space:nowrap"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M2 2.5C2 2.5 3.5 1 5 1s2.5 1.5 3 3-1 2-1 3 2 2.5 3 3 3-1.5 3-3 1 3 1 3-1.5 2-3 2c-2 0-4-1-6-3S1 5.5 1 3.5C1 2.5 2 2.5 2 2.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Call</button>
+            <button type="button" class="board-card-action" title="Text" onclick="event.stopPropagation();openTextThread()" style="background:#fff;color:#374151;border:1.5px solid #D1D5DB;border-radius:20px;padding:5px 11px;font-size:11.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:var(--font-body);white-space:nowrap"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M14 9.5a5 5 0 0 1-5 5H3l-2 2V5a5 5 0 0 1 5-5h3a5 5 0 0 1 5-5v4.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text</button>
           </div>
         </div>
       </div>
@@ -2380,21 +2373,21 @@ function renderLeadsPage(){
           <td><input type="checkbox" ${sel.has(l.phone)?'checked':''} onchange="toggleSelectLead('${l.phone}',this.checked)" style="cursor:pointer;width:16px;height:16px"></td>
           <td>
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-              <div class="lead-name-link" onclick="nav('leaddetail',null)" style="font-weight:800;color:var(--navy-900);cursor:pointer;font-size:16px">${l.name}</div>
+              <div class="lead-name-link" onclick="nav('leaddetail',null)" style="font-weight:700;color:var(--navy-900);cursor:pointer;font-size:14px">${l.name}</div>
               ${l.sr22?'<span style="background:#FEF2F2;color:#991B1B;border:1px solid #FCA5A5;padding:1px 7px;border-radius:var(--radius-full);font-size:9.5px;font-weight:800;letter-spacing:0.4px">SR-22</span>':''}
               ${l.language==='Spanish'?'<span title="Spanish-speaking" style="font-size:13px">🇪🇸</span>':''}
             </div>
-            <div style="font-size:14px;color:var(--gray-500);margin-top:2px">${l.phone}</div>
+            <div style="font-size:13px;color:var(--gray-500);margin-top:2px">${l.phone}</div>
           </td>
-          <td><span class="badge ${statusBadge(l.status)}" style="font-size:13px;padding:4px 12px">${l.status}</span></td>
-          <td style="font-size:15px;color:var(--gray-700);font-weight:600">${l.received}</td>
-          <td><span style="font-size:15px;font-weight:800;color:#0C2040">${l.agent}</span></td>
-          <td style="font-size:14px;color:#163D6B;font-weight:700">${sourceAbbrev(l.source)}</td>
+          <td><span class="badge ${statusBadge(l.status)}" style="font-size:12px;padding:4px 11px">${l.status}</span></td>
+          <td style="font-size:13px;color:var(--gray-700);font-weight:500">${l.received}</td>
+          <td><span style="font-size:14px;font-weight:700;color:#0C2040">${l.agent}</span></td>
+          <td style="font-size:13px;color:#163D6B;font-weight:700">${sourceAbbrev(l.source)}</td>
           <td>
             <div style="display:flex;gap:6px;align-items:center">
-              <button type="button" title="View" onclick="nav('leaddetail',null)" style="width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px">👁</button>
-              <button type="button" title="Call ${l.name}" onclick="alert('Calling ${l.name} at ${l.phone}…')" style="width:32px;height:32px;border-radius:7px;border:1px solid var(--green-200);background:var(--green-50);color:var(--green-700);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px">📞</button>
-              <button type="button" title="Text ${l.name}" onclick="openTextThread()" style="width:32px;height:32px;border-radius:7px;border:1px solid #C3D6E8;background:var(--blue-light);color:#0E2340;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px">💬</button>
+              <button type="button" title="View" onclick="nav('leaddetail',null)" style="width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px">👁</button>
+              <button type="button" title="Call ${l.name}" onclick="alert('Calling ${l.name} at ${l.phone}…')" style="background:#1A6ED0;color:#fff;border:none;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M2 2.5C2 2.5 3.5 1 5 1s2.5 1.5 3 3-1 2-1 3 2 2.5 3 3 3-1.5 3-3 1 3 1 3-1.5 2-3 2c-2 0-4-1-6-3S1 5.5 1 3.5C1 2.5 2 2.5 2 2.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Call</button>
+              <button type="button" title="Text ${l.name}" onclick="openTextThread()" style="background:#fff;color:#374151;border:1.5px solid #D1D5DB;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M14 9.5a5 5 0 0 1-5 5H3l-2 2V5a5 5 0 0 1 5-5h3a5 5 0 0 1 5 5v4.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text</button>
             </div>
           </td>
         </tr>`;
@@ -4160,9 +4153,9 @@ function renderCustomersPage(){
             <td>${renewalChip(renew)}</td>
             <td>
               <div style="display:flex;gap:6px">
-                <button type="button" title="View" onclick="openCustomerDetail('${c.id}')" style="width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;font-size:14px">👁</button>
-                <button type="button" title="Call" onclick="alert('Calling ${c.first}…')" style="width:32px;height:32px;border-radius:7px;border:1px solid var(--green-200);background:var(--green-50);cursor:pointer;font-size:14px">📞</button>
-                <button type="button" title="Text" onclick="openTextThread()" style="width:32px;height:32px;border-radius:7px;border:1px solid #C3D6E8;background:var(--blue-light);cursor:pointer;font-size:14px">💬</button>
+                <button type="button" title="View" onclick="openCustomerDetail('${c.id}')" style="width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;font-size:13px">👁</button>
+                <button type="button" title="Call" onclick="alert('Calling ${c.first}…')" style="background:#1A6ED0;color:#fff;border:none;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M2 2.5C2 2.5 3.5 1 5 1s2.5 1.5 3 3-1 2-1 3 2 2.5 3 3 3-1.5 3-3 1 3 1 3-1.5 2-3 2c-2 0-4-1-6-3S1 5.5 1 3.5C1 2.5 2 2.5 2 2.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Call</button>
+                <button type="button" title="Text" onclick="openTextThread()" style="background:#fff;color:#374151;border:1.5px solid #D1D5DB;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M14 9.5a5 5 0 0 1-5 5H3l-2 2V5a5 5 0 0 1 5-5h3a5 5 0 0 1 5-5v4.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text</button>
               </div>
             </td>
           </tr>`;
