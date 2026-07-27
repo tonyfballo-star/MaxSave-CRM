@@ -275,8 +275,8 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .nav-item.active { background: rgba(22, 61, 107, 0.45); color: #fff; border-color: rgba(80, 148, 224, 0.55); font-weight: 600; }
 .nav-item.active .nav-ic { opacity: 1; }
 .nav-ic { width: 22px; height: 22px; opacity: 0.75; flex-shrink: 0; }
-.nav-badge { position: absolute; top: 5px; right: 5px; background: var(--red); color: #fff; font-size: 8.5px; font-weight: 700; padding: 1px 5px; border-radius: var(--radius-full); min-width: 15px; text-align: center; line-height: 1.4; }
-.nav-badge.green { background: var(--green-500); }
+.nav-badge { display: none; }
+.nav-dot { position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--green-400); box-shadow: 0 0 0 2px #0A1624; flex-shrink: 0; pointer-events: none; }
 .nav-item.nav-logout { color: rgba(255,100,100,0.65); }
 .nav-item.nav-logout:hover { background: rgba(239,68,68,0.10); color: rgba(255,120,120,0.95); }
 .nav-item.nav-logout .nav-ic { opacity: 0.7; }
@@ -584,17 +584,8 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
 
 <!-- ====== SIDEBAR ====== -->
 <div class="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-mark" title="MSIHub">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2 L4 5 V12 C4 17 8 21 12 22 C16 21 20 17 20 12 V5 Z" fill="rgba(255,255,255,0.10)"/>
-        <path d="M9 9 V15 M15 9 V15 M9 12 H15"/>
-      </svg>
-    </div>
-    <div class="logo-text">
-      <div class="logo-name">MSI<span class="accent">Hub</span></div>
-      <div class="logo-tagline">Maxsave · Powered Up</div>
-    </div>
+  <div class="sidebar-logo" style="justify-content:center;padding:20px 14px 18px">
+    <div class="logo-name" style="font-size:18px;letter-spacing:0.2px">MSI<span class="accent">Hub</span></div>
   </div>
 
   <nav class="sidebar-nav">
@@ -605,7 +596,7 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
     <div class="nav-item" onclick="nav('leads',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="currentColor"><circle cx="6" cy="5" r="3"/><path d="M0 14c0-3.3 2.7-5 6-5s6 1.7 6 5"/><circle cx="12.5" cy="5.5" r="2" fill-opacity=".5"/><path d="M12.5 10c2 0 3.5 1.2 3.5 4" fill-opacity=".5"/></svg>
       Leads
-      <span class="nav-badge">8</span>
+      <span class="nav-dot"></span>
     </div>
     <div class="nav-item" onclick="nav('customers',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" stroke-linecap="round"/></svg>
@@ -618,12 +609,12 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
     <div class="nav-item" onclick="nav('liveview',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="2.5" fill="currentColor" stroke="none"/><path d="M1.5 8C3 4.5 5.3 3 8 3s5 1.5 6.5 5C13 11.5 10.7 13 8 13S3 11.5 1.5 8z"/></svg>
       Live View
-      <span class="nav-badge green">Live</span>
+      <span class="nav-dot"></span>
     </div>
     <div class="nav-item" onclick="nav('inbox',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 3a1 1 0 011-1h12a1 1 0 011 1v7H10l-1 2h-2l-1-2H1V3z" stroke-linejoin="round"/><path d="M1 10v3a1 1 0 001 1h12a1 1 0 001-1v-3" stroke-linejoin="round"/></svg>
       Inbox
-      <span class="nav-badge" id="inboxBadge">3</span>
+      <span class="nav-dot" id="inboxBadge"></span>
     </div>
     <div class="nav-item" onclick="nav('reports',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="9" width="3" height="5" rx="1"/><rect x="6" y="6" width="3" height="8" rx="1"/><rect x="11" y="3" width="3" height="11" rx="1"/></svg>
@@ -632,7 +623,7 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
     <div class="nav-item" onclick="nav('tasks',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 8l2.5 2.5L11 5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Tasks
-      <span class="nav-badge">14</span>
+      <span class="nav-dot"></span>
     </div>
     <div class="nav-item" onclick="nav('esignatures',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12c1-1 2-2.5 3-2.5s1.5 1.5 2.5 1.5S9 9.5 10 9.5" stroke-linecap="round"/><rect x="2" y="2" width="12" height="9" rx="1.5"/><path d="M5 5.5h6M5 7.5h4" stroke-linecap="round"/></svg>
@@ -1935,28 +1926,28 @@ PAGES.dashboard = `
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
 
   <div onclick="goToPayPeriodPolicies()" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden" onmouseenter="this.style.borderColor='#163D6B';this.style.boxShadow='0 8px 24px rgba(22,61,107,0.13)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#163D6B"></div>
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#122B47,#163D6B)"></div>
     <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Policies This Period</div>
     <div style="font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">28</div>
-    <div style="font-size:13px;color:var(--gray-500);margin-top:9px">↑ 4 vs last period</div>
+    <div style="font-size:13px;color:var(--green-700);font-weight:600;margin-top:9px">↑ 4 vs last period</div>
   </div>
 
-  <div onclick="goToBrokerFeeCollected()" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden" onmouseenter="this.style.borderColor='#163D6B';this.style.boxShadow='0 8px 24px rgba(22,61,107,0.13)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#163D6B"></div>
+  <div onclick="goToBrokerFeeCollected()" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden" onmouseenter="this.style.borderColor='#1A6ED0';this.style.boxShadow='0 8px 24px rgba(26,110,208,0.13)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#163D6B,#1A6ED0)"></div>
     <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Broker Fee Collected</div>
     <div style="font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">\$8,330</div>
-    <div style="font-size:13px;color:var(--gray-500);margin-top:9px">↑ 12% vs last period</div>
+    <div style="font-size:13px;color:var(--green-700);font-weight:600;margin-top:9px">↑ 12% vs last period</div>
   </div>
 
-  <div onclick="goToOpenBalances()" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden" onmouseenter="this.style.borderColor='#163D6B';this.style.boxShadow='0 8px 24px rgba(22,61,107,0.13)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#163D6B"></div>
+  <div onclick="goToOpenBalances()" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden" onmouseenter="this.style.borderColor='#3A6A95';this.style.boxShadow='0 8px 24px rgba(58,106,149,0.13)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#1A6ED0,#3A6A95)"></div>
     <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Outstanding HCC</div>
     <div style="font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">\$1,190</div>
     <div style="font-size:13px;color:var(--gray-500);margin-top:9px">4 customers · oldest 12 days</div>
   </div>
 
   <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#163D6B"></div>
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#3A6A95,#5B8DB8)"></div>
     <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Avg Fee per Policy</div>
     <div style="font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">\$340</div>
     <div style="font-size:13px;color:var(--gray-500);margin-top:9px">Goal: \$500 · 68% to goal</div>
@@ -1970,7 +1961,7 @@ PAGES.dashboard = `
   <div class="card">
     <div class="card-header">
       <div class="card-title">Pay Period Goal</div>
-      <span style="font-size:11px;font-weight:700;color:#fff;background:#163D6B;padding:3px 11px;border-radius:var(--radius-full)">ON TRACK</span>
+      <span style="font-size:11px;font-weight:700;color:#fff;background:var(--green-600);padding:3px 11px;border-radius:var(--radius-full)">ON TRACK</span>
     </div>
     <div class="card-body" style="display:flex;align-items:center;gap:22px;padding:22px">
       <div style="flex-shrink:0">
@@ -2014,8 +2005,8 @@ PAGES.dashboard = `
           ['Tier 4','39+','40%',false,0],
         ].map(([n,r,c,here,prog])=>`
         <div style="border:${here?'2px solid #163D6B':'1px solid var(--border)'};border-radius:var(--radius-md);padding:16px 14px;background:${here?'rgba(22,61,107,0.06)':'#fff'};position:relative">
-          ${here?`<div style="position:absolute;top:8px;right:8px;background:#163D6B;color:#fff;font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:var(--radius-full);letter-spacing:0.4px">YOU</div>`:''}
-          <div style="width:8px;height:8px;border-radius:50%;background:${here?'#163D6B':'var(--gray-200)'};margin-bottom:9px${here?';box-shadow:0 0 0 3px rgba(22,61,107,0.18)':''}"></div>
+          ${here?`<div style="position:absolute;top:8px;right:8px;background:var(--green-600);color:#fff;font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:var(--radius-full);letter-spacing:0.4px">YOU</div>`:''}
+          <div style="width:8px;height:8px;border-radius:50%;background:${here?'var(--green-500)':'var(--gray-200)'};margin-bottom:9px${here?';box-shadow:0 0 0 3px rgba(59,170,71,0.22)':''}"></div>
           <div style="font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--navy-900);margin-bottom:3px">${n}</div>
           <div style="font-size:12.5px;color:var(--gray-500);margin-bottom:2px">${r} policies</div>
           <div style="font-size:13px;color:${here?'#163D6B':'var(--gray-300)'};font-weight:${here?'700':'500'};margin-bottom:10px">${c}</div>
