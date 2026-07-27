@@ -842,6 +842,35 @@ function nav(page, el) {
 }
 
 // ===== LOGOUT =====
+window.CLOCK_STATE = { clocked: false, clockInTime: null };
+function handleClockIn() {
+  if (window.CLOCK_STATE.clocked) { alert('Already clocked in at ' + window.CLOCK_STATE.clockInTime); return; }
+  const now = new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+  window.CLOCK_STATE.clocked = true;
+  window.CLOCK_STATE.clockInTime = now;
+  const btn = document.getElementById('clockInBtn');
+  if (btn) { btn.innerHTML = '✓ Clocked in'; btn.style.background = '#0E4D20'; btn.style.opacity = '0.75'; btn.style.cursor = 'default'; }
+  const status = document.getElementById('dashClockStatus');
+  const time = document.getElementById('dashClockTime');
+  if (status) status.innerHTML = '<span style="color:rgba(255,255,255,0.90)">Clocked In</span>';
+  if (time) time.textContent = now;
+  const out = document.getElementById('clockOutBtn');
+  if (out) { out.style.borderColor = 'rgba(255,255,255,0.40)'; out.style.color = 'rgba(255,255,255,0.90)'; }
+}
+function handleClockOut() {
+  if (!window.CLOCK_STATE.clocked) { alert('You are not clocked in.'); return; }
+  const now = new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+  window.CLOCK_STATE.clocked = false;
+  window.CLOCK_STATE.clockInTime = null;
+  const out = document.getElementById('clockOutBtn');
+  if (out) { out.innerHTML = '✓ Clocked out'; out.style.background = 'rgba(22,61,107,0.30)'; out.style.borderColor = 'rgba(22,61,107,0.60)'; out.style.color = 'rgba(255,255,255,0.55)'; out.style.cursor = 'default'; }
+  const status = document.getElementById('dashClockStatus');
+  const time = document.getElementById('dashClockTime');
+  if (status) status.innerHTML = 'Not clocked in';
+  if (time) time.textContent = 'Out at ' + now;
+  const inBtn = document.getElementById('clockInBtn');
+  if (inBtn) { inBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v3.5l2.5 1.5" stroke-linecap="round"/></svg>Clock In'; inBtn.style.background = '#1A6ED0'; inBtn.style.opacity = '1'; inBtn.style.cursor = 'pointer'; }
+}
 function showLogout() {
   document.getElementById('logoutOverlay').style.display = 'flex';
 }
@@ -1878,321 +1907,182 @@ function submitTaskModal() {
 // ==================== DASHBOARD (REDESIGNED) ====================
 PAGES.dashboard = `
 
-<!-- ==== HERO STRIP ==== -->
-<div id="dashHero" style="display:flex;align-items:center;gap:18px;background:linear-gradient(135deg,var(--navy-900) 0%,var(--navy-800) 55%,var(--navy-700) 100%);padding:22px 26px;border-radius:var(--radius-xl);margin-bottom:20px;color:#fff;position:relative;overflow:hidden;box-shadow:0 6px 22px rgba(28,43,75,0.30)">
-  <div style="position:absolute;top:-60px;right:-30px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(59,170,71,0.20) 0%,transparent 70%);pointer-events:none"></div>
-  <div style="position:absolute;bottom:-40px;left:200px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,transparent 70%);pointer-events:none"></div>
-  <div style="flex:1;position:relative;z-index:1">
-    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px">Friday · May 1, 2026</div>
-    <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.5px;line-height:1.15">Good morning, Tony 👋</div>
-    <div style="font-size:13px;color:rgba(255,255,255,0.70);margin-top:5px">You're <strong style="color:var(--green-300)">12% ahead</strong> of last pay period — keep the momentum going.</div>
+<!-- ==== AGENT HERO CARD ==== -->
+<div style="display:flex;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(135deg,#0A1624 0%,#122B47 100%);padding:24px 28px;border-radius:var(--radius-xl);margin-bottom:20px;color:#fff;box-shadow:0 6px 22px rgba(10,22,36,0.28)">
+  <div>
+    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:7px">Friday · May 1, 2026</div>
+    <div style="font-family:var(--font-display);font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.5px;line-height:1.15">Good morning, Tony 👋</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.58);margin-top:7px">12% ahead of last pay period &nbsp;·&nbsp; Rank <strong style="color:#fff;font-weight:800">#1</strong> of 14 agents &nbsp;·&nbsp; Tier 2</div>
   </div>
-  <div style="display:flex;gap:10px;align-items:stretch;position:relative;z-index:1">
-    <div style="text-align:center;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);padding:12px 22px;border-radius:var(--radius-lg)">
-      <div style="font-size:10.5px;color:rgba(255,255,255,0.60);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Rank</div>
-      <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--green-300);line-height:1">#1</div>
-      <div style="font-size:10.5px;color:rgba(255,255,255,0.50);margin-top:2px">of 14</div>
+  <div style="display:flex;align-items:center;gap:14px;flex-shrink:0">
+    <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:var(--radius-lg);padding:14px 24px;text-align:center;min-width:110px">
+      <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px">Status</div>
+      <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.55)" id="dashClockStatus">Not clocked in</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.32);margin-top:3px" id="dashClockTime">—</div>
     </div>
-    <div style="text-align:center;background:linear-gradient(135deg,rgba(59,170,71,0.18),rgba(59,170,71,0.08));border:1px solid rgba(59,170,71,0.45);padding:12px 22px;border-radius:var(--radius-lg)">
-      <div style="font-size:10.5px;color:rgba(255,255,255,0.70);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Tier</div>
-      <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:#fff;line-height:1">Tier 2</div>
-      <div style="font-size:10.5px;color:rgba(255,255,255,0.65);margin-top:3px">30% commission</div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <button onclick="handleClockIn()" id="clockInBtn" style="background:#1A6ED0;border:none;color:#fff;border-radius:var(--radius-md);padding:12px 24px;font-family:var(--font-body);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px;transition:background 0.15s">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v3.5l2.5 1.5" stroke-linecap="round"/></svg>Clock In
+      </button>
+      <button onclick="handleClockOut()" id="clockOutBtn" style="background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.60);border-radius:var(--radius-md);padding:12px 24px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px;transition:all 0.15s">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M10.5 5.5l-5 5M5.5 5.5l5 5" stroke-linecap="round"/></svg>Clock Out
+      </button>
     </div>
-  </div>
-</div>
-
-<!-- ==== PRIMARY KPIS — CLICKABLE ==== -->
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px">
-
-  <div onclick="goToPayPeriodPolicies()" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 26px rgba(28,43,75,0.10)';this.style.borderColor='var(--green-500)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--border)'">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green-500),var(--green-400))"></div>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-      <div>
-        <div style="font-size:10.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Policies This Period</div>
-        <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">28</div>
-        <div style="font-size:11px;color:var(--green-700);margin-top:6px;font-weight:600">↑ 4 vs last period</div>
-      </div>
-      <div style="flex-shrink:0">${ring(112,54,6,'var(--green-500)')}</div>
-    </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--green-600);font-weight:600;display:flex;align-items:center;gap:4px">
-      <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 16 16"><path d="M5 3l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      View these policies →
-    </div>
-  </div>
-
-  <div onclick="goToBrokerFeeCollected()" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 26px rgba(28,43,75,0.10)';this.style.borderColor='var(--green-500)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--border)'">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green-500),var(--green-400))"></div>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-      <div>
-        <div style="font-size:10.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Broker Fee Collected</div>
-        <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--green-700);line-height:1;letter-spacing:-0.5px">\$8,330</div>
-        <div style="font-size:11px;color:var(--green-700);margin-top:6px;font-weight:600">↑ 12% vs last period</div>
-      </div>
-      <div style="flex-shrink:0">${ring(87.5,54,6,'var(--green-500)')}</div>
-    </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--green-600);font-weight:600;display:flex;align-items:center;gap:4px">
-      <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 16 16"><path d="M5 3l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      View collected policies →
-    </div>
-  </div>
-
-  <div onclick="goToOpenBalances()" style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 26px rgba(28,43,75,0.10)';this.style.borderColor='var(--amber)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--shadow-sm)';this.style.borderColor='var(--border)'">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--amber),#FCD34D)"></div>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-      <div>
-        <div style="font-size:10.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Outstanding HCC</div>
-        <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:#B45309;line-height:1;letter-spacing:-0.5px">\$1,190</div>
-        <div style="font-size:11px;color:var(--gray-500);margin-top:6px;font-weight:500">4 customers · oldest 12 days</div>
-      </div>
-      <div style="flex-shrink:0">${ring(12.5,54,6,'var(--amber)')}</div>
-    </div>
-    <div style="margin-top:10px;font-size:11px;color:#B45309;font-weight:600;display:flex;align-items:center;gap:4px">
-      <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 16 16"><path d="M5 3l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Review collections →
-    </div>
-  </div>
-
-  <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--navy-700),var(--navy-600))"></div>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-      <div>
-        <div style="font-size:10.5px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px">Avg Fee per Policy</div>
-        <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">\$340</div>
-        <div style="font-size:11px;color:var(--green-700);margin-top:6px;font-weight:600">↑ \$18 vs last period</div>
-      </div>
-      <div style="flex-shrink:0">${ring(68,54,6,'var(--navy-600)')}</div>
-    </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--gray-500);font-weight:500">Goal: \$500 · You're 68% there</div>
   </div>
 </div>
 
-<!-- ==== GOAL WHEEL + TIER LADDER ==== -->
-<div style="display:grid;grid-template-columns:380px 1fr;gap:14px;margin-bottom:18px">
+<!-- ==== KPI ROW ==== -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
 
-  <!-- Big goal wheel -->
+  <div onclick="goToPayPeriodPolicies()" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden" onmouseenter="this.style.borderColor='#163D6B';this.style.boxShadow='0 8px 24px rgba(22,61,107,0.13)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#163D6B"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Policies This Period</div>
+    <div style="font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">28</div>
+    <div style="font-size:13px;color:var(--gray-500);margin-top:9px">↑ 4 vs last period</div>
+  </div>
+
+  <div onclick="goToBrokerFeeCollected()" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden" onmouseenter="this.style.borderColor='#163D6B';this.style.boxShadow='0 8px 24px rgba(22,61,107,0.13)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#163D6B"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Broker Fee Collected</div>
+    <div style="font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">\$8,330</div>
+    <div style="font-size:13px;color:var(--gray-500);margin-top:9px">↑ 12% vs last period</div>
+  </div>
+
+  <div onclick="goToOpenBalances()" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden" onmouseenter="this.style.borderColor='#163D6B';this.style.boxShadow='0 8px 24px rgba(22,61,107,0.13)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#163D6B"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Outstanding HCC</div>
+    <div style="font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">\$1,190</div>
+    <div style="font-size:13px;color:var(--gray-500);margin-top:9px">4 customers · oldest 12 days</div>
+  </div>
+
+  <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#163D6B"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Avg Fee per Policy</div>
+    <div style="font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">\$340</div>
+    <div style="font-size:13px;color:var(--gray-500);margin-top:9px">Goal: \$500 · 68% to goal</div>
+  </div>
+
+</div>
+
+<!-- ==== GOAL + TIER ==== -->
+<div style="display:grid;grid-template-columns:360px 1fr;gap:14px;margin-bottom:20px">
+
   <div class="card">
-    <div class="card-header"><div class="card-title">Pay Period Goal</div><span style="font-size:10.5px;color:var(--green-700);font-weight:700;background:var(--green-50);padding:2px 8px;border-radius:var(--radius-full);border:1px solid var(--green-200)">ON TRACK</span></div>
-    <div class="card-body" style="display:flex;align-items:center;gap:18px;padding:20px">
-      <div style="position:relative;flex-shrink:0">
-        <svg width="150" height="150" viewBox="0 0 150 150">
-          <circle cx="75" cy="75" r="62" fill="none" stroke="var(--gray-100)" stroke-width="14"/>
-          <circle cx="75" cy="75" r="62" fill="none" stroke="url(#goalGrad)" stroke-width="14"
-            stroke-dasharray="${112*2*Math.PI*62/100} ${2*Math.PI*62}" stroke-dashoffset="${2*Math.PI*62*0.25}" stroke-linecap="round"
-            transform="rotate(-90 75 75)"/>
-          <defs><linearGradient id="goalGrad"><stop offset="0%" stop-color="#3BAA47"/><stop offset="100%" stop-color="#52BE5E"/></linearGradient></defs>
-          <text x="75" y="75" text-anchor="middle" font-family="Sora" font-weight="800" font-size="34" fill="var(--navy-900)" dy="-2">112%</text>
-          <text x="75" y="75" text-anchor="middle" font-family="Outfit" font-weight="500" font-size="11" fill="var(--gray-500)" dy="20">to goal</text>
+    <div class="card-header">
+      <div class="card-title">Pay Period Goal</div>
+      <span style="font-size:11px;font-weight:700;color:#fff;background:#163D6B;padding:3px 11px;border-radius:var(--radius-full)">ON TRACK</span>
+    </div>
+    <div class="card-body" style="display:flex;align-items:center;gap:22px;padding:22px">
+      <div style="flex-shrink:0">
+        <svg width="148" height="148" viewBox="0 0 148 148">
+          <circle cx="74" cy="74" r="60" fill="none" stroke="var(--gray-100)" stroke-width="13"/>
+          <circle cx="74" cy="74" r="60" fill="none" stroke="#163D6B" stroke-width="13"
+            stroke-dasharray="${112*2*Math.PI*60/100} ${2*Math.PI*60}" stroke-dashoffset="${2*Math.PI*60*0.25}" stroke-linecap="round"
+            transform="rotate(-90 74 74)"/>
+          <text x="74" y="70" text-anchor="middle" font-family="Sora" font-weight="800" font-size="30" fill="#0C1D33">112%</text>
+          <text x="74" y="90" text-anchor="middle" font-family="Outfit" font-weight="500" font-size="11" fill="#94A3B8">to goal</text>
         </svg>
       </div>
       <div style="flex:1">
-        <div style="font-size:11px;color:var(--gray-500);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">28 of 25 policies</div>
-        <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--green-700);margin-bottom:10px">Goal exceeded by 3</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <div style="background:var(--gray-50);padding:8px 10px;border-radius:var(--radius-md)"><div style="font-size:9.5px;color:var(--gray-400);font-weight:700;text-transform:uppercase">Days Left</div><div style="font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--navy-900)">9</div></div>
-          <div style="background:var(--gray-50);padding:8px 10px;border-radius:var(--radius-md)"><div style="font-size:9.5px;color:var(--gray-400);font-weight:700;text-transform:uppercase">Pace/Day</div><div style="font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--green-700)">3.1</div></div>
+        <div style="font-size:12px;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">28 of 25 policies</div>
+        <div style="font-family:var(--font-display);font-size:17px;font-weight:800;color:var(--navy-900);margin-bottom:16px">Goal exceeded by 3</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:var(--gray-50);padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--border)">
+            <div style="font-size:10px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Days Left</div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--navy-900)">9</div>
+          </div>
+          <div style="background:var(--gray-50);padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--border)">
+            <div style="font-size:10px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Pace / Day</div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--navy-900)">3.1</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Tier ladder -->
-  <div class="card">
-    <div class="card-header"><div class="card-title">Tier Tracker</div><span style="font-size:11px;color:var(--gray-400)">Next tier in <strong style="color:var(--green-700)">3 policies</strong></span></div>
-    <div class="card-body" style="padding:18px 20px">
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
-        ${[
-          ['Tier 1','0–21','25% + \$10','#94A3B8',true,100],
-          ['Tier 2','22–30','30% + \$10','#3BAA47',true,87],
-          ['Tier 3','31–38','35% + \$15','#122840',false,0],
-          ['Tier 4','39+','40%','#8B5CF6',false,0],
-        ].map(([n,r,c,col,unlocked,prog],i)=>{
-          const here = i===1;
-          return `<div style="border:${here?'2px solid '+col:'1px solid var(--border)'};border-radius:var(--radius-md);padding:12px 11px;background:${here?col+'12':'var(--white)'};position:relative;overflow:hidden">
-            ${here?`<div style="position:absolute;top:6px;right:6px;background:${col};color:#fff;font-size:9px;font-weight:800;padding:1px 7px;border-radius:var(--radius-full);letter-spacing:0.4px">YOU</div>`:''}
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
-              <div style="width:8px;height:8px;border-radius:50%;background:${col};box-shadow:${here?'0 0 0 3px '+col+'33':'none'}"></div>
-              <span style="font-family:var(--font-display);font-weight:800;font-size:13px;color:var(--navy-900)">${n}</span>
-            </div>
-            <div style="font-size:11px;color:var(--gray-500);font-weight:600;margin-bottom:2px">${r} policies</div>
-            <div style="font-size:11px;color:${col};font-weight:700;margin-bottom:8px">${c}</div>
-            <div style="height:5px;background:var(--gray-100);border-radius:100px;overflow:hidden"><div style="height:100%;width:${prog}%;background:${col};border-radius:100px"></div></div>
-            ${here?'<div style="font-size:10px;color:var(--gray-500);margin-top:4px;font-weight:600">28 / 30 policies</div>':''}
-          </div>`;
-        }).join('')}
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ==== TODAY'S FOCUS + RENEWAL PIPELINE ==== -->
-<div class="panel-row" style="margin-bottom:18px">
-
-  <!-- Today's Focus -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title">Today's Focus</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:11px;color:var(--gray-400);font-weight:600">May 1, 2026</span>
-        <button class="btn btn-primary" style="font-size:11px;padding:5px 12px" onclick="openTaskModal()">+ Add Task</button>
-      </div>
+      <div class="card-title">Tier Tracker</div>
+      <span style="font-size:13px;color:var(--gray-400)">Next tier in <strong style="color:var(--navy-900)">3 policies</strong></span>
     </div>
-    <div class="card-body" style="padding:14px 16px">
-
-      <div style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--radius-md);background:#EFF6FF;border:1px solid #C3D6E8;margin-bottom:8px;cursor:pointer" onclick="nav('calendar',null)">
-        <div style="width:36px;height:36px;border-radius:var(--radius-md);background:#122840;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📅</div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:#0C1D33">3 Appointments Today</div>
-          <div style="font-size:11.5px;color:#163D6B;margin-top:2px">10:00 AM &middot; 1:30 PM &middot; 3:45 PM</div>
-        </div>
-        <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:#122840">3</div>
+    <div class="card-body" style="padding:20px">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+        ${[
+          ['Tier 1','0–21','25% + \$10',false,100],
+          ['Tier 2','22–30','30% + \$10',true,87],
+          ['Tier 3','31–38','35% + \$15',false,0],
+          ['Tier 4','39+','40%',false,0],
+        ].map(([n,r,c,here,prog])=>`
+        <div style="border:${here?'2px solid #163D6B':'1px solid var(--border)'};border-radius:var(--radius-md);padding:16px 14px;background:${here?'rgba(22,61,107,0.06)':'#fff'};position:relative">
+          ${here?`<div style="position:absolute;top:8px;right:8px;background:#163D6B;color:#fff;font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:var(--radius-full);letter-spacing:0.4px">YOU</div>`:''}
+          <div style="width:8px;height:8px;border-radius:50%;background:${here?'#163D6B':'var(--gray-200)'};margin-bottom:9px${here?';box-shadow:0 0 0 3px rgba(22,61,107,0.18)':''}"></div>
+          <div style="font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--navy-900);margin-bottom:3px">${n}</div>
+          <div style="font-size:12.5px;color:var(--gray-500);margin-bottom:2px">${r} policies</div>
+          <div style="font-size:13px;color:${here?'#163D6B':'var(--gray-300)'};font-weight:${here?'700':'500'};margin-bottom:10px">${c}</div>
+          <div style="height:4px;background:var(--gray-100);border-radius:100px;overflow:hidden">
+            <div style="height:100%;width:${prog}%;background:#163D6B;border-radius:100px"></div>
+          </div>
+          ${here?`<div style="font-size:12px;color:var(--gray-500);margin-top:5px;font-weight:600">28 / 30 policies</div>`:''}
+        </div>`).join('')}
       </div>
-
-      <div style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--radius-md);background:#FEF2F2;border:1px solid #FCA5A5;margin-bottom:8px;cursor:pointer" onclick="goToOpenBalances()">
-        <div style="width:36px;height:36px;border-radius:var(--radius-md);background:#EF4444;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">💳</div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:#991B1B">4 HCC Holds Need Review</div>
-          <div style="font-size:11.5px;color:#EF4444;margin-top:2px">Maria G., Robert C., Priya P., Amanda F.</div>
-        </div>
-        <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:#EF4444">4</div>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--radius-md);background:#FFF8E1;border:1px solid #FCD34D;margin-bottom:8px;cursor:pointer" onclick="nav('leads',null)">
-        <div style="width:36px;height:36px;border-radius:var(--radius-md);background:#F59E0B;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">🔥</div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:#92400E">7 Hot Leads — No Contact in 24h</div>
-          <div style="font-size:11.5px;color:#B45309;margin-top:2px">Quoted leads cooling off — re-engage today</div>
-        </div>
-        <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:#F59E0B">7</div>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--radius-md);background:var(--gray-50);border:1px solid var(--border)">
-        <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--navy-700);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📞</div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:var(--navy-900)">Daily Call Goal — 34 / 50</div>
-          <div style="height:5px;background:var(--gray-200);border-radius:100px;overflow:hidden;margin-top:5px"><div style="height:100%;width:68%;background:var(--green-500);border-radius:100px"></div></div>
-          <div style="font-size:11px;color:#B45309;margin-top:4px;font-weight:600">16 more calls to hit goal</div>
-        </div>
-      </div>
-      <div id="focusTasks"></div>
     </div>
   </div>
 
-  <!-- Renewal Pipeline (NEW) -->
-  <div class="card">
-    <div class="card-header"><div class="card-title">Renewal Pipeline</div><a class="card-link" onclick="nav('customers',null)">View All →</a></div>
-    <div class="card-body" style="padding:14px 16px">
-
-      <div onclick="goToRenewals(30)" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-md);background:#FEF2F2;border:1px solid #FCA5A5;margin-bottom:8px;cursor:pointer;transition:transform 0.15s" onmouseenter="this.style.transform='translateX(3px)'" onmouseleave="this.style.transform=''">
-        <div style="font-family:var(--font-display);font-size:26px;font-weight:800;color:#EF4444;min-width:50px;text-align:center">12</div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:#991B1B">Renewals in next 30 days</div>
-          <div style="font-size:11.5px;color:#EF4444;margin-top:2px">\$24,800 premium at risk · 4 quoted</div>
-        </div>
-        <span style="font-size:18px;color:#EF4444">→</span>
-      </div>
-
-      <div onclick="goToRenewals(60)" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-md);background:#FEF9EC;border:1px solid #FCD34D;margin-bottom:8px;cursor:pointer;transition:transform 0.15s" onmouseenter="this.style.transform='translateX(3px)'" onmouseleave="this.style.transform=''">
-        <div style="font-family:var(--font-display);font-size:26px;font-weight:800;color:#F59E0B;min-width:50px;text-align:center">23</div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:#92400E">Renewals in 31–60 days</div>
-          <div style="font-size:11.5px;color:#B45309;margin-top:2px">\$48,200 premium · early retention play</div>
-        </div>
-        <span style="font-size:18px;color:#F59E0B">→</span>
-      </div>
-
-      <div onclick="goToRenewals(90)" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-md);background:var(--green-50);border:1px solid var(--green-200);margin-bottom:8px;cursor:pointer;transition:transform 0.15s" onmouseenter="this.style.transform='translateX(3px)'" onmouseleave="this.style.transform=''">
-        <div style="font-family:var(--font-display);font-size:26px;font-weight:800;color:var(--green-700);min-width:50px;text-align:center">41</div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:var(--green-800)">Renewals in 61–90 days</div>
-          <div style="font-size:11.5px;color:var(--green-700);margin-top:2px">\$87,400 premium · long-runway book</div>
-        </div>
-        <span style="font-size:18px;color:var(--green-700)">→</span>
-      </div>
-
-      <div style="margin-top:10px;padding:11px 14px;border-radius:var(--radius-md);background:var(--navy-50);border:1px solid var(--navy-100);display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px">Total Premium at Risk</div>
-          <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--navy-900);margin-top:2px">\$160,400</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:11.5px;color:var(--gray-500);font-weight:600">76 customers</div>
-          <div style="font-size:11px;color:var(--green-700);font-weight:700;margin-top:2px">87% retention rate</div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
-<!-- ==== LEADERBOARD + ADD-ONS ==== -->
-<div class="panel-row" style="margin-bottom:18px">
+<!-- ==== LEADERBOARD + TREND ==== -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
 
-  <!-- Top 5 leaderboard -->
   <div class="card">
     <div class="card-header"><div class="card-title">Top Performers — Pay Period</div><a class="card-link" onclick="nav('reports',null)">Full Report →</a></div>
-    <div class="card-body" style="padding:8px 16px">
-      ${AGENTS.slice(0,5).map((a,i)=>{
-        const ranks=['r1','r2','r3','rn','rn'];
-        const medal=['🥇','🥈','🥉','',''][i];
-        return `<div class="lb-row" style="cursor:pointer" onclick="nav('reports',null)">
-          <div class="lb-rank ${ranks[i]}" style="font-size:14px">${medal||(i+1)}</div>
-          <div class="avatar ${agentAv(a.name)}" style="width:32px;height:32px;font-size:11px">${initials(a.name)}</div>
-          <div style="flex:1"><div class="lb-name" style="font-size:14px;font-weight:700">${a.name}</div><div style="font-size:11px;color:var(--gray-400)">${a.contact} contact · ${a.close} close</div></div>
-          <span class="tier ${tierClass(a.tier)}" style="font-size:10px">${a.tier}</span>
-          <div style="text-align:right;margin-left:10px"><div class="lb-val" style="font-size:17px">${a.apps}</div><div class="lb-sub" style="font-size:11px">${fmtK(a.fee)}</div></div>
-        </div>`;
-      }).join('')}
+    <div class="card-body" style="padding:8px 18px">
+      ${AGENTS.slice(0,5).map((a,i)=>`
+      <div class="lb-row" style="cursor:pointer;padding:12px 0" onclick="nav('reports',null)">
+        <div class="lb-rank ${['r1','r2','r3','rn','rn'][i]}">${['🥇','🥈','🥉','',''][i]||(i+1)}</div>
+        <div class="avatar ${agentAv(a.name)}" style="width:34px;height:34px;font-size:12px">${initials(a.name)}</div>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700;color:var(--navy-900)">${a.name}</div>
+          <div style="font-size:12px;color:var(--gray-400);margin-top:2px">${a.contact} contact · ${a.close} close</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--navy-900)">${a.apps}</div>
+          <div style="font-size:12px;color:var(--gray-400)">${fmtK(a.fee)}</div>
+        </div>
+      </div>`).join('')}
     </div>
   </div>
 
-  <!-- Add-ons -->
   <div class="card">
-    <div class="card-header"><div class="card-title">Add-Ons Sold</div><span style="font-size:11px;color:var(--gray-400)">Pay period</span></div>
-    <div class="card-body" style="padding:14px 18px">
-      ${[
-        ['🏠','Renters',7,4830,78,'#3BAA47'],
-        ['⛵','Boat',3,2640,33,'#122840'],
-        ['🚐','RV',2,1980,22,'#8B5CF6'],
-        ['🏛','DMV Services',5,750,56,'#F59E0B'],
-        ['🛡','Roadside',9,1350,100,'#0D9488'],
-      ].map(([ico,name,n,fee,w,c])=>`
-      <div style="display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--border)">
-        <div style="width:34px;height:34px;border-radius:var(--radius-md);background:${c}18;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${ico}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12.5px;font-weight:700;color:var(--navy-900)">${name}</div>
-          <div style="height:5px;background:var(--gray-100);border-radius:100px;margin-top:5px;overflow:hidden"><div style="height:100%;width:${w}%;background:${c};border-radius:100px"></div></div>
+    <div class="card-header"><div class="card-title">9-Month App Trend</div><span style="font-size:13px;color:var(--gray-400)">Jul 2025 – Mar 2026</span></div>
+    <div class="card-body" style="padding:18px 22px">
+      <div class="rpt-bar-wrap" style="height:150px">
+        ${[['Jul',168],['Aug',195],['Sep',180],['Oct',212],['Nov',198],['Dec',225],['Jan',241],['Feb',219],['Mar',247]].map(([m,v])=>`
+        <div class="bar-col" title="${m}: ${v} apps">
+          <div class="bar-val" style="font-size:12px">${v}</div>
+          <div class="bar-fill" style="height:${Math.round(v/247*130)}px;background:${m==='Mar'?'#163D6B':'var(--navy-100)'};border:1px solid ${m==='Mar'?'#0E2340':'var(--navy-200)'};border-radius:5px 5px 0 0"></div>
+          <div class="bar-lbl">${m}</div>
+        </div>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px">
+        <div style="background:var(--gray-50);border-radius:var(--radius-md);padding:13px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Best Month</div>
+          <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--navy-900)">247</div>
+          <div style="font-size:12px;color:var(--gray-500);margin-top:2px">Mar 2026</div>
         </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--navy-900)">${n} <span style="font-size:10.5px;font-weight:500;color:var(--gray-400);font-family:var(--font-body)">apps</span></div>
-          <div style="font-size:11.5px;font-weight:700;color:var(--green-700)">${fmt$(fee)}</div>
+        <div style="background:var(--gray-50);border-radius:var(--radius-md);padding:13px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">9-Mo Avg</div>
+          <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--navy-900)">210</div>
+          <div style="font-size:12px;color:var(--gray-500);margin-top:2px">apps / month</div>
         </div>
-      </div>`).join('')}
-      <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
-        <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px">Total Add-On Premium</div>
-        <div style="font-family:var(--font-display);font-size:17px;font-weight:800;color:var(--green-700)">\$11,550</div>
+        <div style="background:rgba(22,61,107,0.06);border-radius:var(--radius-md);padding:13px;text-align:center;border:1px solid rgba(22,61,107,0.16)">
+          <div style="font-size:10px;color:#163D6B;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Growth</div>
+          <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#163D6B">+47%</div>
+          <div style="font-size:12px;color:#163D6B;margin-top:2px">Jul → Mar</div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ==== MONTHLY TREND ==== -->
-<div class="card">
-  <div class="card-header"><div class="card-title">9-Month App Trend</div><span style="font-size:11px;color:var(--gray-400)">Hover bars for details</span></div>
-  <div class="card-body" style="padding:18px 22px">
-    <div class="rpt-bar-wrap" style="height:160px">
-      ${[['Jul',168],['Aug',195],['Sep',180],['Oct',212],['Nov',198],['Dec',225],['Jan',241],['Feb',219],['Mar',247]].map(([m,v])=>`
-      <div class="bar-col" title="${m}: ${v} apps">
-        <div class="bar-val">${v}</div>
-        <div class="bar-fill" style="height:${Math.round(v/247*140)}px;background:${m==='Mar'?'linear-gradient(180deg,var(--green-400),var(--green-600))':'var(--navy-100)'};border:1px solid ${m==='Mar'?'var(--green-700)':'var(--navy-200)'};border-radius:6px 6px 0 0"></div>
-        <div class="bar-lbl">${m}</div>
-      </div>`).join('')}
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px">
-      <div style="background:var(--gray-50);border-radius:var(--radius-md);padding:11px;text-align:center"><div style="font-size:9.5px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Best Month</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--navy-900);margin-top:3px">247</div><div style="font-size:10.5px;color:var(--gray-500);margin-top:1px">Mar 2026</div></div>
-      <div style="background:var(--gray-50);border-radius:var(--radius-md);padding:11px;text-align:center"><div style="font-size:9.5px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.6px">9-Mo Avg</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--navy-900);margin-top:3px">210</div><div style="font-size:10.5px;color:var(--gray-500);margin-top:1px">apps/month</div></div>
-      <div style="background:var(--green-50);border-radius:var(--radius-md);padding:11px;text-align:center;border:1px solid var(--green-200)"><div style="font-size:9.5px;color:var(--green-700);font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Growth</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--green-700);margin-top:3px">+47%</div><div style="font-size:10.5px;color:var(--green-700);margin-top:1px">Jul → Mar</div></div>
-      <div style="background:var(--blue-light);border-radius:var(--radius-md);padding:11px;text-align:center;border:1px solid #C3D6E8"><div style="font-size:9.5px;color:#0E2340;font-weight:700;text-transform:uppercase;letter-spacing:0.6px">Forecast</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:#0E2340;margin-top:3px">263</div><div style="font-size:10.5px;color:#163D6B;margin-top:1px">Apr (projected)</div></div>
-    </div>
-  </div>
 </div>
 `;
 
@@ -2413,7 +2303,7 @@ function refreshLeads(){
 PAGES.leads = ''; // built dynamically by renderLeadsPage()
 window.PAGE_INIT = window.PAGE_INIT || {};
 window.PAGE_INIT = window.PAGE_INIT || {};
-window.PAGE_INIT.dashboard = function() { renderFocusTasks(); };
+window.PAGE_INIT.dashboard = function() {};
 window.PAGE_INIT.leads = function(){ refreshLeads(); };
 
 // ===== LEADS VIEW TOGGLE =====
