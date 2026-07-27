@@ -629,18 +629,10 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
       <svg class="nav-ic" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="9" width="3" height="5" rx="1"/><rect x="6" y="6" width="3" height="8" rx="1"/><rect x="11" y="3" width="3" height="11" rx="1"/></svg>
       Reports
     </div>
-    <div class="nav-item" onclick="nav('activitylog',this)">
-      <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v3.5l2.5 1.5" stroke-linecap="round"/></svg>
-      Activity
-    </div>
     <div class="nav-item" onclick="nav('tasks',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 8l2.5 2.5L11 5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Tasks
       <span class="nav-badge">14</span>
-    </div>
-    <div class="nav-item" onclick="nav('carriers',this)">
-      <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M1 6.5h14M4.5 9.5h3" stroke-linecap="round"/><circle cx="11.5" cy="9.5" r="1" fill="currentColor" stroke="none"/></svg>
-      Carriers
     </div>
     <div class="nav-item" onclick="nav('esignatures',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12c1-1 2-2.5 3-2.5s1.5 1.5 2.5 1.5S9 9.5 10 9.5" stroke-linecap="round"/><rect x="2" y="2" width="12" height="9" rx="1.5"/><path d="M5 5.5h6M5 7.5h4" stroke-linecap="round"/></svg>
@@ -833,8 +825,8 @@ function nav(page, el) {
   const titles = {
     dashboard:'Dashboard', leads:'Leads', leaddetail:'Lead Detail — Maria Gonzalez',
     customers:'Customers', customerdetail:'Customer Profile', calendar:'Calendar', liveview:'Live View', inbox:'Inbox — Calls · Texts · Emails',
-    agents:'Agent Management', reports:'Reports & Analytics', activitylog:'Activity Log', goals:'Goals & Tiers',
-    finance:'Finance & Broker Fees', tasks:'Tasks & Follow-Ups', carriers:'Carriers',
+    agents:'Agent Management', reports:'Reports & Analytics', goals:'Goals & Tiers',
+    finance:'Finance & Broker Fees', tasks:'Tasks & Follow-Ups',
     esignatures:'E Signatures', payment:'Payment Terminal', reputation:'Reputation Manager',
     agency:'My Agency', admin:'Settings'
   };
@@ -3572,7 +3564,7 @@ body.dark-mode .text-thread { background:#1E1E1E; }
 `;
 
 // ==================== ACTIVITY LOG ====================
-PAGES.activitylog = (function(){
+const _actLogHTML = (function(){
   // Sample daily activity numbers — would come from DYL/dialer in production
   const totalLeadsToday = 100;
   const inboundsToday   = 38;
@@ -3591,11 +3583,8 @@ PAGES.activitylog = (function(){
   const txtColor = pct => pct >= 75 ? 'var(--green-700)' : pct >= 50 ? '#B45309' : 'var(--red)';
 
   return `
-  <div class="page-header">
-    <div class="page-header-left">
-      <h1>Activity Log</h1>
-      <p>${today} · Sarah Kim · Real-time dialer + texting activity</p>
-    </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+    <span style="font-size:14px;color:var(--gray-500)">${today} · Sarah Kim · Real-time dialer + texting activity</span>
     <div class="btn-group">
       <select class="form-control" style="font-size:13px;width:auto">
         <option>Today</option><option>Yesterday</option><option>This Week</option><option>This Month</option>
@@ -5331,7 +5320,6 @@ function viewTranscript(name) {
 PAGES.inbox = '';
 window.PAGE_INIT = window.PAGE_INIT || {};
 window.PAGE_INIT.inbox = function(){ refreshInbox(); };
-PAGES.carriers   = stubPage('🏦','Carriers','Carrier connections, appetite guides & quoting. Coming soon.');
 PAGES.esignatures= stubPage('✍️','E Signatures','Send, track & manage digital signature requests. Coming soon.');
 PAGES.payment    = stubPage('💳','Payment Terminal','Collect broker fees & process payments. Coming soon.');
 PAGES.reputation = stubPage('⭐','Reputation Manager','Reviews, ratings & online presence. Coming soon.');
@@ -5347,6 +5335,7 @@ PAGES.reports = `
   <div class="tab active" onclick="switchTab(this,'rpt-production')">Production</div>
   <div class="tab" onclick="switchTab(this,'rpt-pipeline')">Pipeline</div>
   <div class="tab" onclick="switchTab(this,'rpt-finance')">Finance</div>
+  <div class="tab" onclick="switchTab(this,'rpt-activity')">Activity</div>
 </div>
 <div id="rpt-production">
 <div class="kpi-grid">
@@ -5374,6 +5363,7 @@ PAGES.reports = `
 </div>
 <div id="rpt-pipeline" style="display:none">${stubPage('🔀','Pipeline Report','Apply filters and generate your pipeline analysis.')}</div>
 <div id="rpt-finance" style="display:none">${stubPage('💰','Finance Report','View detailed fee collection and premium tracking.')}</div>
+<div id="rpt-activity" style="display:none">${_actLogHTML}</div>
 `;
 
 // ==================== TASKS ====================
