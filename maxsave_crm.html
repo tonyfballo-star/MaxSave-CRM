@@ -2248,7 +2248,7 @@ function renderLeadsPage(){
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
               <div class="lead-name-link" onclick="nav('leaddetail',null)" style="font-weight:700;color:var(--navy-900);cursor:pointer;font-size:16px">${l.name}</div>
               ${l.sr22?'<span style="background:#FEF2F2;color:#991B1B;border:1px solid #FCA5A5;padding:1px 7px;border-radius:var(--radius-full);font-size:11px;font-weight:800;letter-spacing:0.4px">SR-22</span>':''}
-              ${l.language==='Spanish'?'<span title="Spanish-speaking" style="font-size:14px">🇪🇸</span>':''}
+
             </div>
             <div style="font-size:14px;color:var(--gray-500);margin-top:2px">${l.phone}</div>
           </td>
@@ -2653,63 +2653,30 @@ function startPowerDial() {
 
 // ==================== LEAD DETAIL ====================
 PAGES.leaddetail = `
-<!-- HERO BANNER -->
-<div style="background:linear-gradient(135deg,#1C2B4B 0%,#253659 60%,#2E4168 100%);border-radius:var(--radius-xl);padding:20px 24px;margin-bottom:14px;position:relative;overflow:hidden;box-shadow:0 8px 28px rgba(28,43,75,0.35)">
-  <div style="position:absolute;top:-50px;right:-20px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(59,170,71,0.15) 0%,transparent 70%);pointer-events:none"></div>
-
-  <!-- Row 1: back · name · contact · export -->
-  <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;flex-wrap:wrap">
-    <button class="btn btn-ghost" style="background:rgba(255,255,255,0.10);color:#fff;border-color:rgba(255,255,255,0.22);font-size:12px;padding:7px 13px;white-space:nowrap;flex-shrink:0" onclick="nav('leads',document.querySelector('[onclick*=leads]'))">← All Leads</button>
-    <div style="flex:1;min-width:220px">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px">
-        <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.3px">Maria Gonzalez</div>
-        <span style="background:rgba(239,68,68,0.22);color:#FCA5A5;border:1px solid rgba(252,165,165,0.40);padding:2px 9px;border-radius:var(--radius-full);font-size:10.5px;font-weight:800;letter-spacing:0.4px">🔥 HOT LEAD</span>
-        <span style="font-size:14px" title="Spanish-speaking">🇪🇸</span>
-        <span class="badge b-quoted" style="font-size:11px;padding:3px 11px">Quoted</span>
-      </div>
-      <div style="font-size:11.5px;color:rgba(255,255,255,0.48);margin-bottom:11px">Lead ID: MSI-2026-04841 · Received 10 days ago · Last contact: 1 hour ago</div>
-      <div style="display:flex;gap:20px;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.85);font-size:13px;font-weight:500">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><path d="M3 3a1 1 0 011-1h1.5a1 1 0 011 1l.5 2.5a1 1 0 01-.29.85L5.8 7.2a8 8 0 004 4l.85-.91A1 1 0 0111.5 10l2.5.5a1 1 0 011 1V13a1 1 0 01-1 1A11 11 0 013 3z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          (619) 555-0124
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.85);font-size:13px;font-weight:500">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="10" rx="1.2"/><path d="M1 5l7 5 7-5"/></svg>
-          maria.g@email.com
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.85);font-size:13px;font-weight:500">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><path d="M8 1C5.2 1 3 3.4 3 6.2c0 3.9 5 8.8 5 8.8s5-4.9 5-8.8C13 3.4 10.8 1 8 1z"/><circle cx="8" cy="6" r="1.8"/></svg>
-          1234 Main St, San Diego CA 92101
-        </div>
-      </div>
+<!-- BLUE NAME BAR -->
+<div style="background:linear-gradient(135deg,#1A6ED0 0%,#1558B0 100%);border-radius:var(--radius-xl);padding:16px 24px;display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap">
+  <button onclick="nav('leads',document.querySelector('[onclick*=leads]'))" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:var(--radius-md);padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);white-space:nowrap;flex-shrink:0">← All Leads</button>
+  <div style="flex:1;min-width:180px">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:20px;font-weight:700;color:#fff">Maria Gonzalez</span>
+      <span style="background:rgba(239,68,68,0.30);color:#FCA5A5;border:1px solid rgba(252,165,165,0.40);padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:800;letter-spacing:0.4px">🔥 HOT LEAD</span>
+      <span class="badge b-quoted" style="font-size:11px;padding:3px 11px">Quoted</span>
     </div>
-    <button style="background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25);padding:9px 18px;border-radius:var(--radius-md);font-family:var(--font-body);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;flex-shrink:0;white-space:nowrap" onclick="openQuoteExport('lead')">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M8 2v8m0 0l-3-3m3 3l3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Quote Export
-    </button>
+    <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:3px">Lead ID: MSI-2026-04841 &middot; Source: Everquote &middot; Received 10 days ago &middot; Agent: Sarah Kim</div>
   </div>
-
-  <!-- Row 2: info chips + disposition -->
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:14px;border-top:1px solid rgba(255,255,255,0.10)">
-    <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);border-radius:var(--radius-md);padding:7px 14px">
-      <div style="font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Source</div>
-      <div style="font-size:13px;font-weight:700;color:#fff">Everquote</div>
+  <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex-shrink:0">
+    <button onclick="alert('Calling (619) 555-0124…')" style="display:flex;align-items:center;gap:5px;background:#2563EB;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📞 Call</button>
+    <div style="position:relative">
+      <button onclick="openTextThread()" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">💬 Text</button>
+      <span class="text-unread-badge" id="textUnreadBadge">2</span>
     </div>
-    <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);border-radius:var(--radius-md);padding:7px 14px">
-      <div style="font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Coverage Needed</div>
-      <div style="font-size:13px;font-weight:700;color:#fff">Liability</div>
-    </div>
-    <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);border-radius:var(--radius-md);padding:7px 14px">
-      <div style="font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Assigned Agent</div>
-      <div style="font-size:13px;font-weight:700;color:#fff">Sarah Kim</div>
-    </div>
-    <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);border-radius:var(--radius-md);padding:7px 14px">
-      <div style="font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:2px">Contact Activity</div>
-      <div style="font-size:13px;font-weight:700;color:#fff">📞 3 calls &nbsp;·&nbsp; 💬 4 texts</div>
-    </div>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap">
-      <div style="font-size:10.5px;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.5px">Disposition</div>
-      <select id="dispositionSelect" style="background:rgba(255,255,255,0.13);color:#fff;border:1px solid rgba(255,255,255,0.28);padding:7px 12px;border-radius:var(--radius-md);font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;outline:none;min-width:160px" onchange="setDisposition(this.value)">
+    <button onclick="alert('Email: maria.g@email.com')" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">✉️ Email</button>
+    <button onclick="openAppointment()" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📅 Appt</button>
+    <button onclick="openNewSale()" class="new-sale-btn" style="display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body)">🎉 Sale</button>
+    <button onclick="openQuoteExport('lead')" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📤 Export</button>
+    <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:8px;padding:5px 10px">
+      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap">Disp</span>
+      <select id="dispositionSelect" style="background:transparent;color:#fff;border:none;font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;outline:none;min-width:110px" onchange="setDisposition(this.value)">
         <option value="" style="color:#1C2B4B">— Select —</option>
         <option style="color:#1C2B4B">Quoted</option>
         <option style="color:#1C2B4B">Bad Lead</option>
@@ -2726,121 +2693,66 @@ PAGES.leaddetail = `
   </div>
 </div>
 
-<!-- ACTION BAR -->
-<div class="card" style="margin-bottom:14px;padding:12px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-  <button class="btn" style="background:var(--green-500);color:#fff;font-size:13px;padding:9px 18px" onclick="alert('Calling (619) 555-0124…')">
-    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><path d="M3 3a1 1 0 011-1h1.5a1 1 0 011 1l.5 2.5a1 1 0 01-.29.85L5.8 7.2a8 8 0 004 4l.85-.91A1 1 0 0111.5 10l2.5.5a1 1 0 011 1V13a1 1 0 01-1 1A11 11 0 013 3z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    Call
-  </button>
-  <div class="text-btn-wrap">
-    <button class="btn" style="background:var(--blue);color:#fff;font-size:13px;padding:9px 18px" onclick="openTextThread()">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><path d="M2 2h12a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 3V3a1 1 0 011-1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Text
-    </button>
-    <span class="text-unread-badge" id="textUnreadBadge">2</span>
-  </div>
-  <button class="btn" style="background:var(--purple);color:#fff;font-size:13px;padding:9px 18px" onclick="openAppointment()">
-    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 16 16"><rect x="1" y="2" width="14" height="13" rx="1.5"/><path d="M5 1v2M11 1v2M1 6h14" stroke-linecap="round"/></svg>
-    Set Appointment
-  </button>
-  <button class="btn new-sale-btn" style="background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;font-size:13px;padding:9px 20px;font-weight:700;box-shadow:0 4px 14px rgba(59,170,71,0.40);border:none" onclick="openNewSale()">
-    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M2 8l4 4 8-9" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    🎉 New Sale
-  </button>
-</div>
+<!-- COMPACT LEAD INFO CARD -->
+<div style="background:#1C2B4B;border-radius:var(--radius-xl);padding:20px 24px;margin-bottom:14px">
 
-<!-- LEAD INFORMATION — unified rater card -->
-<div style="background:linear-gradient(135deg,#1C2B4B 0%,#253659 60%,#2E4168 100%);border-radius:var(--radius-xl);padding:22px 26px;margin-bottom:14px;position:relative;overflow:hidden;box-shadow:0 8px 28px rgba(28,43,75,0.35)">
-  <div style="position:absolute;top:-50px;right:-20px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(59,170,71,0.10) 0%,transparent 70%);pointer-events:none"></div>
-
-  <!-- Section header -->
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-    <div style="font-family:var(--font-display);font-size:15px;font-weight:800;color:#fff;letter-spacing:-0.2px">Lead Information</div>
-    <span style="font-size:10px;color:rgba(255,255,255,0.45)">Click 📋 to copy any field</span>
+  <!-- CONTACT INFORMATION -->
+  <div style="font-size:10.5px;font-weight:800;color:#4A9EE8;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:2px solid rgba(74,158,232,0.25);margin-bottom:10px">Contact Information</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;margin-bottom:18px">
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">First Name</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Maria</span><button onclick="copyToClipboard('Maria',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Last Name</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Gonzalez</span><button onclick="copyToClipboard('Gonzalez',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Date of Birth</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">03/14/1982</span><button onclick="copyToClipboard('03/14/1982',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Gender</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Female</span><button onclick="copyToClipboard('Female',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Phone</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">(619) 555-0124</span><button onclick="copyToClipboard('(619) 555-0124',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Email</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">maria.g@email.com</span><button onclick="copyToClipboard('maria.g@email.com',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Marital Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Married</span><button onclick="copyToClipboard('Married',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Language</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Spanish</span><button onclick="copyToClipboard('Spanish',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06);grid-column:span 2"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Address</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">1234 Main St, San Diego, CA 92101</span><button onclick="copyToClipboard('1234 Main St, San Diego, CA 92101',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
   </div>
 
-  <!-- CONTACT -->
-  <div style="margin-bottom:18px">
-    <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">Contact</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px">
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">First Name</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Maria</span><button onclick="copyToClipboard('Maria',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Last Name</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Gonzalez</span><button onclick="copyToClipboard('Gonzalez',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Date of Birth</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">03/14/1982</span><button onclick="copyToClipboard('03/14/1982',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Gender</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Female</span><button onclick="copyToClipboard('Female',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Marital Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Married</span><button onclick="copyToClipboard('Married',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Language</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Spanish</span><button onclick="copyToClipboard('Spanish',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Phone</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">(619) 555-0124</span><button onclick="copyToClipboard('(619) 555-0124',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Email</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">maria.g@email.com</span><button onclick="copyToClipboard('maria.g@email.com',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div style="grid-column:span 1"><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Address</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">1234 Main St, San Diego CA 92101</span><button onclick="copyToClipboard('1234 Main St, San Diego CA 92101',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s;flex-shrink:0">📋</button></div></div>
-    </div>
+  <!-- DRIVER 1 — PRIMARY -->
+  <div style="font-size:10.5px;font-weight:800;color:#4A9EE8;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:2px solid rgba(74,158,232,0.25);margin-bottom:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08)">Driver 1 — Primary</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;margin-bottom:18px">
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Name</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Maria Gonzalez</span><button onclick="copyToClipboard('Maria Gonzalez',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Date of Birth</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">03/14/1982</span><button onclick="copyToClipboard('03/14/1982',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Gender</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Female</span><button onclick="copyToClipboard('Female',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">License #</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">B1234567</span><button onclick="copyToClipboard('B1234567',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Marital Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Married</span><button onclick="copyToClipboard('Married',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Violations</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#FCD34D">1 minor speeding (2024)</span><button onclick="copyToClipboard('1 minor speeding (2024)',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">SR-22 Required</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#4ADE80">No</span><button onclick="copyToClipboard('No',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
   </div>
 
-  <!-- LICENSE -->
-  <div style="margin-bottom:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.10)">
-    <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">License</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px">
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">License #</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">CA — DL #B1234567</span><button onclick="copyToClipboard('B1234567',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">License State</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">California</span><button onclick="copyToClipboard('California',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">SR-22 Required</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:var(--green-400)">No</span><button onclick="copyToClipboard('No',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-    </div>
-  </div>
-
-  <!-- POLICY -->
-  <div style="margin-bottom:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.10)">
-    <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">Policy</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px">
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Coverage Needed</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Liability + UM/UIM</span><button onclick="copyToClipboard('Liability + UM/UIM',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">CSL Limits</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">50/100</span><button onclick="copyToClipboard('50/100',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Prior Coverage</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">State Farm</span><button onclick="copyToClipboard('State Farm',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Insurance Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#FCA5A5">Uninsured — lapse 18d</span><button onclick="copyToClipboard('Uninsured — lapse 18 days',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Violations</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#FCD34D">1 minor speeding (2024)</span><button onclick="copyToClipboard('1 minor speeding (2024)',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Best Contact Time</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Evenings</span><button onclick="copyToClipboard('Evenings',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-    </div>
+  <!-- DRIVER 2 — ADDITIONAL -->
+  <div style="font-size:10.5px;font-weight:800;color:#4A9EE8;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:2px solid rgba(74,158,232,0.25);margin-bottom:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08)">Driver 2 — Additional</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;margin-bottom:18px">
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Name</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Carlos Gonzalez</span><button onclick="copyToClipboard('Carlos Gonzalez',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Date of Birth</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">07/04/1980</span><button onclick="copyToClipboard('07/04/1980',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Gender</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Male</span><button onclick="copyToClipboard('Male',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">License #</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">C9876543</span><button onclick="copyToClipboard('C9876543',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Violations</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#4ADE80">None</span><button onclick="copyToClipboard('None',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">SR-22 Required</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#4ADE80">No</span><button onclick="copyToClipboard('No',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
   </div>
 
   <!-- VEHICLE 1 -->
-  <div style="margin-bottom:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.10)">
-    <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">Vehicle 1 — Primary</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px">
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Year</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">2021</span><button onclick="copyToClipboard('2021',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Make</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Honda</span><button onclick="copyToClipboard('Honda',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Model</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">CR-V EX</span><button onclick="copyToClipboard('CR-V EX',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">VIN</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff;font-family:monospace">2HKRW2H58MH123456</span><button onclick="copyToClipboard('2HKRW2H58MH123456',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Annual Mileage</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">12,000 mi/yr</span><button onclick="copyToClipboard('12000',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Primary Use</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Commute</span><button onclick="copyToClipboard('Commute',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-    </div>
+  <div style="font-size:10.5px;font-weight:800;color:#4A9EE8;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:2px solid rgba(74,158,232,0.25);margin-bottom:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08)">Vehicle 1</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;margin-bottom:18px">
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Year</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">2021</span><button onclick="copyToClipboard('2021',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Make</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Honda</span><button onclick="copyToClipboard('Honda',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Model</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">CR-V EX</span><button onclick="copyToClipboard('CR-V EX',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">VIN</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;font-weight:600;color:#fff;font-family:monospace">2HKRW2H58MH123456</span><button onclick="copyToClipboard('2HKRW2H58MH123456',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Annual Mileage</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">12,000 mi/yr</span><button onclick="copyToClipboard('12000',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Primary Use</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Commute</span><button onclick="copyToClipboard('Commute',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
   </div>
 
-  <!-- DRIVER 1 -->
-  <div style="margin-bottom:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.10)">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-      <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:1.4px">Driver 1 — Maria Gonzalez</div>
-      <span style="background:var(--green-600);color:#fff;font-size:9px;font-weight:700;padding:1px 8px;border-radius:var(--radius-full)">Primary</span>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px">
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Date of Birth</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">03/14/1982</span><button onclick="copyToClipboard('03/14/1982',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Gender</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Female</span><button onclick="copyToClipboard('Female',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">License #</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">B1234567</span><button onclick="copyToClipboard('B1234567',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Marital Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Married</span><button onclick="copyToClipboard('Married',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Violations</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#FCD34D">1 minor speeding (2024)</span><button onclick="copyToClipboard('1 minor speeding (2024)',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">SR-22</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:var(--green-400)">No</span><button onclick="copyToClipboard('No',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-    </div>
-  </div>
-
-  <!-- DRIVER 2 -->
-  <div style="padding-top:14px;border-top:1px solid rgba(255,255,255,0.10)">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-      <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:1.4px">Driver 2 — Carlos Gonzalez</div>
-      <span style="background:rgba(255,255,255,0.18);color:#fff;font-size:9px;font-weight:700;padding:1px 8px;border-radius:var(--radius-full)">Additional</span>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px">
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Date of Birth</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">07/04/1980</span><button onclick="copyToClipboard('07/04/1980',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Gender</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Male</span><button onclick="copyToClipboard('Male',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">License #</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">C9876543</span><button onclick="copyToClipboard('C9876543',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Marital Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:#fff">Married</span><button onclick="copyToClipboard('Married',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">Violations</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:var(--green-400)">None</span><button onclick="copyToClipboard('None',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-      <div><div style="font-size:9.5px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px">SR-22</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:600;color:var(--green-400)">No</span><button onclick="copyToClipboard('No',this)" title="Copy" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body);transition:all 0.15s">📋</button></div></div>
-    </div>
+  <!-- COVERAGE REQUESTED -->
+  <div style="font-size:10.5px;font-weight:800;color:#4A9EE8;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:2px solid rgba(74,158,232,0.25);margin-bottom:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08)">Coverage Requested</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px">
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Coverage Type</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Liability + UM/UIM</span><button onclick="copyToClipboard('Liability + UM/UIM',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">CSL Limits</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">50/100</span><button onclick="copyToClipboard('50/100',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Prior Coverage</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">State Farm</span><button onclick="copyToClipboard('State Farm',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Insurance Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#FCA5A5">Uninsured — lapse 18d</span><button onclick="copyToClipboard('Uninsured - lapse 18 days',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">License State</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">California</span><button onclick="copyToClipboard('California',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Best Contact Time</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Evenings</span><button onclick="copyToClipboard('Evenings',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
   </div>
 </div>
 
@@ -4047,277 +3959,271 @@ function openCustomerDetail(id) {
 }
 
 PAGES.customerdetail = '';
+window.cdTab = function(id) {
+  ['cd-calls','cd-text','cd-notes'].forEach(function(t) {
+    var el = document.getElementById(t); if (el) el.style.display = 'none';
+    var btn = document.getElementById('cdBtn-'+t);
+    if (btn) { btn.style.color='var(--gray-500)'; btn.style.fontWeight='600'; btn.style.borderBottom='2.5px solid transparent'; }
+  });
+  var show = document.getElementById(id); if (show) show.style.display = 'block';
+  var active = document.getElementById('cdBtn-'+id);
+  if (active) { active.style.color='var(--navy-900)'; active.style.fontWeight='700'; active.style.borderBottom='2.5px solid var(--navy-900)'; }
+};
+
 window.PAGE_INIT.customerdetail = function(){
   const id = window._currentCustomerId;
   const c = CUSTOMERS.find(x => x.id === id) || CUSTOMERS[0];
   const isActive = c.status === 'Active';
   const isCancelled = c.status === 'Cancelled';
   const statusColor = isActive ? '#3BAA47' : isCancelled ? '#EF4444' : '#F59E0B';
-  const statusGlow  = isActive ? '0 0 18px rgba(59,170,71,0.55)' : isCancelled ? '0 0 18px rgba(239,68,68,0.55)' : '0 0 18px rgba(245,158,11,0.55)';
   const statusLabel = c.status.toUpperCase();
-
   const totalCollected = c.policies.reduce((s,p)=>s+(p.feeCollected||0)+(p.hccCollected?(p.feeExtended||0):0),0);
-  const totalExtended  = c.policies.reduce((s,p)=>s+(p.feeExtended||0),0);
-  const openBal        = customerOpenBalance(c);
+  const openBal = customerOpenBalance(c);
+
+  const infoRow = (label, value, isLast) => `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;${isLast?'':'border-bottom:1px solid var(--border)'}"><div style="font-size:10.5px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;white-space:nowrap;flex-shrink:0;margin-right:10px">${label}</div><div style="font-size:13px;font-weight:500;color:var(--navy-900);text-align:right">${(value!==undefined&&value!==null&&value!=='')?value:'—'}</div></div>`;
+
+  const secHdr = (title, action) => `<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border);background:var(--gray-50)"><div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--gray-500)">${title}</div>${action||''}</div>`;
+
+  const callLog = [
+    { disp:'Follow-up needed', dc:'#0e7490', db:'#e0f2fe', agent:'Sarah Kim', dur:'7:14', ts:'07/27/2026 | 10:20 AM → 07/27/2026 | 10:27 AM', ok:true },
+    { disp:'Left Voicemail', dc:'#6b7280', db:'#f3f4f6', agent:'Marcus Rivera', dur:'0:42', ts:'07/25/2026 | 3:05 PM → 07/25/2026 | 3:05 PM', ok:false },
+    { disp:'Renewal Discussed', dc:'#15803d', db:'#dcfce7', agent:'Sarah Kim', dur:'4:32', ts:'07/20/2026 | 11:10 AM → 07/20/2026 | 11:14 AM', ok:true },
+  ];
+
+  const activePol = c.policies.find(p=>p.status==='Active');
 
   const html = `
-  <!-- HEADER -->
-  <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap">
-    <button class="btn btn-ghost" onclick="nav('customers',document.querySelector('[onclick*=customers]'))">← All Customers</button>
-    <div style="flex:1;min-width:240px">
-      <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--navy-900);letter-spacing:-0.3px">${c.first} ${c.last}</div>
-      <div style="font-size:12.5px;color:var(--gray-500);margin-top:2px">Customer ID: ${c.id} · Customer since ${c.customerSince}</div>
-    </div>
-    <div style="text-align:right">
-      <div style="font-size:10.5px;color:var(--gray-400);font-weight:700;letter-spacing:0.6px;text-transform:uppercase">Carrier</div>
-      <div style="font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--navy-900)">${c.carrier}</div>
-    </div>
-    <div style="text-align:right">
-      <div style="font-size:10.5px;color:var(--gray-400);font-weight:700;letter-spacing:0.6px;text-transform:uppercase">Policy #</div>
-      <div style="font-family:monospace;font-weight:700;font-size:14px;color:var(--navy-900)">${c.policyNumber}</div>
-    </div>
-    <div class="cust-status-badge" style="background:${statusColor};color:#fff;font-weight:800;font-size:13px;padding:11px 22px;border-radius:var(--radius-full);letter-spacing:0.8px;box-shadow:${statusGlow};animation:custGlow 2s ease-in-out infinite">
-      ${isActive ? '●' : isCancelled ? '✕' : '⚠'} ${statusLabel}
-    </div>
-    <button class="btn quote-export-btn" style="background:linear-gradient(135deg,var(--navy-900),var(--navy-700));color:#fff;font-size:13px;padding:11px 20px;font-weight:700;box-shadow:0 4px 14px rgba(28,43,75,0.30);border:none" onclick="openQuoteExport('customer','${c.id}')">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M8 2v8m0 0l-3-3m3 3l3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Quote Export
-    </button>
-  </div>
+  <div style="display:flex;flex-direction:column;gap:14px">
 
-  <!-- ACTION BAR -->
-  <div class="card" style="margin-bottom:14px;padding:11px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-    <button class="btn" style="background:var(--green-500);color:#fff;font-size:13px;padding:8px 16px" onclick="alert('Calling ${c.first}…')">📞 Call</button>
-    <button class="btn" style="background:var(--blue);color:#fff;font-size:13px;padding:8px 16px" onclick="openTextThread()">💬 Text</button>
-    <button class="btn" style="background:var(--purple);color:#fff;font-size:13px;padding:8px 16px" onclick="alert('Set follow-up appointment')">📅 Schedule</button>
-    <button class="btn btn-ghost" style="font-size:13px;padding:8px 16px">📄 Generate Renewal Quote</button>
-    <button class="btn btn-ghost" style="font-size:13px;padding:8px 16px">💼 File a Claim</button>
-    <div style="flex:1"></div>
-  </div>
+    <!-- TOP BAR -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <button class="btn btn-ghost" onclick="nav('customers',document.querySelector('[onclick*=customers]'))">← All Customers</button>
+      <button class="btn" style="background:linear-gradient(135deg,var(--navy-900),var(--navy-700));color:#fff;font-size:13px;padding:10px 18px;font-weight:700;border:none;display:inline-flex;align-items:center;gap:7px" onclick="openQuoteExport('customer','${c.id}')">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M8 2v8m0 0l-3-3m3 3l3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1" stroke-linecap="round" stroke-linejoin="round"/></svg>Quote Export
+      </button>
+    </div>
 
-  <!-- SUMMARY METRIC ROW -->
-  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px">
-    <div class="kpi-card accent">
-      <div class="kpi-label">Lifetime Premium</div>
-      <div class="kpi-value" style="font-size:22px">${fmtK(customerLifetimeValue(c))}</div>
-      <div class="kpi-sub">${c.policies.length} policies on record</div>
+    <!-- FULL-WIDTH PROFILE CARD -->
+    <div style="background:linear-gradient(135deg,#1B2D3E 0%,#1F3550 100%);border-radius:var(--radius-xl);padding:28px 32px;display:flex;align-items:center;gap:28px">
+      <div style="width:80px;height:80px;border-radius:50%;background:#5A6B80;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;flex-shrink:0;letter-spacing:-0.5px">${initials(c.first+' '+c.last)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:4px">${c.first} ${c.last}</div>
+        <div style="font-size:15px;color:rgba(255,255,255,0.80);margin-bottom:5px">${c.phone}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.45);display:flex;align-items:center;gap:5px">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Local time &middot; ${c.city}, ${c.state}
+        </div>
+      </div>
+      <div class="cust-status-badge" style="background:${statusColor};color:#fff;font-weight:700;font-size:12px;padding:7px 16px;border-radius:var(--radius-full);letter-spacing:0.7px;animation:custGlow 2s ease-in-out infinite;display:inline-flex;align-items:center;gap:5px;flex-shrink:0">${isActive?'●':isCancelled?'✕':'⚠'} ${statusLabel}</div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button onclick="alert('Calling ${c.first}...')" style="display:flex;align-items:center;gap:6px;background:#2E86D4;color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:var(--font-body)">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.02 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" stroke-linecap="round" stroke-linejoin="round"/></svg>Call
+        </button>
+        <button onclick="openTextThread('${c.first} ${c.last}','${c.phone}')" style="display:flex;align-items:center;gap:6px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:10px 22px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:var(--font-body)">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text
+        </button>
+        <button onclick="alert('Email: ${c.email||'—'}')" style="display:flex;align-items:center;gap:6px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:10px 22px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:var(--font-body)">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke-linecap="round" stroke-linejoin="round"/><polyline points="22,6 12,13 2,6"/></svg>Email
+        </button>
+      </div>
     </div>
-    <div class="kpi-card accent">
-      <div class="kpi-label">Lifetime Broker Fees</div>
-      <div class="kpi-value green" style="font-size:22px">${fmtK(customerLifetimeFee(c))}</div>
-      <div class="kpi-sub">All-time agency revenue</div>
-    </div>
-    <div class="kpi-card ${openBal>0?'accent-red':'accent'}">
-      <div class="kpi-label">Open Balance</div>
-      <div class="kpi-value ${openBal>0?'red':'green'}" style="font-size:22px">${openBal>0?fmt$(openBal):'$0'}</div>
-      <div class="kpi-sub">${openBal>0?'Outstanding HCC':'All paid up'}</div>
-    </div>
-    <div class="kpi-card accent-amber">
-      <div class="kpi-label">Days to Renewal</div>
-      <div class="kpi-value amber" style="font-size:22px">${daysToRenewal(c)===null?'—':(daysToRenewal(c) + 'd')}</div>
-      <div class="kpi-sub">${(()=>{const a=c.policies.find(p=>p.status==='Active');return a?'Expires '+a.expires:'No active policy';})()}</div>
-    </div>
-    <div class="kpi-card accent-navy">
-      <div class="kpi-label">Risk Score</div>
-      <div class="kpi-value" style="font-size:22px">${riskTierBadge(c.riskScore)}</div>
-      <div class="kpi-sub">${c.claimsLast5yr} claims · ${c.ticketsLast3yr} tickets</div>
-    </div>
-  </div>
 
-  <div class="ld-layout">
-    <div>
-      <!-- LEAD / CUSTOMER INFO -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-header"><div class="card-title">Personal &amp; Lead Information</div><button class="btn btn-ghost" style="font-size:11.5px">✏ Edit</button></div>
-        <div class="card-body">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">
-            <div>
-              <div class="field-row"><div class="field-key">First Name</div><div class="field-val">${c.first}</div></div>
-              <div class="field-row"><div class="field-key">Last Name</div><div class="field-val">${c.last}</div></div>
-              <div class="field-row"><div class="field-key">Date of Birth</div><div class="field-val">${c.dob} (${c.age})</div></div>
-              <div class="field-row"><div class="field-key">Gender</div><div class="field-val">${c.gender}</div></div>
-              <div class="field-row"><div class="field-key">Marital Status</div><div class="field-val">${c.marital}</div></div>
-              <div class="field-row"><div class="field-key">License Status</div><div class="field-val">${c.license}</div></div>
-            </div>
-            <div>
-              <div class="field-row"><div class="field-key">Phone</div><div class="field-val link">${c.phone}</div></div>
-              <div class="field-row"><div class="field-key">Email</div><div class="field-val link">${c.email}</div></div>
-              <div class="field-row"><div class="field-key">Address</div><div class="field-val">${c.address}</div></div>
-              <div class="field-row"><div class="field-key">City / State / ZIP</div><div class="field-val">${c.city}, ${c.state} ${c.zip}</div></div>
-              <div class="field-row"><div class="field-key">Assigned Agent</div><div class="field-val">${c.agent}</div></div>
-              <div class="field-row"><div class="field-key">Customer Since</div><div class="field-val">${c.customerSince}</div></div>
-            </div>
+    <!-- KPI STRIP -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+      <div class="kpi-card accent"><div class="kpi-label">Lifetime Premium</div><div class="kpi-value" style="font-size:20px">${fmtK(customerLifetimeValue(c))}</div><div class="kpi-sub">${c.policies.length} policies</div></div>
+      <div class="kpi-card accent"><div class="kpi-label">Lifetime Fees</div><div class="kpi-value green" style="font-size:20px">${fmtK(customerLifetimeFee(c))}</div><div class="kpi-sub">Agency revenue</div></div>
+      <div class="kpi-card ${openBal>0?'accent-red':'accent'}"><div class="kpi-label">Open Balance</div><div class="kpi-value ${openBal>0?'red':'green'}" style="font-size:20px">${openBal>0?fmt$(openBal):'$0'}</div><div class="kpi-sub">${openBal>0?'Outstanding':'All paid up'}</div></div>
+      <div class="kpi-card accent-amber"><div class="kpi-label">Days to Renewal</div><div class="kpi-value amber" style="font-size:20px">${daysToRenewal(c)===null?'&mdash;':daysToRenewal(c)+'d'}</div><div class="kpi-sub">${activePol?'Expires '+activePol.expires:'No active policy'}</div></div>
+    </div>
+
+    <!-- DISPOSITION BAR -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="font-size:10.5px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.9px;white-space:nowrap">Disposition</div>
+      <select id="custDisposition" style="flex:1;min-width:160px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:13.5px;font-family:var(--font-body);color:var(--navy-900);background:#fff;cursor:pointer">
+        <option>Active Customer</option>
+        <option>Follow-up needed</option>
+        <option>Renewal soon</option>
+        <option>Payment issue</option>
+        <option>At-risk / Potential cancel</option>
+        <option>Re-shop in progress</option>
+        <option>VIP / High value</option>
+        <option>Cancelled</option>
+      </select>
+      <button class="btn btn-primary" style="font-size:13px;padding:9px 22px;font-weight:700" onclick="alert('Disposition updated!')">Update</button>
+    </div>
+
+    <!-- COMMUNICATION TABS -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
+      <div style="display:flex;border-bottom:2px solid var(--border);background:var(--gray-50);padding:0 4px">
+        <button id="cdBtn-cd-calls" onclick="cdTab('cd-calls')" style="padding:12px 18px;border:none;background:transparent;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--navy-900);border-bottom:2.5px solid var(--navy-900);font-family:var(--font-body);margin-bottom:-2px;transition:all 0.15s">
+          Call Log <span style="font-size:11px;background:#E0E7FF;color:#3730A3;padding:1px 7px;border-radius:var(--radius-full);margin-left:5px;font-weight:700">3</span>
+        </button>
+        <button id="cdBtn-cd-text" onclick="cdTab('cd-text')" style="padding:12px 18px;border:none;background:transparent;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--gray-500);border-bottom:2.5px solid transparent;font-family:var(--font-body);margin-bottom:-2px;transition:all 0.15s">
+          Text / SMS <span style="font-size:11px;background:var(--gray-100);color:var(--gray-500);padding:1px 7px;border-radius:var(--radius-full);margin-left:5px;font-weight:700">5</span>
+        </button>
+        <button id="cdBtn-cd-notes" onclick="cdTab('cd-notes')" style="padding:12px 18px;border:none;background:transparent;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--gray-500);border-bottom:2.5px solid transparent;font-family:var(--font-body);margin-bottom:-2px;transition:all 0.15s">
+          Notes <span style="font-size:11px;background:var(--gray-100);color:var(--gray-500);padding:1px 7px;border-radius:var(--radius-full);margin-left:5px;font-weight:700">2</span>
+        </button>
+      </div>
+
+      <!-- CALL LOG -->
+      <div id="cd-calls">
+        ${callLog.map(cl => `
+        <div style="display:flex;align-items:center;gap:14px;padding:15px 20px;border-bottom:1px solid var(--border)">
+          <div style="width:38px;height:38px;border-radius:50%;background:${cl.ok?'#dcfce7':'var(--gray-100)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="15" height="15" fill="none" stroke="${cl.ok?'#15803d':'#9ca3af'}" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.02 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+              <span style="font-size:11.5px;font-weight:700;background:${cl.db};color:${cl.dc};padding:3px 10px;border-radius:var(--radius-full)">${cl.disp}</span>
+              <span style="font-size:13px;font-weight:600;color:var(--navy-900)">${cl.agent}</span>
+              <span style="font-size:12px;color:var(--gray-400);font-family:monospace">${cl.dur}</span>
+            </div>
+            <div style="font-size:12px;color:var(--gray-400)">${cl.ts}</div>
+          </div>
+          <button style="font-size:11.5px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-md);padding:7px 14px;cursor:pointer;color:var(--navy-700);font-weight:700;font-family:var(--font-body);flex-shrink:0">Transcript</button>
+        </div>`).join('')}
+      </div>
+
+      <!-- TEXT/SMS -->
+      <div id="cd-text" style="display:none">
+        <div style="padding:20px;display:flex;flex-direction:column;gap:10px;max-height:400px;overflow-y:auto">
+          <div style="display:flex;justify-content:flex-start"><div style="max-width:60%;background:var(--gray-100);border-radius:14px 14px 14px 3px;padding:11px 15px"><div style="font-size:10.5px;font-weight:700;color:var(--gray-400);margin-bottom:4px">${c.first} ${c.last} &middot; Jul 27, 10:15 AM</div><div style="font-size:13.5px;color:var(--navy-900);line-height:1.5">Ok, I will call you back this morning.</div></div></div>
+          <div style="display:flex;justify-content:flex-end"><div style="max-width:60%;background:var(--blue);border-radius:14px 14px 3px 14px;padding:11px 15px"><div style="font-size:10.5px;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:4px">Sarah Kim &middot; Jul 26, 4:52 PM</div><div style="font-size:13.5px;color:#fff;line-height:1.5">Hi ${c.first}! Just a reminder &mdash; your renewal is coming up soon. Let me know if you have any questions. &#128522;</div></div></div>
+          <div style="display:flex;justify-content:flex-start"><div style="max-width:60%;background:var(--gray-100);border-radius:14px 14px 14px 3px;padding:11px 15px"><div style="font-size:10.5px;font-weight:700;color:var(--gray-400);margin-bottom:4px">${c.first} ${c.last} &middot; Jul 25, 2:10 PM</div><div style="font-size:13.5px;color:var(--navy-900);line-height:1.5">Sounds good, thank you!</div></div></div>
+          <div style="display:flex;justify-content:flex-end"><div style="max-width:60%;background:var(--blue);border-radius:14px 14px 3px 14px;padding:11px 15px"><div style="font-size:10.5px;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:4px">Sarah Kim &middot; Jul 25, 12:30 PM</div><div style="font-size:13.5px;color:#fff;line-height:1.5">Hi ${c.first}, this is Sarah from MSIHub. Your policy is coming up for renewal. Can we find a few minutes to connect?</div></div></div>
+        </div>
+        <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end">
+          <textarea style="flex:1;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-md);font-family:var(--font-body);font-size:13.5px;resize:none;height:60px;color:var(--navy-900)" placeholder="Type a message&hellip;"></textarea>
+          <button class="btn btn-primary" style="padding:10px 22px;font-weight:700;font-size:13px">Send</button>
         </div>
       </div>
 
-      <!-- VEHICLE INFORMATION -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-header"><div class="card-title">Vehicle Information</div><button class="btn btn-ghost" style="font-size:11.5px">+ Add Vehicle</button></div>
-        <div class="card-body">
-          ${c.vehicles.map((v,i)=>`
-          <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:13px;margin-bottom:${i===c.vehicles.length-1?'0':'10px'}">
+      <!-- NOTES -->
+      <div id="cd-notes" style="display:none;padding:16px 20px">
+        <textarea id="cdNoteInput" style="width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-md);font-family:var(--font-body);font-size:13.5px;resize:vertical;height:76px;color:var(--navy-900);margin-bottom:8px" placeholder="Add a note about this customer&hellip;"></textarea>
+        <button class="btn btn-primary" style="font-weight:700;font-size:13px;padding:9px 20px;margin-bottom:16px" onclick="alert('Note saved!')">+ Save Note</button>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div style="padding:13px 15px;background:var(--gray-50);border-radius:var(--radius-md);border-left:3px solid var(--green-500)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-size:13px;font-weight:700;color:var(--navy-900)">Sarah Kim</div><div style="font-size:11px;color:var(--gray-400)">Jul 27, 10:30 AM</div></div>
+            <div style="font-size:13px;color:var(--gray-700);line-height:1.55">Customer asked about bundling renters. Follow up on whether they rent or own &mdash; possible opportunity. Getting good engagement on calls.</div>
+          </div>
+          <div style="padding:13px 15px;background:var(--gray-50);border-radius:var(--radius-md);border-left:3px solid var(--blue)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-size:13px;font-weight:700;color:var(--navy-900)">Marcus Rivera</div><div style="font-size:11px;color:var(--gray-400)">Jul 20, 11:15 AM</div></div>
+            <div style="font-size:13px;color:var(--gray-700);line-height:1.55">Renewal discussed. Customer happy with current rate. Mentioned potentially adding spouse as a driver before next renewal.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM INFO GRID: 3 columns -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:start">
+
+      <!-- COL 1: Customer Info -->
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
+        ${secHdr('Customer Info','<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px">&#9998; Edit</button>')}
+        ${infoRow('First Name', c.first)}
+        ${infoRow('Last Name', c.last)}
+        ${infoRow('Phone Number', c.phone)}
+        ${infoRow('Email', c.email||'—')}
+        ${infoRow('Gender', c.gender)}
+        ${infoRow('Marital Status', c.marital)}
+        ${infoRow('Date of Birth', c.dob+' &middot; age '+c.age)}
+        ${infoRow('Street', c.address)}
+        ${infoRow('City', c.city)}
+        ${infoRow('State', c.state)}
+        ${infoRow('ZIP Code', c.zip)}
+        ${infoRow('License', c.license)}
+        ${infoRow('Language', c.language)}
+        ${infoRow('SR-22 Required', c.sr22?'<span style="color:var(--red);font-weight:700">Yes &#8212; On File</span>':'No')}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid var(--border)">
+          <div style="font-size:10.5px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px">Social Security</div>
+          <button style="font-size:11px;background:var(--navy-50);color:var(--navy-700);border:1px solid #C3D6E8;border-radius:var(--radius-md);padding:4px 11px;cursor:pointer;font-weight:700;font-family:var(--font-body)">Request Securely</button>
+        </div>
+        ${infoRow('Assigned Agent', c.agent)}
+        ${infoRow('Billing', c.paymentMethod)}
+        ${infoRow('Autopay', c.autopay?'<span style="color:var(--green-700);font-weight:700">&#10003; On</span>':'Off')}
+        ${infoRow('Customer Since', c.customerSince, true)}
+      </div>
+
+      <!-- COL 2: Vehicles + Drivers -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
+          ${secHdr('Vehicles ('+c.vehicles.length+')','<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px">+ Add</button>')}
+          ${c.vehicles.map((v,i) => `
+          <div style="padding:12px 16px;${i<c.vehicles.length-1?'border-bottom:1px solid var(--border)':''}">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-              <div style="font-weight:700;font-size:14px;color:var(--navy-900)">🚗 ${v.year} ${v.make} ${v.model}</div>
-              <span style="font-size:10.5px;background:var(--navy-50);color:var(--navy-700);padding:2px 9px;border-radius:var(--radius-full);font-weight:700">Vehicle ${i+1}</span>
+              <div style="font-size:13.5px;font-weight:700;color:var(--navy-900)">${v.year} ${v.make} ${v.model}</div>
+              <span style="font-size:9.5px;font-weight:700;background:var(--navy-50);color:var(--navy-700);padding:2px 8px;border-radius:var(--radius-full)">VEH ${i+1}</span>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">
-              <div class="field-row" style="padding:6px 0"><div class="field-key">VIN</div><div class="field-val" style="font-family:monospace">${v.vin}</div></div>
-              <div class="field-row" style="padding:6px 0"><div class="field-key">Garaging ZIP</div><div class="field-val">${v.garaging}</div></div>
-              <div class="field-row" style="padding:6px 0;grid-column:1 / span 2;border-bottom:none"><div class="field-key">Primary Use</div><div class="field-val">${v.use}</div></div>
-            </div>
+            ${infoRow('VIN','<span style="font-family:monospace;font-size:11.5px">'+v.vin+'</span>')}
+            ${infoRow('Garaging ZIP',v.garaging)}
+            ${infoRow('Primary Use',v.use)}
+            ${infoRow('Est. Value',fmt$(v.value))}
+            ${v.lien?infoRow('Lienholder',v.lien,true):infoRow('Lienholder','—',true)}
           </div>`).join('')}
         </div>
-      </div>
 
-      <!-- DRIVER(S) INFORMATION -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-header"><div class="card-title">Driver${c.drivers.length>1?'s':''} Information</div><button class="btn btn-ghost" style="font-size:11.5px">+ Add Driver</button></div>
-        <div class="card-body">
-          ${c.drivers.map((d,i)=>`
-          <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:13px;margin-bottom:${i===c.drivers.length-1?'0':'10px'};${d.primary?'border-left:3px solid var(--green-500)':''}">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
+          ${secHdr('Drivers ('+c.drivers.length+')','<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px">+ Add</button>')}
+          ${c.drivers.map((d,i) => `
+          <div style="padding:12px 16px;${i<c.drivers.length-1?'border-bottom:1px solid var(--border)':''};${d.primary?'border-left:3px solid var(--green-500)':''}">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-              <div style="font-weight:700;font-size:14px;color:var(--navy-900)">👤 ${d.name}</div>
-              <span style="font-size:10.5px;background:${d.primary?'var(--green-50)':'var(--gray-100)'};color:${d.primary?'var(--green-700)':'var(--gray-600)'};padding:2px 9px;border-radius:var(--radius-full);font-weight:700;border:1px solid ${d.primary?'var(--green-200)':'var(--border)'}">${d.primary?'PRIMARY':'ADDITIONAL'}</span>
+              <div style="font-size:13.5px;font-weight:700;color:var(--navy-900)">${d.name}</div>
+              <span style="font-size:9.5px;font-weight:700;background:${d.primary?'var(--green-50)':'var(--gray-100)'};color:${d.primary?'var(--green-700)':'var(--gray-500)'};padding:2px 9px;border-radius:var(--radius-full);border:1px solid ${d.primary?'var(--green-200)':'var(--border)'}">${d.primary?'PRIMARY':'ADDITIONAL'}</span>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">
-              <div class="field-row" style="padding:6px 0"><div class="field-key">Date of Birth</div><div class="field-val">${d.dob}</div></div>
-              <div class="field-row" style="padding:6px 0"><div class="field-key">Gender</div><div class="field-val">${d.gender}</div></div>
-              <div class="field-row" style="padding:6px 0"><div class="field-key">License</div><div class="field-val">${d.license}</div></div>
-              <div class="field-row" style="padding:6px 0;border-bottom:none"><div class="field-key">Violations</div><div class="field-val ${d.violations.toLowerCase().includes('clean')?'':'warn'}">${d.violations}</div></div>
-            </div>
+            ${infoRow('Date of Birth',d.dob)}
+            ${infoRow('Gender',d.gender)}
+            ${infoRow('License',d.license)}
+            ${infoRow('Violations',d.violations,true)}
           </div>`).join('')}
         </div>
       </div>
 
-      <!-- POLICY HISTORY -->
-      <div class="card">
-        <div class="card-header"><div class="card-title">Policy History</div><span style="font-size:11px;color:var(--gray-400)">All policies — active &amp; previous</span></div>
-        <div class="card-body" style="padding:0">
-          <table class="data-table">
-            <thead><tr><th>Status</th><th>Line</th><th>Carrier</th><th>Policy #</th><th>Sold By</th><th>Effective</th><th>Expires</th><th>Premium</th><th>Fee Total</th><th>Fee Collected</th><th>Fee Extended (HCC)</th><th>Balance</th></tr></thead>
-            <tbody>
-              ${c.policies.map(p=>{
-                const bal = customerBalance(p);
-                const sc = p.status==='Active' ? '#3BAA47' : p.status==='Cancelled' ? '#EF4444' : '#F59E0B';
-                return `<tr>
-                  <td><span class="badge" style="background:${sc}22;color:${sc};border:1px solid ${sc}55"><span style="background:${sc}"></span>${p.status}</span></td>
-                  <td style="font-weight:600">${p.line}</td>
-                  <td>${p.carrier}</td>
-                  <td style="font-family:monospace;font-size:12px">${p.number}</td>
-                  <td><div style="display:flex;align-items:center;gap:6px"><div class="avatar ${agentAv(p.soldBy)}" style="width:22px;height:22px;font-size:9px">${initials(p.soldBy||'')}</div><span style="font-size:12px;font-weight:600">${p.soldBy||'—'}</span></div></td>
-                  <td style="font-size:12px;color:var(--gray-600)">${p.effective}</td>
-                  <td style="font-size:12px;color:var(--gray-600)">${p.expires}</td>
-                  <td style="font-weight:600">${fmt$(p.premium)}</td>
-                  <td>${fmt$(p.feeTotal)}</td>
-                  <td style="color:var(--green-700);font-weight:600">${fmt$(p.feeCollected)}${p.hccCollected?` <span style="font-size:10px;background:var(--green-100);color:var(--green-800);padding:1px 6px;border-radius:var(--radius-full);font-weight:700;margin-left:4px">+HCC</span>`:''}</td>
-                  <td style="color:${p.feeExtended>0?(p.hccCollected?'var(--green-700)':'#B45309'):'var(--gray-400)'};font-weight:600">${fmt$(p.feeExtended)}${p.hccCollected?' ✓':''}</td>
-                  <td style="color:${bal>0?'var(--red)':'var(--green-700)'};font-weight:700;font-family:var(--font-display)">${bal>0?fmt$(bal):'$0.00'}</td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table>
-          <div style="padding:14px 16px;background:var(--gray-50);border-top:1px solid var(--border);display:flex;gap:30px;flex-wrap:wrap">
-            <div><div style="font-size:10.5px;color:var(--gray-500);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Total Collected</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--green-700)">${fmt$(totalCollected)}</div></div>
-            <div><div style="font-size:10.5px;color:var(--gray-500);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Total Extended</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--navy-900)">${fmt$(totalExtended)}</div></div>
-            <div><div style="font-size:10.5px;color:var(--gray-500);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Open Balance</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:${openBal>0?'var(--red)':'var(--green-700)'}">${fmt$(openBal)}</div></div>
-            <div style="margin-left:auto;font-size:10.5px;color:var(--gray-500);text-align:right;align-self:center"><strong style="color:var(--green-700)">+HCC</strong> means the extended payment was collected — balance is auto-cleared to $0.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div>
-      <!-- COMMUNICATION & BILLING -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-header"><div class="card-title">Communication &amp; Billing</div></div>
-        <div class="card-body">
-          <div class="field-row"><div class="field-key">Language</div><div class="field-val">${c.language==='Spanish'?'🇪🇸 ':''}${c.language}</div></div>
-          <div class="field-row"><div class="field-key">Preferred Channel</div><div class="field-val">${c.commPref}</div></div>
-          <div class="field-row"><div class="field-key">Best Time</div><div class="field-val">${c.preferredContactTime}</div></div>
-          <div class="field-row"><div class="field-key">Payment Method</div><div class="field-val ${(c.paymentMethod||'').includes('DECLINED')?'danger':''}">${c.paymentMethod}</div></div>
-          <div class="field-row"><div class="field-key">Autopay</div><div class="field-val">${c.autopay?'<span style="color:var(--green-700);font-weight:600">✓ Enabled</span>':'<span style="color:var(--gray-500)">Not enrolled</span>'}</div></div>
-          <div class="field-row"><div class="field-key">Paperless</div><div class="field-val">${c.paperless?'<span style="color:var(--green-700);font-weight:600">✓ Yes</span>':'No'}</div></div>
-          <div class="field-row" style="border-bottom:none"><div class="field-key">SR-22 Required</div><div class="field-val">${c.sr22?'<span style="background:#FEF2F2;color:#991B1B;padding:2px 8px;border-radius:var(--radius-full);font-size:11px;font-weight:700;border:1px solid #FCA5A5">YES — On File</span>':'No'}</div></div>
-        </div>
-      </div>
-
-      <!-- TOUCHPOINTS / KEY DATES -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-header"><div class="card-title">Touchpoints</div></div>
-        <div class="card-body">
-          <div style="display:flex;align-items:center;gap:10px;padding:9px;background:var(--purple-light);border-radius:var(--radius-md);margin-bottom:7px;border:1px solid #DDD6FE">
-            <span style="font-size:18px">🎂</span>
-            <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#5B21B6">Birthday</div><div style="font-size:11px;color:#6D28D9">${c.birthday}</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;padding:9px;background:var(--green-50);border-radius:var(--radius-md);margin-bottom:7px;border:1px solid var(--green-200)">
-            <span style="font-size:18px">🎉</span>
-            <div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--green-700)">Customer Anniversary</div><div style="font-size:11px;color:var(--green-700)">Since ${c.customerSince}</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;padding:9px;background:var(--blue-light);border-radius:var(--radius-md);border:1px solid #C3D6E8">
-            <span style="font-size:18px">🤝</span>
-            <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#0E2340">Referrals Given</div><div style="font-size:11px;color:#163D6B">${c.referralsGiven} so far · Source: ${c.referredBy}</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- CROSS-SELL OPPORTUNITIES -->
-      ${c.crossSell && c.crossSell.length ? `
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-header"><div class="card-title">Cross-Sell Opportunities</div><span style="font-size:10.5px;color:var(--green-700);font-weight:700">${c.crossSell.length} available</span></div>
-        <div class="card-body">
-          ${c.crossSell.map(x=>`
-          <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--green-50);border:1px solid var(--green-200);border-radius:var(--radius-md);margin-bottom:6px;cursor:pointer">
-            <span style="font-size:14px">💡</span>
-            <span style="flex:1;font-size:12px;font-weight:600;color:var(--green-800)">${x}</span>
-            <span style="font-size:10.5px;color:var(--green-700);font-weight:700">Quote →</span>
-          </div>`).join('')}
-        </div>
-      </div>` : ''}
-
-      <!-- CLAIMS HISTORY -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-header"><div class="card-title">Claims History</div><span style="font-size:11px;color:var(--gray-400)">${c.claims.length} on record</span></div>
-        <div class="card-body">
-          ${c.claims.length === 0 ? `<div style="text-align:center;color:var(--gray-400);font-size:12.5px;padding:14px">✓ No claims on record</div>` :
-          c.claims.map(cl=>`
-          <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:10px;margin-bottom:7px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-              <div style="font-size:12px;font-weight:700;color:var(--navy-900)">${cl.type}</div>
-              <span style="font-size:10.5px;color:var(--gray-500)">${cl.date}</span>
-            </div>
-            <div style="font-size:11.5px;color:var(--gray-600);margin-bottom:5px">${cl.desc}</div>
-            <div style="display:flex;justify-content:space-between;font-size:11px"><span style="color:var(--gray-500)">Paid: <strong style="color:var(--navy-900)">${fmt$(cl.amount)}</strong></span><span style="color:var(--green-700);font-weight:700">${cl.status}</span></div>
-          </div>`).join('')}
-        </div>
-      </div>
-
-      <!-- CUSTOMER FILES -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Customer Files</div>
-          <button class="btn btn-ghost" style="font-size:11.5px" onclick="openCustomerFolder()">📁 Open Folder</button>
-        </div>
-        <div class="card-body">
-          <div id="customerFilesList">
-            ${c.files.map(f=>`
-            <div class="customer-file" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--radius-md);background:var(--gray-50);border:1px solid var(--border);margin-bottom:7px">
-              <div style="font-size:18px">${fileIcon(f)}</div>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:12px;font-weight:600;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f}</div>
-                <div style="font-size:10.5px;color:var(--gray-400)">On file</div>
+      <!-- COL 3: Policies + Files -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
+          ${secHdr('Policies ('+c.policies.length+')','<span style="font-size:11px;color:var(--gray-400)">All-time</span>')}
+          ${c.policies.map((p,i) => {
+            const bal = customerBalance(p);
+            const sc = p.status==='Active'?'#3BAA47':p.status==='Cancelled'?'#EF4444':'#F59E0B';
+            return `<div style="padding:12px 16px;${i<c.policies.length-1?'border-bottom:1px solid var(--border)':''}">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <div style="font-size:13.5px;font-weight:700;color:var(--navy-900)">${p.carrier} <span style="font-size:11.5px;color:var(--gray-400);font-weight:400">&middot; ${p.line}</span></div>
+                <span style="font-size:10px;font-weight:700;background:${sc}22;color:${sc};padding:2px 9px;border-radius:var(--radius-full);border:1px solid ${sc}55">${p.status}</span>
               </div>
-              <div class="tbl-icon-btn" title="Download">⬇</div>
-            </div>`).join('')}
+              ${infoRow('Policy #','<span style="font-family:monospace;font-size:11.5px">'+p.number+'</span>')}
+              ${infoRow('Period',p.effective+' &rarr; '+p.expires)}
+              ${infoRow('Annual Premium',fmt$(p.premium))}
+              ${infoRow('Fee Collected',fmt$(p.feeCollected))}
+              ${infoRow('Balance',bal>0?'<span style="color:var(--red);font-weight:700">'+fmt$(bal)+'</span>':'<span style="color:var(--green-700);font-weight:700">$0.00</span>',true)}
+            </div>`;
+          }).join('')}
+          <div style="padding:12px 16px;background:var(--gray-50);border-top:1px solid var(--border);display:flex;gap:22px">
+            <div><div style="font-size:9.5px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Total Collected</div><div style="font-size:17px;font-weight:800;color:var(--green-700);font-family:var(--font-display)">${fmt$(totalCollected)}</div></div>
+            <div><div style="font-size:9.5px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Open Balance</div><div style="font-size:17px;font-weight:800;color:${openBal>0?'var(--red)':'var(--green-700)'};font-family:var(--font-display)">${openBal>0?fmt$(openBal):'$0.00'}</div></div>
           </div>
-          <div id="customerFileDrop" style="border:2px dashed var(--border-strong);border-radius:var(--radius-md);padding:14px;text-align:center;cursor:pointer;margin-top:10px;transition:all 0.15s" onclick="document.getElementById('customerFileInput').click()" ondragover="event.preventDefault();this.style.borderColor='var(--green-500)';this.style.background='var(--green-50)'" ondragleave="this.style.borderColor='var(--border-strong)';this.style.background=''" ondrop="event.preventDefault();this.style.borderColor='var(--border-strong)';this.style.background='';handleCustomerFiles(event.dataTransfer.files)">
-            <div style="font-size:20px;margin-bottom:2px">📎</div>
-            <div style="font-size:12px;font-weight:600;color:var(--navy-900)">Add Files</div>
-            <div style="font-size:10.5px;color:var(--gray-400);margin-top:2px">Click or drag &amp; drop</div>
+        </div>
+
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
+          ${secHdr('Customer Files','<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="openCustomerFolder()">&#128193; Open Folder</button>')}
+          <div style="padding:12px 16px">
+            <div id="customerFilesList">
+              ${c.files.map(f=>`
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-md);background:var(--gray-50);border:1px solid var(--border);margin-bottom:7px">
+                <div style="font-size:17px">${fileIcon(f)}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f}</div></div>
+                <div class="tbl-icon-btn" title="Download">&#8595;</div>
+              </div>`).join('')}
+            </div>
+            <div id="customerFileDrop" style="border:2px dashed var(--border-strong);border-radius:var(--radius-md);padding:12px;text-align:center;cursor:pointer;margin-top:8px" onclick="document.getElementById('customerFileInput').click()" ondragover="event.preventDefault();this.style.borderColor='var(--green-500)'" ondragleave="this.style.borderColor='var(--border-strong)'" ondrop="event.preventDefault();this.style.borderColor='var(--border-strong)';handleCustomerFiles(event.dataTransfer.files)">
+              <div style="font-size:12px;font-weight:600;color:var(--gray-500)">&#128206; Drop files or click to upload</div>
+            </div>
+            <input id="customerFileInput" type="file" multiple style="display:none" onchange="handleCustomerFiles(this.files)">
           </div>
-          <input id="customerFileInput" type="file" multiple style="display:none" onchange="handleCustomerFiles(this.files)">
         </div>
       </div>
+
     </div>
   </div>
   `;
