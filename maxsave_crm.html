@@ -5110,7 +5110,7 @@ window.PAGE_INIT = window.PAGE_INIT || {};
 window.PAGE_INIT.liveview = function(){ refreshLiveView(); };
 
 // ==================== INBOX (Calls · Texts · Emails) ====================
-window.INBOX_STATE = { tab:'Texts', search:'', dateRange:'Today', loggedInAgent:'Sarah Kim' };
+window.INBOX_STATE = { tab:'Texts', search:'', dateRange:'Today', loggedInAgent:'Sarah Kim', callFilter:'All', textFilter:'All', textThread:null };
 
 window.EMAILS = [
   { id:1, from:'Maria Gonzalez', email:'maria.g@email.com',  phone:'(619) 555-0124', subject:'Re: Your Auto Quote — Progressive',          preview:'Thanks for the quote! Quick question on the deductible options before I sign…',           time:'2:14 PM',  date:'Today',     read:false, starred:true,  agent:'Sarah Kim',     priority:'high',   sentiment:'positive', attachments:0 },
@@ -5217,27 +5217,50 @@ function renderInboxPage() {
     <div class="kpi-card accent-amber"><div class="kpi-label">Unread Emails</div><div class="kpi-value amber">${unreadEmails}</div><div class="kpi-sub">${myEmails.filter(e=>e.priority==='high').length} marked high priority</div></div>
   </div>
 
-  <!-- TABS -->
-  <div class="tabs" style="margin-bottom:16px">
-    <div class="tab ${s.tab==='Calls'?'active':''}"  onclick="setInboxTab('Calls')">📞 Calls <span style="background:var(--gray-100);color:var(--gray-600);padding:1px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:700;margin-left:5px">${myCalls.length}</span></div>
-    <div class="tab ${s.tab==='Texts'?'active':''}"  onclick="setInboxTab('Texts')">💬 Texts <span style="background:${unreadTexts>0?'#FEF2F2':'var(--gray-100)'};color:${unreadTexts>0?'var(--red)':'var(--gray-600)'};padding:1px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:700;margin-left:5px">${threadList.length}${unreadTexts?' · '+unreadTexts+' new':''}</span></div>
-    <div class="tab ${s.tab==='Emails'?'active':''}" onclick="setInboxTab('Emails')">📧 Emails <span style="background:${unreadEmails>0?'#FEF2F2':'var(--gray-100)'};color:${unreadEmails>0?'var(--red)':'var(--gray-600)'};padding:1px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:700;margin-left:5px">${myEmails.length}${unreadEmails?' · '+unreadEmails+' new':''}</span></div>
+  <!-- TABS — blue bar -->
+  <div style="display:flex;gap:2px;background:#1A6ED0;border-radius:var(--radius-lg);padding:3px;width:fit-content;margin-bottom:16px;box-shadow:0 2px 8px rgba(26,110,208,0.25)">
+    <div onclick="setInboxTab('Calls')" style="padding:7px 20px;border-radius:var(--radius-md);cursor:pointer;font-size:14px;font-weight:${s.tab==='Calls'?'700':'500'};color:${s.tab==='Calls'?'#1A6ED0':'rgba(255,255,255,0.85)'};background:${s.tab==='Calls'?'#fff':'transparent'};transition:all 0.15s;user-select:none;display:flex;align-items:center;gap:6px">
+      📞 Calls <span style="background:${s.tab==='Calls'?'#EFF6FF':'rgba(255,255,255,0.22)'};color:${s.tab==='Calls'?'#1A6ED0':'#fff'};padding:1px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:700">${myCalls.length}</span>
+    </div>
+    <div onclick="setInboxTab('Texts')" style="padding:7px 20px;border-radius:var(--radius-md);cursor:pointer;font-size:14px;font-weight:${s.tab==='Texts'?'700':'500'};color:${s.tab==='Texts'?'#1A6ED0':'rgba(255,255,255,0.85)'};background:${s.tab==='Texts'?'#fff':'transparent'};transition:all 0.15s;user-select:none;display:flex;align-items:center;gap:6px">
+      💬 Texts <span style="background:${unreadTexts>0?(s.tab==='Texts'?'#FEE2E2':'rgba(255,255,255,0.22)'):(s.tab==='Texts'?'#EFF6FF':'rgba(255,255,255,0.22)')};color:${unreadTexts>0?(s.tab==='Texts'?'var(--red)':'#fff'):(s.tab==='Texts'?'#1A6ED0':'#fff')};padding:1px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:700">${threadList.length}${unreadTexts?' · '+unreadTexts:''}</span>
+    </div>
+    <div onclick="setInboxTab('Emails')" style="padding:7px 20px;border-radius:var(--radius-md);cursor:pointer;font-size:14px;font-weight:${s.tab==='Emails'?'700':'500'};color:${s.tab==='Emails'?'#1A6ED0':'rgba(255,255,255,0.85)'};background:${s.tab==='Emails'?'#fff':'transparent'};transition:all 0.15s;user-select:none;display:flex;align-items:center;gap:6px">
+      📧 Emails <span style="background:${unreadEmails>0?(s.tab==='Emails'?'#FEE2E2':'rgba(255,255,255,0.22)'):(s.tab==='Emails'?'#EFF6FF':'rgba(255,255,255,0.22)')};color:${unreadEmails>0?(s.tab==='Emails'?'var(--red)':'#fff'):(s.tab==='Emails'?'#1A6ED0':'#fff')};padding:1px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:700">${myEmails.length}${unreadEmails?' · '+unreadEmails:''}</span>
+    </div>
   </div>
 
-  ${s.tab === 'Calls' ? renderInboxCalls(filteredCalls) :
-    s.tab === 'Texts' ? renderInboxTexts(filteredThreads) :
+  ${s.tab === 'Calls' ? renderInboxCalls(filteredCalls, s.callFilter) :
+    s.tab === 'Texts' ? renderInboxTexts(filteredThreads, s.textFilter, s.textThread) :
                         renderInboxEmails(filteredEmails)}
   `;
 }
 
-function renderInboxCalls(calls) {
-  if (calls.length === 0) return `<div class="card"><div class="empty"><div class="empty-icon">📞</div><div class="empty-title">No calls match</div></div></div>`;
+function renderInboxCalls(calls, callFilter) {
+  callFilter = callFilter || 'All';
+  let filtered = calls;
+  if (callFilter === 'Inbound')  filtered = calls.filter(h => h.direction === 'inbound');
+  if (callFilter === 'Outbound') filtered = calls.filter(h => h.direction === 'outbound');
+  if (callFilter === 'Missed')   filtered = calls.filter(h => h.status === 'missed');
+
+  const chipStyle = (active) => `padding:5px 16px;border-radius:var(--radius-full);border:none;cursor:pointer;font-size:12.5px;font-weight:600;font-family:var(--font-body);transition:all 0.15s;background:${active?'#1A6ED0':'var(--gray-100)'};color:${active?'#fff':'var(--gray-600)'}`;
+  const filterBar = `
+  <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--gray-50)">
+    <span style="font-size:12px;font-weight:600;color:var(--gray-500)">Filter:</span>
+    <button onclick="window.INBOX_STATE.callFilter='All';refreshInbox()"      style="${chipStyle(callFilter==='All')}">All <span style="opacity:0.7;font-size:11px">(${calls.length})</span></button>
+    <button onclick="window.INBOX_STATE.callFilter='Inbound';refreshInbox()"  style="${chipStyle(callFilter==='Inbound')}">↙ Inbound</button>
+    <button onclick="window.INBOX_STATE.callFilter='Outbound';refreshInbox()" style="${chipStyle(callFilter==='Outbound')}">↗ Outbound</button>
+    <button onclick="window.INBOX_STATE.callFilter='Missed';refreshInbox()"   style="${chipStyle(callFilter==='Missed')}">⚠ Missed <span style="opacity:0.7;font-size:11px">(${calls.filter(h=>h.status==='missed').length})</span></button>
+  </div>`;
+
+  if (filtered.length === 0) return `<div class="card">${filterBar}<div class="empty"><div class="empty-icon">📞</div><div class="empty-title">No calls match</div></div></div>`;
   return `
   <div class="card">
+    ${filterBar}
     <table class="data-table">
       <thead><tr><th>Time</th><th>Direction</th><th>Contact</th><th>Phone</th><th>Duration</th><th>Outcome</th><th>Recording</th><th>Transcript</th><th>Actions</th></tr></thead>
       <tbody>
-        ${calls.map(h => {
+        ${filtered.map(h => {
           const dirIco = h.direction === 'outbound' ? '↗ Outbound' : '↙ Inbound';
           const dirCol = h.direction === 'outbound' ? 'var(--green-700)' : '#0E2340';
           const statusCol = h.status === 'connected' ? 'var(--green-700)' : h.status === 'missed' ? 'var(--red)' : 'var(--gray-500)';
@@ -5266,38 +5289,125 @@ function renderInboxCalls(calls) {
   `;
 }
 
-function renderInboxTexts(threads) {
-  if (threads.length === 0) return `<div class="card"><div class="empty"><div class="empty-icon">💬</div><div class="empty-title">No conversations match</div></div></div>`;
+function renderInboxTexts(threads, textFilter, selectedPhone) {
+  textFilter = textFilter || 'All';
+  const chipStyle = (active) => `padding:5px 16px;border-radius:var(--radius-full);border:none;cursor:pointer;font-size:12.5px;font-weight:600;font-family:var(--font-body);transition:all 0.15s;background:${active?'#1A6ED0':'var(--gray-100)'};color:${active?'#fff':'var(--gray-600)'}`;
+
+  let displayThreads = textFilter === 'Unanswered' ? threads.filter(t => t.unread) : threads;
+
+  // Build flat message list for selected thread
+  let flatMessages = [];
+  let selectedContact = null;
+  if (selectedPhone) {
+    selectedContact = threads.find(t => t.phone === selectedPhone) || null;
+    const conv = window.CONVERSATIONS[selectedPhone] || [];
+    for (const day of conv) {
+      for (const msg of day.msgs) {
+        flatMessages.push({ direction: msg.from === 'us' ? 'outbound' : 'inbound', text: msg.text, time: msg.time });
+      }
+    }
+  }
+
+  const safeSelPhone = (selectedPhone || '').replace(/[^0-9]/g,'');
+
   return `
-  <div class="card">
-    <div class="card-body" style="padding:6px 0">
-      ${threads.map(t => {
-        const safeName = t.name.replace(/'/g,"\\'");
-        const init = t.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-        const isInbound = t.lastMsg.from === 'them';
-        return `
-        <div onclick="openTextThread('${safeName}','${t.phone}');if(window.UNREAD_THREADS){window.UNREAD_THREADS.delete('${t.phone}');document.getElementById('inboxBadge').textContent=window.UNREAD_THREADS.size;}refreshInbox()" style="display:flex;align-items:center;gap:13px;padding:14px 18px;border-bottom:1px solid var(--border);cursor:pointer;background:${t.unread?'var(--green-50)':'transparent'};transition:background 0.15s;border-left:${t.unread?'3px solid var(--green-500)':'3px solid transparent'}" onmouseenter="if(!${t.unread})this.style.background='var(--gray-50)'" onmouseleave="if(!${t.unread})this.style.background='transparent'">
-          <div class="avatar ${agentAv(t.name)}" style="width:42px;height:42px;font-size:13px;flex-shrink:0">${init}</div>
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
-              <div style="font-weight:${t.unread?'800':'700'};font-size:14px;color:var(--navy-900)">${t.name}</div>
-              <span style="font-size:11.5px;color:var(--gray-400)">${t.phone}</span>
-              ${t.unread?'<span style="background:var(--red);color:#fff;font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:var(--radius-full);letter-spacing:0.4px">NEW</span>':''}
-            </div>
-            <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:${t.unread?'var(--navy-900)':'var(--gray-600)'};font-weight:${t.unread?'600':'400'};line-height:1.4">
-              ${isInbound?'':'<span style="color:var(--gray-400);font-weight:600">You:</span>'}
-              <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">${(t.lastMsg.text||'').replace(/</g,'&lt;')}</span>
-            </div>
+  <div class="card" style="overflow:hidden">
+    <!-- Filter bar -->
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--gray-50)">
+      <span style="font-size:12px;font-weight:600;color:var(--gray-500)">Show:</span>
+      <button onclick="window.INBOX_STATE.textFilter='All';refreshInbox()"         style="${chipStyle(textFilter==='All')}">All Texts <span style="opacity:0.7;font-size:11px">(${threads.length})</span></button>
+      <button onclick="window.INBOX_STATE.textFilter='Unanswered';refreshInbox()"  style="${chipStyle(textFilter==='Unanswered')}">Unanswered <span style="opacity:0.7;font-size:11px">(${threads.filter(t=>t.unread).length})</span></button>
+    </div>
+    <!-- Two-panel split -->
+    <div style="display:grid;grid-template-columns:290px 1fr;height:560px;overflow:hidden">
+
+      <!-- LEFT: conversation list -->
+      <div style="border-right:1px solid var(--border);overflow-y:auto;background:var(--gray-50)">
+        ${displayThreads.length === 0 ? `<div style="padding:40px 20px;text-align:center;color:var(--gray-400);font-size:13px">No conversations</div>` :
+          displayThreads.map(t => {
+            const isSel = t.phone === selectedPhone;
+            const isInbound = t.lastMsg.from === 'them';
+            return `
+            <div onclick="window.INBOX_STATE.textThread='${t.phone}';if(window.UNREAD_THREADS){window.UNREAD_THREADS.delete('${t.phone}');var b=document.getElementById('inboxBadge');if(b)b.textContent=window.UNREAD_THREADS.size;}refreshInbox()"
+              style="padding:13px 14px;border-bottom:1px solid var(--border);cursor:pointer;background:${isSel?'#EFF6FF':'transparent'};border-left:3px solid ${isSel?'#1A6ED0':'transparent'};transition:background 0.1s">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+                <div style="font-weight:700;font-size:14px;color:${isSel?'#1A6ED0':'var(--navy-900)'};">${t.name}</div>
+                <div style="display:flex;align-items:center;gap:5px">
+                  ${t.unread?'<div style="width:7px;height:7px;border-radius:50%;background:#1A6ED0;flex-shrink:0"></div>':''}
+                  <div style="font-size:10.5px;color:var(--gray-400);">${t.lastDay==='Today'?t.lastMsg.time:t.lastDay}</div>
+                </div>
+              </div>
+              <div style="font-size:11.5px;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${isInbound?'':' You: '}${(t.lastMsg.text||'').replace(/</g,'&lt;')}</div>
+              <div style="font-size:10.5px;color:var(--gray-400);margin-top:2px">${t.phone}</div>
+            </div>`;
+          }).join('')
+        }
+      </div>
+
+      <!-- RIGHT: selected conversation -->
+      <div style="display:flex;flex-direction:column;overflow:hidden;background:#fff">
+        ${selectedContact ? `
+        <!-- Header -->
+        <div style="padding:13px 18px;border-bottom:1px solid var(--border);background:var(--gray-50);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-weight:700;font-size:15px;color:var(--navy-900)">${selectedContact.name}</div>
+            <div style="font-size:12px;color:var(--gray-500);margin-top:1px">${selectedContact.phone} · SMS / MMS</div>
           </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:11.5px;color:var(--gray-500);font-weight:600">${t.lastDay==='Today'?t.lastMsg.time:t.lastDay}</div>
-            <button type="button" class="btn" style="background:var(--blue);color:#fff;font-size:11px;padding:5px 12px;font-weight:700;margin-top:6px" onclick="event.stopPropagation();openTextThread('${safeName}','${t.phone}')">💬 Reply</button>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="alert('Calling ${selectedContact.name.replace(/'/g,"\\'")}…')">📞 Call</button>
+            <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="nav('leaddetail',null)">View Lead →</button>
           </div>
-        </div>`;
-      }).join('')}
+        </div>
+        <!-- Messages -->
+        <div style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+          ${flatMessages.length === 0 ? `<div style="text-align:center;color:var(--gray-400);font-size:13px;padding:30px 0">No messages yet — start the conversation below.</div>` :
+            flatMessages.map(m => `
+            <div style="display:flex;justify-content:${m.direction==='outbound'?'flex-end':'flex-start'}">
+              <div style="max-width:68%;padding:10px 14px;font-size:13px;line-height:1.5;${m.direction==='outbound'?'background:#1A6ED0;color:#fff;border-radius:16px 16px 4px 16px':'background:#F1F5F9;color:var(--navy-900);border-radius:16px 16px 16px 4px'}">
+                ${(m.text||'').replace(/</g,'&lt;')}
+                <div style="font-size:10px;margin-top:5px;text-align:right;color:${m.direction==='outbound'?'rgba(255,255,255,0.60)':'var(--gray-400)'}">${m.time}</div>
+              </div>
+            </div>`).join('')
+          }
+        </div>
+        <!-- Compose bar -->
+        <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-shrink:0;background:#fff">
+          <label title="Add attachment" style="cursor:pointer;font-size:20px;color:var(--gray-400);display:flex;align-items:center;flex-shrink:0;line-height:1">
+            📎<input type="file" style="display:none" onchange="alert('Attachment: '+this.files[0].name);this.value=''">
+          </label>
+          <input type="text" id="inboxTextInput_${safeSelPhone}" placeholder="Type a message and press Enter to send…"
+            style="flex:1;font-family:var(--font-body);padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:13px;outline:none;transition:border-color 0.15s"
+            onfocus="this.style.borderColor='#1A6ED0'" onblur="this.style.borderColor='var(--border)'"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();inboxSendText('${selectedPhone}')}">
+          <button type="button" onclick="inboxSendText('${selectedPhone}')"
+            style="background:#1A6ED0;color:#fff;border:none;border-radius:var(--radius-md);padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);white-space:nowrap;flex-shrink:0">Send</button>
+        </div>
+        ` : `
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px">
+          <div style="font-size:42px">💬</div>
+          <div style="font-size:15px;font-weight:600;color:var(--gray-600)">Select a conversation</div>
+          <div style="font-size:12.5px;color:var(--gray-400)">Click a contact on the left to view and reply</div>
+        </div>`}
+      </div>
     </div>
   </div>
   `;
+}
+
+function inboxSendText(phone) {
+  const safePhone = (phone || '').replace(/[^0-9]/g,'');
+  const inp = document.getElementById('inboxTextInput_' + safePhone);
+  if (!inp) return;
+  const v = inp.value.trim();
+  if (!v || !phone) return;
+  if (!window.CONVERSATIONS) window.CONVERSATIONS = {};
+  if (!window.CONVERSATIONS[phone]) window.CONVERSATIONS[phone] = [];
+  let bucket = window.CONVERSATIONS[phone].find(d => d.date === 'Today');
+  if (!bucket) { bucket = { date:'Today', msgs:[] }; window.CONVERSATIONS[phone].push(bucket); }
+  const time = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  bucket.msgs.push({ from:'us', time, text: v });
+  inp.value = '';
+  refreshInbox();
 }
 
 function renderInboxEmails(emails) {
