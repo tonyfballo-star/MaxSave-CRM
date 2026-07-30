@@ -5464,45 +5464,436 @@ PAGES.reputation = stubPage('⭐','Reputation Manager','Reviews, ratings & onlin
 PAGES.agency     = stubPage('🏢','My Agency','Agency profile, branding & team overview. Coming soon.');
 
 // ==================== REPORTS ====================
-PAGES.reports = `
-<div class="page-header">
-  <div class="page-header-left"><h1>Reports & Analytics</h1><p>April 2026 · Last refreshed 2 minutes ago</p></div>
-  <div class="btn-group"><button class="btn btn-ghost">⬇ Export CSV</button><button class="btn btn-primary">+ Custom Report</button></div>
-</div>
-<div class="tabs">
-  <div class="tab active" onclick="switchTab(this,'rpt-production')">Production</div>
-  <div class="tab" onclick="switchTab(this,'rpt-pipeline')">Pipeline</div>
-  <div class="tab" onclick="switchTab(this,'rpt-finance')">Finance</div>
-  <div class="tab" onclick="switchTab(this,'rpt-activity')">Activity</div>
-</div>
-<div id="rpt-production">
-<div class="kpi-grid">
-  <div class="kpi-card accent"><div class="kpi-label">Total Apps</div><div class="kpi-value">247</div><div class="kpi-sub"><span class="trend up">↑ 18%</span> vs Mar 2026</div></div>
-  <div class="kpi-card accent"><div class="kpi-label">Fee Collected</div><div class="kpi-value green">$82,450</div><div class="kpi-sub"><span class="trend up">↑ 12%</span> vs Mar 2026</div></div>
-  <div class="kpi-card accent"><div class="kpi-label">Avg Fee per App</div><div class="kpi-value">$334</div><div class="kpi-sub"><span class="trend down">↓ $12</span> vs Mar 2026</div></div>
-  <div class="kpi-card accent"><div class="kpi-label">Close Rate</div><div class="kpi-value">34.2%</div><div class="kpi-sub"><span class="trend up">↑ 2.1 pts</span> vs Mar 2026</div></div>
-</div>
-<div class="card">
-  <div class="card-header"><div class="card-title">Agent Production Detail</div></div>
-  <table class="data-table">
-    <thead><tr><th>Agent</th><th>Apps</th><th>Goal</th><th>% to Goal</th><th>Fee Collected</th><th>Close Rate</th><th>Contact Rate</th></tr></thead>
-    <tbody>
-      ${AGENTS.map(a=>{const p=pct(a.apps,a.goal);return `<tr>
-        <td><div style="display:flex;align-items:center;gap:7px"><div class="avatar ${agentAv(a.name)}" style="width:24px;height:24px;font-size:9px">${initials(a.name)}</div><strong>${a.name}</strong></div></td>
-        <td style="font-family:var(--font-display);font-weight:700;font-size:14px">${a.apps}</td>
-        <td style="color:var(--gray-500)">${a.goal}</td>
-        <td><span style="font-weight:700;color:${progressTextColor(p)}">${p}%</span></td>
-        <td style="color:var(--green-700);font-weight:600">${fmt$(a.fee)}</td>
-        <td>${a.close}</td><td>${a.contact}</td>
-      </tr>`;}).join('')}
-    </tbody>
-  </table>
-</div>
-</div>
-<div id="rpt-pipeline" style="display:none">${stubPage('🔀','Pipeline Report','Apply filters and generate your pipeline analysis.')}</div>
-<div id="rpt-finance" style="display:none">${stubPage('💰','Finance Report','View detailed fee collection and premium tracking.')}</div>
-<div id="rpt-activity" style="display:none">${_actLogHTML}</div>
-`;
+
+// Extended per-agent metrics for the reports section (pay-period baseline)
+const AGENT_EXTENDED_DATA = {
+  'Sarah Kim':     { feeExtended:4200, inboundClose:'51.2%', outboundClose:'37.4%', totalCalls:142, inboundCalls:49, outboundCalls:93, missedCalls:11, avgCallDur:428, dials:156, textsSent:74, textsRecv:102, avgResponse:'4m 12s', revenuePerLead:365, refunds:0, retention:'94.2%' },
+  'Marcus Rivera': { feeExtended:3100, inboundClose:'44.8%', outboundClose:'33.5%', totalCalls:121, inboundCalls:38, outboundCalls:83, missedCalls:15, avgCallDur:384, dials:134, textsSent:59, textsRecv:87,  avgResponse:'6m 45s', revenuePerLead:239, refunds:1, retention:'91.8%' },
+  'Jordan Torres': { feeExtended:2550, inboundClose:'38.5%', outboundClose:'29.6%', totalCalls:99,  inboundCalls:27, outboundCalls:72, missedCalls:14, avgCallDur:356, dials:112, textsSent:45, textsRecv:71,  avgResponse:'8m 30s', revenuePerLead:147, refunds:0, retention:'89.4%' },
+  'Ashley Lee':    { feeExtended:2150, inboundClose:'33.6%', outboundClose:'24.8%', totalCalls:94,  inboundCalls:25, outboundCalls:69, missedCalls:17, avgCallDur:312, dials:98,  textsSent:37, textsRecv:59,  avgResponse:'11m 18s',revenuePerLead:127, refunds:1, retention:'87.6%' },
+  'Chris Park':    { feeExtended:1450, inboundClose:'27.4%', outboundClose:'19.2%', totalCalls:72,  inboundCalls:16, outboundCalls:56, missedCalls:21, avgCallDur:278, dials:79,  textsSent:26, textsRecv:42,  avgResponse:'14m 52s',revenuePerLead:100, refunds:1, retention:'82.3%' },
+  'Nina Reyes':    { feeExtended:1200, inboundClose:'24.1%', outboundClose:'16.8%', totalCalls:69,  inboundCalls:14, outboundCalls:55, missedCalls:24, avgCallDur:261, dials:75,  textsSent:24, textsRecv:39,  avgResponse:'18m 04s',revenuePerLead:85,  refunds:1, retention:'79.1%' },
+  'Brian Walsh':   { feeExtended:700,  inboundClose:'18.9%', outboundClose:'13.1%', totalCalls:56,  inboundCalls:10, outboundCalls:46, missedCalls:26, avgCallDur:234, dials:64,  textsSent:16, textsRecv:27,  avgResponse:'24m 37s',revenuePerLead:67,  refunds:2, retention:'71.4%' },
+};
+
+// Default to current pay period: Jul 16–31, 2026
+window.REPORTS_STATE = window.REPORTS_STATE || { tab:'production', dateMode:'payperiod', startDate:'2026-07-16', endDate:'2026-07-31', selectedAgent:null };
+
+function rptDateLabel(s) {
+  const modes = { payperiod:'Jul 16–31, 2026 (Current Pay Period)', thismonth:'Jul 1–31, 2026 (This Month)', lastmonth:'Jun 1–30, 2026 (Last Month)', ytd:'Jan 1–Jul 31, 2026 (Year to Date)' };
+  if (modes[s.dateMode]) return modes[s.dateMode];
+  if (!s.startDate || !s.endDate) return 'Custom Range';
+  const mos = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtD = d => { const [yr,mo,dy] = d.split('-'); return mos[+mo-1]+' '+dy+', '+yr; };
+  return fmtD(s.startDate) + ' – ' + fmtD(s.endDate);
+}
+
+function rptScale(s) {
+  // Pay period baseline = 1.0 (16 days, Jul 16–31)
+  const scaleMap = { payperiod:1.0, thismonth:1.94, lastmonth:1.88, ytd:13.6 };
+  if (scaleMap[s.dateMode] !== undefined) return scaleMap[s.dateMode];
+  const d1 = new Date(s.startDate || '2026-07-16');
+  const d2 = new Date(s.endDate   || '2026-07-31');
+  const days = Math.max(1, Math.round((d2 - d1) / 86400000) + 1);
+  return days / 16;
+}
+
+function rptVal(base, sc) { return Math.round(base * sc); }
+function rptFee(base, sc) { return Math.round(base * sc / 50) * 50; }
+
+function refreshReports() {
+  const c = document.getElementById('content'); if (!c) return;
+  c.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'page-content';
+  div.innerHTML = renderReportsPage();
+  c.appendChild(div);
+}
+
+function renderReportsPage() {
+  const s  = window.REPORTS_STATE;
+  const sc = rptScale(s);
+  const label = rptDateLabel(s);
+
+  const totalApps         = AGENTS.reduce((sum,a) => sum + rptVal(a.apps, sc), 0);
+  const totalFeeCollected = AGENTS.reduce((sum,a) => sum + rptFee(a.fee, sc), 0);
+  const totalFeeExtended  = AGENTS.reduce((sum,a) => sum + rptFee((AGENT_EXTENDED_DATA[a.name]||{}).feeExtended||0, sc), 0);
+  const totalPremium      = AGENTS.reduce((sum,a) => sum + rptVal(a.premium, sc), 0);
+  const avgClose = (AGENTS.reduce((sum,a) => sum + parseFloat(a.close), 0) / AGENTS.length).toFixed(1);
+
+  const chipStyle = (active) => `padding:5px 14px;border-radius:var(--radius-full);border:none;cursor:pointer;font-size:12.5px;font-weight:600;font-family:var(--font-body);transition:all 0.15s;background:${active?'#1A6ED0':'var(--gray-100)'};color:${active?'#fff':'var(--gray-600)'}`;
+
+  const tabs = ['production','pipeline','finance','activity'];
+  const tabLabels = { production:'📋 Production', pipeline:'🔀 Pipeline', finance:'💰 Finance', activity:'📅 Activity' };
+
+  return `
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>📊 Reports &amp; Analytics</h1>
+      <p style="color:#1A6ED0;font-weight:600;font-size:13px">${label}</p>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-ghost" style="font-size:12px">⬇ Export CSV</button>
+      <button class="btn btn-primary" style="font-size:12px">+ Custom Report</button>
+    </div>
+  </div>
+
+  <!-- DATE RANGE FILTER -->
+  <div class="card" style="margin-bottom:16px">
+    <div style="padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.6px;flex-shrink:0">Period:</span>
+      <button onclick="window.REPORTS_STATE.dateMode='payperiod';window.REPORTS_STATE.startDate='2026-07-16';window.REPORTS_STATE.endDate='2026-07-31';refreshReports()" style="${chipStyle(s.dateMode==='payperiod')}">📅 This Pay Period</button>
+      <button onclick="window.REPORTS_STATE.dateMode='thismonth';window.REPORTS_STATE.startDate='2026-07-01';window.REPORTS_STATE.endDate='2026-07-31';refreshReports()" style="${chipStyle(s.dateMode==='thismonth')}">This Month</button>
+      <button onclick="window.REPORTS_STATE.dateMode='lastmonth';window.REPORTS_STATE.startDate='2026-06-01';window.REPORTS_STATE.endDate='2026-06-30';refreshReports()" style="${chipStyle(s.dateMode==='lastmonth')}">Last Month</button>
+      <button onclick="window.REPORTS_STATE.dateMode='ytd';window.REPORTS_STATE.startDate='2026-01-01';window.REPORTS_STATE.endDate='2026-07-31';refreshReports()" style="${chipStyle(s.dateMode==='ytd')}">YTD</button>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:auto">
+        <span style="font-size:11.5px;font-weight:600;color:var(--gray-500)">Custom:</span>
+        <input type="date" value="${s.startDate}" class="filter-select" style="font-size:12px;padding:4px 8px" onchange="window.REPORTS_STATE.dateMode='custom';window.REPORTS_STATE.startDate=this.value;refreshReports()">
+        <span style="font-size:12px;color:var(--gray-400)">→</span>
+        <input type="date" value="${s.endDate}" class="filter-select" style="font-size:12px;padding:4px 8px" onchange="window.REPORTS_STATE.dateMode='custom';window.REPORTS_STATE.endDate=this.value;refreshReports()">
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid" style="margin-bottom:16px">
+    <div class="kpi-card accent">
+      <div class="kpi-label">Total Apps</div>
+      <div class="kpi-value">${totalApps}</div>
+      <div class="kpi-sub"><span class="trend up">↑ 18%</span> vs prior period</div>
+    </div>
+    <div class="kpi-card accent">
+      <div class="kpi-label">Fee Collected</div>
+      <div class="kpi-value green">${fmt$(totalFeeCollected)}</div>
+      <div class="kpi-sub"><span class="trend up">↑ 12%</span> vs prior period</div>
+    </div>
+    <div class="kpi-card" style="border-left:4px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%)">
+      <div class="kpi-label">Fee Extended</div>
+      <div class="kpi-value" style="color:#B45309">${fmt$(totalFeeExtended)}</div>
+      <div class="kpi-sub" style="color:#92400E">Pending collection · ${Math.round(totalFeeExtended/(totalFeeCollected+totalFeeExtended||1)*100)}% of total booked</div>
+    </div>
+    <div class="kpi-card accent">
+      <div class="kpi-label">Avg Close Rate</div>
+      <div class="kpi-value">${avgClose}%</div>
+      <div class="kpi-sub"><span class="trend up">↑ 2.1 pts</span> vs prior period</div>
+    </div>
+    <div class="kpi-card accent-navy">
+      <div class="kpi-label">Premium Written</div>
+      <div class="kpi-value">${fmtK(totalPremium)}</div>
+      <div class="kpi-sub">Across all carriers</div>
+    </div>
+  </div>
+
+  <!-- TAB BAR -->
+  <div style="display:flex;gap:2px;background:#1A6ED0;border-radius:var(--radius-lg);padding:3px;width:fit-content;margin-bottom:16px;box-shadow:0 2px 8px rgba(26,110,208,0.25)">
+    ${tabs.map(t => {
+      const isSel = s.tab === t;
+      return `<div onclick="window.REPORTS_STATE.tab='${t}';refreshReports()" style="padding:7px 20px;border-radius:var(--radius-md);cursor:pointer;font-size:14px;font-weight:${isSel?'700':'500'};color:${isSel?'#1A6ED0':'rgba(255,255,255,0.85)'};background:${isSel?'#fff':'transparent'};transition:all 0.15s;user-select:none">${tabLabels[t]}</div>`;
+    }).join('')}
+  </div>
+
+  ${s.tab === 'production' ? renderRptProduction(sc)
+  : s.tab === 'pipeline'   ? stubPage('🔀','Pipeline Report','Select filters and generate your pipeline analysis.')
+  : s.tab === 'finance'    ? renderRptFinance(sc, totalFeeCollected, totalFeeExtended)
+  :                          _actLogHTML}
+  `;
+}
+
+function renderRptProduction(sc) {
+  return `
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Agent Production Detail</div>
+      <span style="font-size:11px;color:var(--gray-400)">Click an agent name to view full profile</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Agent</th><th>Tier</th><th>Apps</th><th>Goal</th><th>% to Goal</th>
+            <th>Fee Collected</th><th>Fee Extended</th><th>Premium</th>
+            <th>Close %</th><th>Contact %</th><th>Leads</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${AGENTS.map(a => {
+            const ext    = AGENT_EXTENDED_DATA[a.name] || {};
+            const apps   = rptVal(a.apps, sc);
+            const fee    = rptFee(a.fee, sc);
+            const extFee = rptFee(ext.feeExtended || 0, sc);
+            const prem   = rptVal(a.premium, sc);
+            const p      = pct(apps, a.goal);
+            const tierColors = {Elite:'#7C3AED',Platinum:'#0369A1',Gold:'#B45309',Silver:'#64748B',Bronze:'#92400E'};
+            const tierBg    = {Elite:'#F5F3FF',Platinum:'#E0F2FE',Gold:'#FEF3C7',Silver:'#F1F5F9',Bronze:'#FEF9EC'};
+            return `<tr>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="avatar ${agentAv(a.name)}" style="width:28px;height:28px;font-size:10px;flex-shrink:0">${initials(a.name)}</div>
+                  <div>
+                    <div class="lead-name-link" style="font-weight:700;color:#1A6ED0;cursor:pointer;font-size:13.5px" onclick="showAgentProfile('${a.name.replace(/'/g,"\\'")}',${sc})">${a.name}</div>
+                    <div style="font-size:10.5px;color:var(--gray-400)">Rank #${a.rank}</div>
+                  </div>
+                </div>
+              </td>
+              <td><span style="background:${tierBg[a.tier]};color:${tierColors[a.tier]};border:1px solid ${tierColors[a.tier]}44;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:700">${a.tier}</span></td>
+              <td style="font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--navy-900)">${apps}</td>
+              <td style="color:var(--gray-500)">${a.goal}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="width:52px;height:5px;border-radius:3px;background:var(--gray-100);overflow:hidden"><div style="width:${Math.min(p,100)}%;height:100%;background:${p>=100?'var(--green-500)':p>=70?'#1A6ED0':'var(--amber-500)'}"></div></div>
+                  <span style="font-weight:700;font-size:12.5px;color:${progressTextColor(p)}">${p}%</span>
+                </div>
+              </td>
+              <td style="color:var(--green-700);font-weight:700">${fmt$(fee)}</td>
+              <td style="color:#B45309;font-weight:700">${fmt$(extFee)}</td>
+              <td style="color:var(--navy-700);font-weight:600">${fmtK(prem)}</td>
+              <td style="font-weight:600">${a.close}</td>
+              <td style="font-weight:600">${a.contact}</td>
+              <td style="color:var(--gray-600)">${a.leads}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderRptFinance(sc, totalFeeCollected, totalFeeExtended) {
+  const totalBooked = totalFeeCollected + totalFeeExtended;
+  const collectRate = totalBooked > 0 ? Math.round(totalFeeCollected / totalBooked * 100) : 0;
+  return `
+  <div class="kpi-grid" style="margin-bottom:14px">
+    <div class="kpi-card" style="border-left:4px solid var(--green-500);background:linear-gradient(135deg,#F0FDF4,#DCFCE7)">
+      <div class="kpi-label">Fee Collected</div><div class="kpi-value green">${fmt$(totalFeeCollected)}</div>
+      <div class="kpi-sub" style="color:var(--green-700)">Cash in hand</div>
+    </div>
+    <div class="kpi-card" style="border-left:4px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB,#FEF3C7)">
+      <div class="kpi-label">Fee Extended</div><div class="kpi-value" style="color:#B45309">${fmt$(totalFeeExtended)}</div>
+      <div class="kpi-sub" style="color:#92400E">Pending collection</div>
+    </div>
+    <div class="kpi-card accent-navy">
+      <div class="kpi-label">Total Booked</div><div class="kpi-value">${fmt$(totalBooked)}</div>
+      <div class="kpi-sub">Collected + Extended</div>
+    </div>
+    <div class="kpi-card accent">
+      <div class="kpi-label">Collection Rate</div><div class="kpi-value green">${collectRate}%</div>
+      <div class="kpi-sub">Of total booked fees</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Fee Breakdown by Agent</div></div>
+    <table class="data-table">
+      <thead><tr><th>Agent</th><th>Apps</th><th>Fee Collected</th><th>Fee Extended</th><th>Total Booked</th><th>Collection Rate</th><th>Avg Fee/App</th></tr></thead>
+      <tbody>
+        ${AGENTS.map(a => {
+          const ext    = AGENT_EXTENDED_DATA[a.name] || {};
+          const apps   = rptVal(a.apps, sc);
+          const fee    = rptFee(a.fee, sc);
+          const extFee = rptFee(ext.feeExtended || 0, sc);
+          const total  = fee + extFee;
+          const rate   = total > 0 ? Math.round(fee / total * 100) : 0;
+          const avgFee = apps > 0 ? Math.round(fee / apps) : 0;
+          return `<tr>
+            <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar ${agentAv(a.name)}" style="width:24px;height:24px;font-size:9px">${initials(a.name)}</div><strong>${a.name}</strong></div></td>
+            <td style="font-weight:700">${apps}</td>
+            <td style="color:var(--green-700);font-weight:700">${fmt$(fee)}</td>
+            <td style="color:#B45309;font-weight:700">${fmt$(extFee)}</td>
+            <td style="font-weight:700;color:var(--navy-900)">${fmt$(total)}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:60px;height:6px;border-radius:3px;background:var(--gray-100);overflow:hidden"><div style="width:${rate}%;height:100%;background:var(--green-500)"></div></div>
+                <span style="font-weight:700;font-size:12.5px">${rate}%</span>
+              </div>
+            </td>
+            <td style="color:var(--gray-600);font-weight:600">${fmt$(avgFee)}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function showAgentProfile(name, sc) {
+  const a = AGENTS.find(x => x.name === name); if (!a) return;
+  const ext = AGENT_EXTENDED_DATA[name] || {};
+  sc = parseFloat(sc) || 1.0;
+
+  const apps    = rptVal(a.apps, sc);
+  const fee     = rptFee(a.fee, sc);
+  const extFee  = rptFee(ext.feeExtended || 0, sc);
+  const prem    = rptVal(a.premium, sc);
+  const p       = pct(apps, a.goal);
+  const feeP    = pct(fee, a.feeGoal);
+  const fmtDur  = s => { const m=Math.floor(s/60),sec=s%60; return m+'m '+(sec<10?'0':'')+sec+'s'; };
+
+  const tierColors = {Elite:'#7C3AED',Platinum:'#0369A1',Gold:'#B45309',Silver:'#64748B',Bronze:'#92400E'};
+  const tierBg    = {Elite:'#F5F3FF',Platinum:'#E0F2FE',Gold:'#FEF3C7',Silver:'#F1F5F9',Bronze:'#FEF9EC'};
+  const tc = tierColors[a.tier]||'#64748B', tb = tierBg[a.tier]||'#F1F5F9';
+
+  const tc2 = p>=100?'var(--green-500)':p>=70?'#1A6ED0':'var(--amber-500)';
+  const fc2 = feeP>=100?'var(--green-500)':feeP>=70?'#1A6ED0':'var(--amber-500)';
+
+  const totalCalls    = rptVal(ext.totalCalls    || 100, sc);
+  const inboundCalls  = rptVal(ext.inboundCalls  || 30,  sc);
+  const outboundCalls = rptVal(ext.outboundCalls || 70,  sc);
+  const missedCalls   = rptVal(ext.missedCalls   || 15,  sc);
+  const dials         = rptVal(ext.dials         || 120, sc);
+  const textsSent     = rptVal(ext.textsSent     || 50,  sc);
+  const textsRecv     = rptVal(ext.textsRecv     || 80,  sc);
+  const missedPct     = totalCalls > 0 ? Math.round(missedCalls/totalCalls*100) : 0;
+  const connectRate   = dials > 0 ? Math.round(outboundCalls/dials*100) : 0;
+
+  const kbox = (label, val, sub, bg) => `
+    <div style="padding:13px 14px;border-radius:var(--radius-md);background:${bg||'var(--gray-50)'};border:1px solid var(--border)">
+      <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">${label}</div>
+      <div style="font-size:21px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${val}</div>
+      ${sub?`<div style="font-size:10.5px;color:var(--gray-500);margin-top:2px">${sub}</div>`:''}
+    </div>`;
+
+  const srow = (label, val, note) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px;color:var(--gray-700)">${label}</span>
+      <div style="text-align:right">
+        <span style="font-size:13.5px;font-weight:700;color:var(--navy-900)">${val}</span>
+        ${note?`<div style="font-size:10px;color:var(--gray-400)">${note}</div>`:''}
+      </div>
+    </div>`;
+
+  const pbar = (label, val, max, color, fmt) => {
+    const pp = Math.min(Math.round(val/Math.max(max,1)*100), 100);
+    const display = fmt ? fmt(val) : val;
+    return `
+    <div style="margin-bottom:13px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+        <span style="font-size:12.5px;font-weight:600;color:var(--gray-700)">${label}</span>
+        <span style="font-size:12.5px;font-weight:700;color:${color}">${display} <span style="color:var(--gray-400);font-weight:500">/ ${fmt?fmt(max):max} (${pp}%)</span></span>
+      </div>
+      <div style="height:7px;border-radius:4px;background:var(--gray-100);overflow:hidden">
+        <div style="width:${pp}%;height:100%;border-radius:4px;background:${color}"></div>
+      </div>
+    </div>`;
+  };
+
+  const label = rptDateLabel(window.REPORTS_STATE);
+
+  const html = `
+  <div id="agentProfileOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:11000;display:flex;align-items:flex-start;justify-content:flex-end;padding:0" onclick="if(event.target===this)closeAgentProfile()">
+    <div style="background:#fff;width:min(700px,96vw);height:100vh;overflow-y:auto;box-shadow:-8px 0 40px rgba(0,0,0,0.22);display:flex;flex-direction:column" onclick="event.stopPropagation()">
+
+      <!-- Gradient header -->
+      <div style="background:linear-gradient(135deg,#0E2340 0%,#1A6ED0 100%);padding:24px 24px 22px;flex-shrink:0">
+        <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:18px">
+          <div class="avatar ${agentAv(a.name)}" style="width:54px;height:54px;font-size:17px;flex-shrink:0;border:3px solid rgba(255,255,255,0.30)">${initials(a.name)}</div>
+          <div style="flex:1">
+            <div style="font-size:22px;font-weight:800;color:#fff;font-family:var(--font-display)">${a.name}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap">
+              <span style="background:${tb};color:${tc};padding:3px 11px;border-radius:var(--radius-full);font-size:11.5px;font-weight:700">${a.tier}</span>
+              <span style="background:rgba(255,255,255,0.15);color:#fff;padding:3px 11px;border-radius:var(--radius-full);font-size:11.5px;font-weight:600">Rank #${a.rank}</span>
+              <span style="color:rgba(255,255,255,0.55);font-size:12px">${label}</span>
+            </div>
+          </div>
+          <div onclick="closeAgentProfile()" style="color:rgba(255,255,255,0.55);cursor:pointer;font-size:22px;line-height:1;padding:4px;flex-shrink:0;transition:color 0.15s" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(255,255,255,0.55)'">✕</div>
+        </div>
+        <!-- 4-up header stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+          ${[['Apps',apps,'of '+a.goal+' goal'],['Fee Collected',fmt$(fee),feeP+'% to goal'],['Fee Extended',fmt$(extFee),'Pending collection'],['Premium',fmtK(prem),'Written']].map(([l,v,s2])=>`
+          <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:11px 12px">
+            <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${l}</div>
+            <div style="font-size:17px;font-weight:800;color:#fff">${v}</div>
+            <div style="font-size:9.5px;color:rgba(255,255,255,0.45);margin-top:2px">${s2}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Scrollable body -->
+      <div style="padding:20px 24px;flex:1;display:flex;flex-direction:column;gap:20px">
+
+        <!-- Goals Progress -->
+        <div>
+          <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">Goals Progress</div>
+          ${pbar('Apps Toward Goal', apps, a.goal, tc2, null)}
+          ${pbar('Fee Collected Toward Goal', fee, a.feeGoal, fc2, fmt$)}
+        </div>
+
+        <!-- Call Performance -->
+        <div>
+          <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">Call Performance</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px">
+            ${[['Total Calls',totalCalls,''],['↙ Inbound',inboundCalls,''],['↗ Outbound',outboundCalls,''],['⚠ Missed',missedCalls,missedPct+'% of calls']].map(([l,v,s2])=>kbox(l,v,s2)).join('')}
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            ${[['Dials Made',dials,'Total outbound attempts'],['Avg Call Duration',fmtDur(ext.avgCallDur||360),''],['Connect Rate',connectRate+'%','Dials that connected']].map(([l,v,s2])=>kbox(l,v,s2)).join('')}
+          </div>
+        </div>
+
+        <!-- Closing Metrics -->
+        <div>
+          <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">Closing Metrics</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            ${[['Overall Close %',a.close,'All call types'],['Inbound Close %',ext.inboundClose||a.close,'From inbound calls'],['Outbound Close %',ext.outboundClose||a.close,'From dials']].map(([l,v,s2])=>kbox(l,v,s2,'#F0FDF4')).join('')}
+          </div>
+        </div>
+
+        <!-- Lead & Contact Metrics -->
+        <div>
+          <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">Lead & Contact Metrics</div>
+          <div style="border-radius:var(--radius-md);border:1px solid var(--border);overflow:hidden">
+            ${srow('Leads Assigned', a.leads, '')}
+            ${srow('Contact Rate', a.contact, 'Of assigned leads successfully reached')}
+            ${srow('Avg Response Time to New Lead', ext.avgResponse||'N/A', 'Faster = higher contact rate')}
+            ${srow('Revenue per Lead', fmt$(ext.revenuePerLead||0), 'Avg fee per assigned lead')}
+            ${srow('Lead-to-App Conversion', a.close, 'Contacted leads that became apps')}
+          </div>
+        </div>
+
+        <!-- Texting -->
+        <div>
+          <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">Text / SMS Metrics</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            ${[['Texts Sent',textsSent,''],['Texts Received',textsRecv,''],['Text Response Rate',textsRecv>0?Math.round(textsSent/textsRecv*100)+'%':'—','Replied vs. received']].map(([l,v,s2])=>kbox(l,v,s2)).join('')}
+          </div>
+        </div>
+
+        <!-- Policy Metrics -->
+        <div>
+          <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">Policy Metrics</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+            ${[['Premium Written',fmtK(prem),''],['Policies Bound',apps,'Same as apps'],['Refunds / Cancels',ext.refunds||0,'This period'],['Retention Rate',ext.retention||'N/A','90-day']].map(([l,v,s2])=>kbox(l,v,s2)).join('')}
+          </div>
+        </div>
+
+        <!-- Summary row -->
+        <div style="padding:14px 16px;background:var(--navy-50);border-radius:var(--radius-md);border:1px solid var(--navy-200)">
+          <div style="font-size:11px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">Quick Summary</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12.5px;color:var(--navy-900)">
+            <div>📋 <strong>${apps}</strong> apps (${p}% to goal)</div>
+            <div>💰 <strong>${fmt$(fee)}</strong> collected</div>
+            <div>📊 <strong>${fmt$(extFee)}</strong> extended</div>
+            <div>📞 <strong>${totalCalls}</strong> total calls</div>
+            <div>🎯 <strong>${a.close}</strong> close rate</div>
+            <div>⚡ <strong>${ext.avgResponse||'N/A'}</strong> avg response</div>
+          </div>
+        </div>
+
+      </div><!-- /body -->
+    </div><!-- /panel -->
+  </div>`;
+
+  const old = document.getElementById('agentProfileOverlay');
+  if (old) old.remove();
+  const wrap = document.createElement('div');
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap.firstElementChild);
+}
+
+function closeAgentProfile() {
+  const el = document.getElementById('agentProfileOverlay');
+  if (el) { el.style.transition='opacity 0.2s'; el.style.opacity='0'; setTimeout(()=>el.remove(),200); }
+}
+
+PAGES.reports = '';
+window.PAGE_INIT = window.PAGE_INIT || {};
+window.PAGE_INIT.reports = function(){ refreshReports(); };
 
 // ==================== TASKS ====================
 PAGES.tasks = '';
