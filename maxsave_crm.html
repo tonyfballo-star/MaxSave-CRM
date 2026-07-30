@@ -4635,17 +4635,20 @@ window.PAGE_INIT = window.PAGE_INIT || {};
 window.PAGE_INIT.calendar = function(){ refreshCalendar(); };
 // ==================== LIVE VIEW ====================
 window.LIVEVIEW_STATE = {
-  filterStatus: 'All',          // All / On Call / Available / DND / Offline
+  filterStatus: 'All',
   filterTeam:   'All',
-  callHistoryFilter: 'All',     // All / Outbound / Inbound / Missed
-  loggedInAgent: 'Sarah Kim',
+  callHistoryFilter: 'All',
+  loggedInAgent: 'Tony Ballo',
+  historyTab: 'Calls',
+  textThread: null,
   parkingLot: [
-    null, null, null, null, null  // 5 parking slots
+    null, null, null, null, null
   ],
 };
 
 // Live agent state — would come from DYL/dialer in production
 window.AGENT_LIVE = [
+  { name:'Tony Ballo',    ext:'100', status:'available',  callDuration: 0,   callDirection:null,        leadName:null,             leadPhone:null,             team:'Alpha' },
   { name:'Sarah Kim',     ext:'101', status:'on-call',    callDuration: 247, callDirection:'outbound', leadName:'Megan Russo',    leadPhone:'(760) 555-1502', team:'Alpha' },
   { name:'Marcus Rivera', ext:'102', status:'on-call',    callDuration: 89,  callDirection:'inbound',  leadName:'Carlos Ramirez', leadPhone:'(619) 555-1023', team:'Alpha' },
   { name:'Jordan Torres', ext:'103', status:'available',  callDuration: 0,   callDirection:null,        leadName:null,             leadPhone:null,             team:'Alpha' },
@@ -4676,6 +4679,39 @@ window.TEXT_HISTORY = [
   { id:5, agent:'Sarah Kim', time:'Yesterday',contact:'Megan Russo',    phone:'(760) 555-1502', direction:'inbound',  preview:'Yes ready to lock it in!' },
 ];
 
+window.TEXT_THREADS = {
+  '(619) 555-0124': {
+    contact:'Maria Gonzalez', phone:'(619) 555-0124', agent:'Sarah Kim',
+    messages:[
+      { direction:'outbound', text:"Hi Maria, this is Sarah at MaxSave. I have your quote ready — $1,240/yr with a $155 down. Call me when you get a chance!", time:'10:30 AM', read:true },
+      { direction:'inbound',  text:"Hi! Anytime today after 2pm works.", time:'10:32 AM', read:true },
+      { direction:'outbound', text:"Perfect — I'll call you at 3pm. Could you send me your VIN when you get a chance?", time:'10:35 AM', read:true },
+      { direction:'inbound',  text:"Sure! 2HKRW2H58MH123456 — is that all you need?", time:'10:41 AM', read:false },
+    ]
+  },
+  '(858) 555-0198': {
+    contact:'Robert Chen', phone:'(858) 555-0198', agent:'Sarah Kim',
+    messages:[
+      { direction:'outbound', text:"Hi Robert, following up on your auto quote. Do you have a few minutes today?", time:'9:14 AM', read:true },
+      { direction:'inbound',  text:"Yes, call me after 11am.", time:'9:20 AM', read:true },
+    ]
+  },
+  '(858) 555-0913': {
+    contact:'Sandra Lee', phone:'(858) 555-0913', agent:'Sarah Kim',
+    messages:[
+      { direction:'outbound', text:"Confirming your appointment for Friday at 10am. Please let me know if you need to reschedule.", time:'8:47 AM', read:true },
+      { direction:'inbound',  text:"Friday works great, see you then!", time:'9:05 AM', read:true },
+    ]
+  },
+  '(760) 555-1502': {
+    contact:'Megan Russo', phone:'(760) 555-1502', agent:'Sarah Kim',
+    messages:[
+      { direction:'outbound', text:"Hi Megan! Just wanted to check in — are you ready to lock in your new policy?", time:'Yesterday', read:true },
+      { direction:'inbound',  text:"Yes ready to lock it in!", time:'Yesterday', read:true },
+    ]
+  },
+};
+
 function fmtCallDuration(sec) {
   const m = Math.floor(sec/60);
   const s = sec % 60;
@@ -4700,12 +4736,13 @@ function refreshLiveView() {
 
 function renderLiveView() {
   const s = window.LIVEVIEW_STATE;
-  const me = window.AGENT_LIVE.find(a => a.name === s.loggedInAgent) || window.AGENT_LIVE[0];
+  const allAgents = window.AGENT_LIVE;
+  const me = allAgents.find(a => a.name === s.loggedInAgent) || allAgents[0];
 
-  // Filter live agents
-  let agentList = window.AGENT_LIVE.slice();
-  if (s.filterStatus !== 'All') agentList = agentList.filter(a => liveStatusLabel(a.status) === s.filterStatus);
-  if (s.filterTeam   !== 'All') agentList = agentList.filter(a => a.team === s.filterTeam);
+  // Agent list: logged-in agent always first
+  let agentList = [me, ...allAgents.filter(a => a.name !== me.name)];
+  if (s.filterStatus !== 'All') agentList = agentList.filter(a => liveStatusLabel(a.status) === s.filterStatus || a.name === me.name);
+  if (s.filterTeam   !== 'All') agentList = agentList.filter(a => a.team === s.filterTeam || a.name === me.name);
 
   // Filter call history
   let history = window.CALL_HISTORY.filter(h => h.agent === s.loggedInAgent);
@@ -4713,27 +4750,33 @@ function renderLiveView() {
   if (s.callHistoryFilter === 'Inbound')  history = history.filter(h => h.direction === 'inbound');
   if (s.callHistoryFilter === 'Missed')   history = history.filter(h => h.status === 'missed');
 
-  // Counts
-  const onCalls   = window.AGENT_LIVE.filter(a => a.status === 'on-call').length;
-  const available = window.AGENT_LIVE.filter(a => a.status === 'available').length;
-  const inboundQ  = 2; // demo
+  const onCalls   = allAgents.filter(a => a.status === 'on-call').length;
+  const available = allAgents.filter(a => a.status === 'available').length;
+  const inboundQ  = 2;
+  const historyTab    = s.historyTab || 'Calls';
+  const selectedPhone = s.textThread || null;
+  const selectedThread = selectedPhone && window.TEXT_THREADS ? window.TEXT_THREADS[selectedPhone] : null;
+  const textThreadList = window.TEXT_THREADS ? Object.values(window.TEXT_THREADS) : [];
+
+  // Dot: green = on phone, red = not on phone
+  function dotColor(status) { return status === 'on-call' ? '#22C55E' : '#EF4444'; }
+  function dotGlow(status)  { return status === 'on-call' ? '0 0 0 3px rgba(34,197,94,0.22)' : '0 0 0 3px rgba(239,68,68,0.14)'; }
 
   return `
   <style>
     @keyframes liveDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
     .live-dot { display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;animation:liveDot 1.4s ease-in-out infinite }
-    .agent-card { transition:transform 0.15s, box-shadow 0.15s; }
+    .agent-card { transition:background 0.12s; }
     .agent-card[draggable="true"] { cursor:grab; }
     .agent-card[draggable="true"]:active { cursor:grabbing; }
     .drop-zone { transition:all 0.15s; }
     .drop-zone.dragover { background:var(--green-50) !important; border-color:var(--green-500) !important; transform:scale(1.02); }
-    .my-call-card { background:linear-gradient(135deg,#EF4444,#991B1B); }
   </style>
 
   <div class="page-header">
     <div class="page-header-left">
-      <h1><span class="live-dot" style="background:#EF4444"></span>Live View</h1>
-      <p>Real-time agent activity · ${onCalls} on calls · ${available} available · ${inboundQ} in queue · Updated 2s ago</p>
+      <h1><span class="live-dot" style="background:#22C55E"></span>Live View</h1>
+      <p>Real-time agent activity &middot; ${onCalls} on calls &middot; ${available} available &middot; ${inboundQ} in queue &middot; Updated 2s ago</p>
     </div>
     <div class="btn-group">
       <select class="filter-select" style="font-family:var(--font-body);font-size:13px" onchange="window.LIVEVIEW_STATE.filterStatus=this.value;refreshLiveView()">
@@ -4756,44 +4799,11 @@ function renderLiveView() {
 
   <!-- STATS ROW -->
   <div class="kpi-grid" style="margin-bottom:16px">
-    <div class="kpi-card accent-red"><div class="kpi-label">Currently On Calls</div><div class="kpi-value red">${onCalls}</div><div class="kpi-sub">of ${window.AGENT_LIVE.length} agents</div></div>
+    <div class="kpi-card accent-red"><div class="kpi-label">Currently On Calls</div><div class="kpi-value red">${onCalls}</div><div class="kpi-sub">of ${allAgents.length} agents</div></div>
     <div class="kpi-card accent"><div class="kpi-label">Available</div><div class="kpi-value green">${available}</div><div class="kpi-sub">Ready to take calls</div></div>
     <div class="kpi-card accent-amber"><div class="kpi-label">Inbound Queue</div><div class="kpi-value amber">${inboundQ}</div><div class="kpi-sub">Avg wait: 18s</div></div>
     <div class="kpi-card accent-navy"><div class="kpi-label">Calls Today</div><div class="kpi-value">187</div><div class="kpi-sub">62% answer rate</div></div>
   </div>
-
-  <!-- MY LIVE CALL -->
-  ${me.status === 'on-call' ? `
-  <div class="card my-call-card" style="margin-bottom:16px;color:#fff;border:none;box-shadow:0 8px 28px rgba(239,68,68,0.30);overflow:hidden;position:relative">
-    <div style="position:absolute;top:0;right:0;bottom:0;width:300px;background:radial-gradient(circle at right,rgba(255,255,255,0.10),transparent);pointer-events:none"></div>
-    <div style="padding:18px 22px;display:flex;align-items:center;gap:18px;position:relative">
-      <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0">📞</div>
-      <div style="flex:1">
-        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.70);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px"><span class="live-dot" style="background:#fff"></span>You're on a call</div>
-        <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.3px">${me.leadName}</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.85);margin-top:2px">${me.leadPhone} · ${me.callDirection==='outbound'?'Outbound':'Inbound'} · Ext ${me.ext}</div>
-      </div>
-      <div style="text-align:center">
-        <div id="myCallTimer" style="font-family:var(--font-display);font-size:30px;font-weight:800;color:#fff;line-height:1">${fmtCallDuration(me.callDuration)}</div>
-        <div style="font-size:10.5px;color:rgba(255,255,255,0.70);margin-top:3px;text-transform:uppercase;font-weight:700;letter-spacing:0.6px">Duration</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" style="background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.30);font-size:13px;padding:8px 14px" onclick="alert('Muted')">🔇 Mute</button>
-        <button class="btn" style="background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.30);font-size:13px;padding:8px 14px" onclick="alert('On hold')">⏸ Hold</button>
-        <button class="btn" style="background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.30);font-size:13px;padding:8px 14px" onclick="alert('Transfer panel — drag your call card to a target')">↪ Transfer</button>
-        <button class="btn" style="background:#fff;color:var(--red);font-size:13px;padding:8px 18px;font-weight:700" onclick="if(confirm('End the call?')){alert('Call ended');window.AGENT_LIVE.find(a=>a.name===window.LIVEVIEW_STATE.loggedInAgent).status='wrap-up';refreshLiveView()}">📵 End</button>
-      </div>
-    </div>
-  </div>` : `
-  <div class="card" style="margin-bottom:16px;padding:16px 20px;display:flex;align-items:center;gap:16px;background:var(--green-50);border-color:var(--green-200)">
-    <div style="width:50px;height:50px;border-radius:50%;background:var(--green-500);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px">✓</div>
-    <div style="flex:1">
-      <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--green-800)">You're available — Ext ${me.ext}</div>
-      <div style="font-size:12.5px;color:var(--green-700);margin-top:2px">Ready to take inbound or outbound calls</div>
-    </div>
-    <input class="form-control" placeholder="Enter number to dial…" style="font-family:var(--font-body);width:240px">
-    <button class="btn btn-primary" style="font-size:14px;padding:10px 18px">📞 Dial</button>
-  </div>`}
 
   <!-- AGENT LIST + TRANSFER ZONES -->
   <div style="display:grid;grid-template-columns:1fr 284px;gap:14px;margin-bottom:16px">
@@ -4803,52 +4813,62 @@ function renderLiveView() {
       <div class="card-header" style="padding:12px 16px">
         <div>
           <div class="card-title">Agents</div>
-          <div style="font-size:11px;color:var(--gray-400);margin-top:2px">${available} available · ${onCalls} on calls · drag a call row to transfer</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:2px">${available} available &middot; ${onCalls} on calls &middot; drag a call row to transfer</div>
         </div>
       </div>
       <div style="padding:0">
         ${agentList.map(a => {
-          const onCall = a.status === 'on-call';
-          const isMe   = a.name === me.name;
-          const dotColor = liveStatusColor(a.status);
-          const isAvail  = a.status === 'available';
+          const onCall  = a.status === 'on-call';
+          const isMe    = a.name === me.name;
+          const isAvail = a.status === 'available';
+          const dot     = dotColor(a.status);
+          const glow    = dotGlow(a.status);
+          const rowBg   = isMe ? '#EFF6FF' : 'var(--white)';
+          const divBg   = isMe ? '#DBEAFE' : 'var(--gray-50)';
+          const safe    = a.name.replace(/'/g,"\\'");
           return `
-          <div class="agent-card" ${onCall ? `draggable="true" ondragstart="onAgentCallDragStart(event,'${a.name.replace(/'/g,"\\'")}');this.style.opacity='0.5'" ondragend="onAgentCallDragEnd(event);this.style.opacity='1'"` : ''}
-            style="display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);background:${isMe ? 'rgba(59,170,71,0.04)' : 'var(--white)'};${onCall ? 'cursor:grab' : ''}">
+          <div class="agent-card" ${onCall ? `draggable="true" ondragstart="onAgentCallDragStart(event,'${safe}');this.style.opacity='0.5'" ondragend="onAgentCallDragEnd(event);this.style.opacity='1'"` : ''}
+            style="display:flex;align-items:stretch;border-bottom:1px solid var(--border);background:${rowBg};">
 
-            <!-- Drag handle -->
-            <div style="font-size:15px;color:${onCall ? 'var(--gray-300)' : 'transparent'};flex-shrink:0;line-height:1;user-select:none">⠿</div>
-
-            <!-- Status dot -->
-            <div style="width:9px;height:9px;border-radius:50%;background:${dotColor};flex-shrink:0;${onCall ? 'box-shadow:0 0 0 3px rgba(239,68,68,0.18)' : ''}"></div>
-
-            <!-- Name + ext + call info -->
-            <div style="flex:1;min-width:0">
-              <div style="display:flex;align-items:center;gap:7px">
-                <div style="font-weight:700;font-size:13.5px;color:var(--navy-900)">${a.name}</div>
-                <div style="font-size:11px;color:var(--gray-400)">Ext ${a.ext}</div>
-                ${isMe ? '<span style="font-size:9px;font-weight:800;background:var(--green-500);color:#fff;padding:1px 7px;border-radius:var(--radius-full);letter-spacing:0.5px">YOU</span>' : ''}
-                <span style="font-size:11.5px;color:var(--gray-500);font-weight:500">${liveStatusLabel(a.status)}</span>
+            <!-- Left info -->
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;flex:1;min-width:0;">
+              <div style="font-size:14px;color:${onCall?'var(--gray-300)':'transparent'};flex-shrink:0;user-select:none">⠿</div>
+              <div style="width:10px;height:10px;border-radius:50%;background:${dot};flex-shrink:0;box-shadow:${glow}"></div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                  <div style="font-weight:700;font-size:15px;color:var(--navy-900);">${a.name}</div>
+                  <div style="font-size:11px;color:var(--gray-400);">Ext ${a.ext}</div>
+                  ${isMe ? '<span style="font-size:9px;font-weight:800;background:#1A6ED0;color:#fff;padding:1px 7px;border-radius:var(--radius-full);letter-spacing:0.5px;">YOU</span>' : ''}
+                  <span style="font-size:11px;color:var(--gray-500);font-weight:500;">${liveStatusLabel(a.status)}</span>
+                </div>
+                ${onCall ? `<div style="display:flex;align-items:center;gap:7px;margin-top:4px;font-size:12px;color:var(--gray-600);">
+                  <span>${a.callDirection==='outbound'?'↗':'↙'}</span>
+                  <span style="font-weight:600;color:var(--navy-800);">${a.leadName}</span>
+                  <span style="color:var(--gray-400);">${a.leadPhone}</span>
+                  <span style="font-family:var(--font-display);font-weight:700;color:var(--navy-900);">${fmtCallDuration(a.callDuration)}</span>
+                </div>` : ''}
               </div>
-              ${onCall ? `<div style="display:flex;align-items:center;gap:8px;margin-top:3px;font-size:11.5px;color:var(--gray-600)">
-                <span>${a.callDirection === 'outbound' ? '↗' : '↙'}</span>
-                <span style="font-weight:600;color:var(--navy-800)">${a.leadName}</span>
-                <span style="color:var(--gray-400)">${a.leadPhone}</span>
-                <span style="font-family:var(--font-display);font-weight:700;font-size:12px;color:var(--navy-900)">${fmtCallDuration(a.callDuration)}</span>
-              </div>` : ''}
             </div>
 
-            <!-- Actions -->
-            <div style="display:flex;gap:5px;flex-shrink:0">
+            <!-- Divider box: active call name or status -->
+            <div style="border-left:1.5px solid var(--border);border-right:1.5px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:center;min-width:180px;background:${divBg};">
+              ${onCall
+                ? `<div style="text-align:center;"><div style="font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:3px;">Active Call</div><div style="font-size:13.5px;font-weight:700;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;">${a.leadName}</div></div>`
+                : `<span style="font-size:12px;color:var(--gray-400);font-style:italic;">${liveStatusLabel(a.status)}</span>`
+              }
+            </div>
+
+            <!-- CTA -->
+            <div style="display:flex;gap:6px;align-items:center;padding:0 16px;flex-shrink:0;">
               ${onCall ? `
-                <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="alert('Whispering to ${a.name}…')">🤫 Whisper</button>
-                <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="alert('Barging into call…')">🎙 Barge</button>
+                <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="alert('Whispering to ${safe}…')">🤫 Whisper</button>
+                <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="alert('Barging into call…')">🎙 Barge</button>
               ` : isAvail ? `
-                <button type="button" onclick="alert('${isMe ? 'Dialing…' : 'Calling ' + a.name + ' at Ext ' + a.ext + '…'}')" style="background:var(--navy-900);color:#fff;border:none;border-radius:var(--radius-md);padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);display:inline-flex;align-items:center;gap:5px">
+                <button type="button" onclick="alert('${isMe ? 'Dialing…' : 'Calling ' + safe + ' at Ext ' + a.ext + '…'}')" style="background:var(--navy-900);color:#fff;border:none;border-radius:var(--radius-md);padding:7px 16px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--font-body);display:inline-flex;align-items:center;gap:5px;">
                   <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M2 2.5C2 2.5 3.5 1 5 1s2.5 1.5 3 3-1 2-1 3 2 2.5 3 3 3-1.5 3-3 1 3 1 3-1.5 2-3 2c-2 0-4-1-6-3S1 5.5 1 3.5C1 2.5 2 2.5 2 2.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
                   ${isMe ? 'Dial' : 'Call'}
                 </button>
-              ` : `<span style="font-size:11px;color:var(--gray-300);font-style:italic">${liveStatusLabel(a.status)}</span>`}
+              ` : `<span style="font-size:11px;color:var(--gray-300);font-style:italic;">${liveStatusLabel(a.status)}</span>`}
             </div>
           </div>`;
         }).join('')}
@@ -4879,8 +4899,8 @@ function renderLiveView() {
         <div style="padding:10px;display:flex;flex-direction:column;gap:6px">
           ${s.parkingLot.map((p, i) => `
           <div class="drop-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'park',${i})"
-            style="padding:10px 12px;background:${p ? '#FFFBEB' : 'var(--gray-50)'};border:1.5px ${p ? 'solid #FCD34D' : 'dashed var(--border-strong)'};border-radius:var(--radius-md);display:flex;align-items:center;gap:9px;min-height:44px">
-            <div style="font-size:10px;font-weight:800;color:${p ? '#B45309' : 'var(--gray-400)'};text-transform:uppercase;letter-spacing:0.4px;min-width:40px">Slot ${i + 1}</div>
+            style="padding:10px 12px;background:${p?'#FFFBEB':'var(--gray-50)'};border:1.5px ${p?'solid #FCD34D':'dashed var(--border-strong)'};border-radius:var(--radius-md);display:flex;align-items:center;gap:9px;min-height:44px">
+            <div style="font-size:10px;font-weight:800;color:${p?'#B45309':'var(--gray-400)'};text-transform:uppercase;letter-spacing:0.4px;min-width:40px">Slot ${i+1}</div>
             ${p ? `
               <div style="flex:1;min-width:0">
                 <div style="font-size:12px;font-weight:700;color:#92400E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.lead}</div>
@@ -4895,66 +4915,126 @@ function renderLiveView() {
     </div>
   </div>
 
-  <!-- CALL HISTORY (logged-in agent) -->
+  <!-- COMBINED HISTORY — CALLS & TEXTS -->
   <div class="card" style="margin-bottom:14px">
     <div class="card-header">
       <div>
-        <div class="card-title">My Call History — ${s.loggedInAgent}</div>
-        <div style="font-size:11px;color:var(--gray-400);margin-top:2px">${history.length} calls in current view</div>
+        <div class="card-title">My History — ${s.loggedInAgent}</div>
+        ${historyTab==='Calls' ? `<div style="font-size:11px;color:var(--gray-400);margin-top:2px">${history.length} calls in current view</div>` : ''}
       </div>
-      <div style="display:flex;gap:4px;background:var(--gray-100);border-radius:var(--radius-md);padding:3px">
-        ${['All','Outbound','Inbound','Missed'].map(f => `<button type="button" onclick="window.LIVEVIEW_STATE.callHistoryFilter='${f}';refreshLiveView()" style="padding:5px 12px;border:none;border-radius:7px;cursor:pointer;font-family:var(--font-body);font-size:11.5px;font-weight:600;background:${s.callHistoryFilter===f?'var(--white)':'transparent'};color:${s.callHistoryFilter===f?'var(--navy-900)':'var(--gray-500)'};box-shadow:${s.callHistoryFilter===f?'var(--shadow-sm)':'none'}">${f}</button>`).join('')}
+      <div style="display:flex;align-items:center;gap:10px">
+        <!-- Tab switcher -->
+        <div style="display:flex;gap:3px;background:var(--gray-100);border-radius:var(--radius-md);padding:3px">
+          <button type="button" onclick="window.LIVEVIEW_STATE.historyTab='Calls';refreshLiveView()" style="padding:6px 18px;border:none;border-radius:7px;cursor:pointer;font-family:var(--font-body);font-size:12.5px;font-weight:600;background:${historyTab==='Calls'?'var(--white)':'transparent'};color:${historyTab==='Calls'?'var(--navy-900)':'var(--gray-500)'};box-shadow:${historyTab==='Calls'?'var(--shadow-sm)':'none'}">📞 Calls</button>
+          <button type="button" onclick="window.LIVEVIEW_STATE.historyTab='Texts';refreshLiveView()" style="padding:6px 18px;border:none;border-radius:7px;cursor:pointer;font-family:var(--font-body);font-size:12.5px;font-weight:600;background:${historyTab==='Texts'?'var(--white)':'transparent'};color:${historyTab==='Texts'?'var(--navy-900)':'var(--gray-500)'};box-shadow:${historyTab==='Texts'?'var(--shadow-sm)':'none'}">💬 Texts</button>
+        </div>
+        <!-- Call filter pills (only when on Calls tab) -->
+        ${historyTab==='Calls' ? `
+        <div style="display:flex;gap:3px;background:var(--gray-100);border-radius:var(--radius-md);padding:3px">
+          ${['All','Outbound','Inbound','Missed'].map(f=>`<button type="button" onclick="window.LIVEVIEW_STATE.callHistoryFilter='${f}';refreshLiveView()" style="padding:5px 12px;border:none;border-radius:7px;cursor:pointer;font-family:var(--font-body);font-size:11.5px;font-weight:600;background:${s.callHistoryFilter===f?'var(--white)':'transparent'};color:${s.callHistoryFilter===f?'var(--navy-900)':'var(--gray-500)'};box-shadow:${s.callHistoryFilter===f?'var(--shadow-sm)':'none'}">${f}</button>`).join('')}
+        </div>` : ''}
       </div>
     </div>
+
+    ${historyTab==='Calls' ? `
+    <!-- CALL HISTORY TABLE -->
     <table class="data-table">
       <thead><tr><th>Time</th><th>Direction</th><th>Contact</th><th>Phone</th><th>Duration</th><th>Outcome</th><th>Recording</th><th>Actions</th></tr></thead>
       <tbody>
-        ${history.length === 0 ? '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--gray-400)">No calls match this filter.</td></tr>' :
+        ${history.length===0 ? '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--gray-400)">No calls match this filter.</td></tr>' :
         history.map(h => {
-          const dirIco = h.direction === 'outbound' ? '↗ Outbound' : '↙ Inbound';
-          const dirCol = h.direction === 'outbound' ? 'var(--green-700)' : '#0E2340';
-          const statusCol = h.status === 'connected' ? 'var(--green-700)' : h.status === 'missed' ? 'var(--red)' : 'var(--gray-500)';
+          const dirIco   = h.direction==='outbound' ? '↗ Outbound' : '↙ Inbound';
+          const dirCol   = h.direction==='outbound' ? 'var(--green-700)' : '#0E2340';
+          const statusCol= h.status==='connected' ? 'var(--green-700)' : h.status==='missed' ? 'var(--red)' : 'var(--gray-500)';
+          const safeC    = h.contact.replace(/'/g,"\\'");
           return `<tr>
             <td><div style="font-weight:600;font-size:12.5px">${h.time}</div><div style="font-size:11px;color:var(--gray-400)">${h.date}</div></td>
             <td><span style="font-size:11.5px;font-weight:700;color:${dirCol}">${dirIco}</span></td>
             <td><div class="lead-name-link" onclick="nav('leaddetail',null)" style="font-weight:600;color:var(--navy-900);cursor:pointer;font-size:13px">${h.contact}</div></td>
             <td style="font-size:12.5px;color:var(--gray-600);font-family:monospace">${h.phone}</td>
-            <td style="font-family:var(--font-display);font-weight:700;color:${statusCol}">${h.duration > 0 ? fmtCallDuration(h.duration) : '—'}</td>
+            <td style="font-family:var(--font-display);font-weight:700;color:${statusCol}">${h.duration>0?fmtCallDuration(h.duration):'—'}</td>
             <td><span style="font-size:11.5px;font-weight:700;color:${statusCol}">${h.outcome}</span></td>
             <td>${h.recording?'<button type="button" class="btn btn-ghost" style="font-size:11px;padding:4px 9px" onclick="alert(\'▶ Playing recording…\')">▶ Play</button>':'<span style="color:var(--gray-300);font-size:11px">—</span>'}</td>
-            <td><div style="display:flex;gap:5px"><button type="button" title="Call back ${h.contact}" onclick="alert('Calling ${h.contact}…')" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--green-200);background:var(--green-50);cursor:pointer;font-size:12px">📞</button><button type="button" title="Text ${h.contact}" onclick="openTextThread('${h.contact.replace(/'/g,"\\'")}','${h.phone}')" style="width:28px;height:28px;border-radius:6px;border:1px solid #C3D6E8;background:var(--blue-light);cursor:pointer;font-size:12px">💬</button></div></td>
+            <td><div style="display:flex;gap:5px">
+              <button type="button" title="Call back" onclick="alert('Calling ${safeC}…')" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--green-200);background:var(--green-50);cursor:pointer;font-size:12px">📞</button>
+              <button type="button" title="Text" onclick="window.LIVEVIEW_STATE.historyTab='Texts';window.LIVEVIEW_STATE.textThread='${h.phone}';refreshLiveView()" style="width:28px;height:28px;border-radius:6px;border:1px solid #C3D6E8;background:var(--blue-light);cursor:pointer;font-size:12px">💬</button>
+            </div></td>
           </tr>`;
         }).join('')}
       </tbody>
     </table>
-  </div>
+    ` : `
+    <!-- TEXT HISTORY — 2-column split view -->
+    <div style="display:grid;grid-template-columns:280px 1fr;height:500px;overflow:hidden;border-top:1px solid var(--border)">
 
-  <!-- TEXT HISTORY -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">My Text History — ${s.loggedInAgent}</div>
-      <a class="card-link" onclick="alert('Opening full text history…')">View All →</a>
-    </div>
-    <div class="card-body" style="padding:8px 16px">
-      ${window.TEXT_HISTORY.filter(t => t.agent === s.loggedInAgent).map(t => {
-        const safeName = t.contact.replace(/'/g,"\\'");
-        const isInbound = t.direction === 'inbound';
-        return `
-      <div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openTextThread('${safeName}','${t.phone}')">
-        <div style="width:34px;height:34px;border-radius:var(--radius-md);background:${t.direction==='outbound'?'var(--blue-light)':'var(--green-50)'};color:${t.direction==='outbound'?'#0E2340':'var(--green-700)'};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${t.direction==='outbound'?'↗':'↙'}</div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="lead-name-link" style="font-weight:700;font-size:13px;color:var(--navy-900);cursor:pointer">${t.contact}</div>
-            <span style="font-size:11px;color:var(--gray-400)">${t.phone}</span>
-            ${isInbound?'<span style="background:var(--red);color:#fff;font-size:9.5px;font-weight:800;padding:1px 7px;border-radius:var(--radius-full);letter-spacing:0.4px">NEW</span>':''}
+      <!-- LEFT: conversation list -->
+      <div style="border-right:1px solid var(--border);overflow-y:auto;background:var(--gray-50)">
+        ${textThreadList.map(t => {
+          const lastMsg  = t.messages[t.messages.length-1];
+          const isSel    = selectedPhone === t.phone;
+          const hasUnread= t.messages.some(m => m.direction==='inbound' && m.read===false);
+          return `
+          <div onclick="window.LIVEVIEW_STATE.textThread='${t.phone}';refreshLiveView()"
+            style="padding:13px 14px;border-bottom:1px solid var(--border);cursor:pointer;background:${isSel?'#EFF6FF':'transparent'};border-left:3px solid ${isSel?'#1A6ED0':'transparent'};transition:background 0.1s">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+              <div style="font-weight:700;font-size:14px;color:${isSel?'#1A6ED0':'var(--navy-900)'};">${t.contact}</div>
+              <div style="display:flex;align-items:center;gap:5px">
+                ${hasUnread?'<div style="width:7px;height:7px;border-radius:50%;background:#1A6ED0;flex-shrink:0"></div>':''}
+                <div style="font-size:10.5px;color:var(--gray-400);">${lastMsg.time}</div>
+              </div>
+            </div>
+            <div style="font-size:11.5px;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${lastMsg.text}</div>
+            <div style="font-size:10.5px;color:var(--gray-400);margin-top:2px">${t.phone}</div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <!-- RIGHT: selected conversation -->
+      <div style="display:flex;flex-direction:column;overflow:hidden;background:#fff">
+        ${selectedThread ? `
+        <!-- Convo header -->
+        <div style="padding:13px 18px;border-bottom:1px solid var(--border);background:var(--gray-50);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-weight:700;font-size:15px;color:var(--navy-900)">${selectedThread.contact}</div>
+            <div style="font-size:12px;color:var(--gray-500);margin-top:1px">${selectedThread.phone}</div>
           </div>
-          <div style="font-size:12px;color:var(--gray-600);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.preview}</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="alert('Calling ${selectedThread.contact}…')">📞 Call</button>
+            <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="nav('leaddetail',null)">View Lead →</button>
+          </div>
         </div>
-        <div style="font-size:11px;color:var(--gray-400);font-weight:600">${t.time}</div>
-        <button type="button" class="btn" style="background:${isInbound?'var(--blue)':'transparent'};color:${isInbound?'#fff':'var(--gray-700)'};border:1px solid ${isInbound?'var(--blue)':'var(--border-strong)'};font-size:11.5px;padding:6px 14px;font-weight:700" onclick="event.stopPropagation();openTextThread('${safeName}','${t.phone}')">${isInbound?'💬 Reply':'View'}</button>
-      </div>`;
-      }).join('')}
-    </div>
+        <!-- Messages -->
+        <div style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+          ${selectedThread.messages.map(m=>`
+          <div style="display:flex;justify-content:${m.direction==='outbound'?'flex-end':'flex-start'}">
+            <div style="max-width:68%;padding:10px 14px;font-size:13px;line-height:1.5;${m.direction==='outbound'?'background:#1A6ED0;color:#fff;border-radius:16px 16px 4px 16px':'background:#F1F5F9;color:var(--navy-900);border-radius:16px 16px 16px 4px'}">
+              ${m.text}
+              ${m.attachment?`<div style="margin-top:6px;padding:5px 9px;background:rgba(255,255,255,0.20);border-radius:7px;font-size:11px;display:flex;align-items:center;gap:4px">📎 ${m.attachment}</div>`:''}
+              <div style="font-size:10px;margin-top:5px;text-align:right;color:${m.direction==='outbound'?'rgba(255,255,255,0.60)':'var(--gray-400)'}">${m.time}</div>
+            </div>
+          </div>`).join('')}
+        </div>
+        <!-- Compose bar -->
+        <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-shrink:0;background:#fff">
+          <label title="Add attachment" style="cursor:pointer;font-size:20px;color:var(--gray-400);display:flex;align-items:center;flex-shrink:0;line-height:1">
+            📎<input type="file" style="display:none" onchange="alert('Attachment: '+this.files[0].name);this.value=''">
+          </label>
+          <input type="text" id="txtCompose_${selectedPhone.replace(/[^0-9]/g,'')}" placeholder="Type a message and press Enter to send…"
+            style="flex:1;font-family:var(--font-body);padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:13px;outline:none;transition:border-color 0.15s"
+            onfocus="this.style.borderColor='#1A6ED0'" onblur="this.style.borderColor='var(--border)'"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();var v=this.value.trim();if(v){if(!window.TEXT_THREADS['${selectedPhone}'])return;window.TEXT_THREADS['${selectedPhone}'].messages.push({direction:'outbound',text:v,time:'Now',read:true});this.value='';refreshLiveView();}}">
+          <button type="button"
+            onclick="var ph='${selectedPhone}';var inp=document.getElementById('txtCompose_${selectedPhone.replace(/[^0-9]/g,'')}');if(!inp)return;var v=inp.value.trim();if(v&&window.TEXT_THREADS[ph]){window.TEXT_THREADS[ph].messages.push({direction:'outbound',text:v,time:'Now',read:true});inp.value='';refreshLiveView();}"
+            style="background:#1A6ED0;color:#fff;border:none;border-radius:var(--radius-md);padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);white-space:nowrap;flex-shrink:0">Send</button>
+        </div>
+        ` : `
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px">
+          <div style="font-size:42px">💬</div>
+          <div style="font-size:15px;font-weight:600;color:var(--gray-600)">Select a conversation</div>
+          <div style="font-size:12.5px;color:var(--gray-400)">Click a contact on the left to view and reply</div>
+        </div>`}
+      </div>
+    </div>`}
   </div>
   `;
 }
