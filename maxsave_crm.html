@@ -276,7 +276,7 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .nav-item.active .nav-ic { opacity: 1; }
 .nav-ic { width: 22px; height: 22px; opacity: 0.75; flex-shrink: 0; }
 .nav-badge { display: none; }
-.nav-dot { position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--green-400); box-shadow: 0 0 0 2px #0A1624; flex-shrink: 0; pointer-events: none; }
+.nav-dot { position: absolute; top: 5px; right: 38px; width: 7px; height: 7px; border-radius: 50%; background: var(--green-400); box-shadow: 0 0 0 2px #0A1624; flex-shrink: 0; pointer-events: none; }
 .nav-item.nav-logout { color: rgba(255,100,100,0.65); }
 .nav-item.nav-logout:hover { background: rgba(239,68,68,0.10); color: rgba(255,120,120,0.95); }
 .nav-item.nav-logout .nav-ic { opacity: 0.7; }
@@ -2246,8 +2246,7 @@ function renderLeadsPage(){
           <td><input type="checkbox" ${sel.has(l.phone)?'checked':''} onchange="toggleSelectLead('${l.phone}',this.checked)" style="cursor:pointer;width:16px;height:16px"></td>
           <td>
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-              <div class="lead-name-link" onclick="nav('leaddetail',null)" style="font-weight:700;color:var(--navy-900);cursor:pointer;font-size:16px">${l.name}</div>
-              ${l.sr22?'<span style="background:#FEF2F2;color:#991B1B;border:1px solid #FCA5A5;padding:1px 7px;border-radius:var(--radius-full);font-size:11px;font-weight:800;letter-spacing:0.4px">SR-22</span>':''}
+              <div class="lead-name-link" onclick="nav('leaddetail',null)" style="font-weight:700;color:var(--navy-900);cursor:pointer;font-size:18px">${l.name}</div>
 
             </div>
             <div style="font-size:14px;color:var(--gray-500);margin-top:2px">${l.phone}</div>
@@ -4303,6 +4302,153 @@ function selectCalendarDay(iso) {
   refreshCalendar();
 }
 
+// ---- Add Appointment Modal ----
+let _apptSelectedLead = null;
+
+function openAddApptModal(date) {
+  ensureAddApptModal();
+  _apptSelectedLead = null;
+  document.getElementById('apptLeadSearch').value = '';
+  document.getElementById('apptLeadResults').innerHTML = '';
+  document.getElementById('apptLeadResults').style.display = 'none';
+  document.getElementById('apptSelectedLead').style.display = 'none';
+  document.getElementById('addApptDate').value = date || '';
+  document.getElementById('addApptTime').value = '10:00';
+  document.getElementById('addApptNotes').value = '';
+  document.getElementById('addApptOverlay').style.display = 'flex';
+}
+
+function ensureAddApptModal() {
+  if (document.getElementById('addApptOverlay')) return;
+  const types = ['Initial Call','Quote Review','Sale Close','Follow-Up','Win-Back','Renewal','Onboarding','Discovery'];
+  const m = document.createElement('div');
+  m.id = 'addApptOverlay';
+  m.className = 'logout-overlay';
+  m.style.cssText = 'z-index:10002';
+  m.onclick = (e) => { if (e.target === m) closeAddApptModal(); };
+  m.innerHTML = `
+    <div class="logout-modal" style="width:460px;max-width:95vw;text-align:left;max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">
+      <div style="text-align:center;margin-bottom:18px">
+        <div style="font-size:36px;line-height:1">📅</div>
+        <h2 style="font-size:19px;margin-top:8px;color:var(--navy-900)">New Appointment</h2>
+        <p style="color:var(--gray-500);font-size:13px;margin-top:4px">Search for a lead, then pick a date and time.</p>
+      </div>
+
+      <div class="form-group" style="margin-bottom:6px">
+        <div class="form-label">Search Lead</div>
+        <input id="apptLeadSearch" class="form-control" placeholder="Type a name to search leads…" oninput="filterApptLeads(this.value)" autocomplete="off" style="font-size:14px">
+      </div>
+
+      <div id="apptLeadResults" style="display:none;max-height:190px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:12px;background:var(--white)"></div>
+
+      <div id="apptSelectedLead" style="display:none;background:var(--navy-50);border:1px solid var(--navy-200);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:14px"></div>
+
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div class="form-group">
+          <div class="form-label">Date</div>
+          <input id="addApptDate" type="date" class="form-control">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Time</div>
+          <input id="addApptTime" type="time" class="form-control" value="10:00">
+        </div>
+        <div class="form-group" style="grid-column:1/span 2">
+          <div class="form-label">Appointment Type</div>
+          <select id="addApptType" class="form-control">
+            ${types.map(t=>`<option>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group" style="grid-column:1/span 2">
+          <div class="form-label">Notes (optional)</div>
+          <input id="addApptNotes" class="form-control" placeholder="e.g. Final quote review, bring signed app…">
+        </div>
+      </div>
+
+      <div class="logout-modal-btns">
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeAddApptModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1.5;justify-content:center;background:linear-gradient(135deg,#1C2B4B,#253659);border:none" onclick="confirmAddAppt()">📅 Add to Calendar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+}
+
+function filterApptLeads(q) {
+  const res = document.getElementById('apptLeadResults');
+  if (!q.trim()) { res.style.display = 'none'; res.innerHTML = ''; return; }
+  const matches = LEADS.filter(l => l.name.toLowerCase().includes(q.toLowerCase())).slice(0, 8);
+  res.style.display = 'block';
+  if (!matches.length) {
+    res.innerHTML = '<div style="padding:14px;text-align:center;color:var(--gray-400);font-size:12.5px">No leads found</div>';
+    return;
+  }
+  res.innerHTML = matches.map(l => `
+    <div onclick="selectApptLead('${l.phone.replace(/'/g,"\\'")}')" style="padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;transition:background 0.1s" onmouseover="this.style.background='var(--navy-50)'" onmouseout="this.style.background=''">
+      <div>
+        <div style="font-weight:700;font-size:13.5px;color:var(--navy-900)">${l.name}</div>
+        <div style="font-size:11.5px;color:var(--gray-500)">${l.phone} &nbsp;·&nbsp; ${l.status} &nbsp;·&nbsp; ${l.source||'—'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectApptLead(phone) {
+  const l = LEADS.find(lead => lead.phone === phone);
+  if (!l) return;
+  _apptSelectedLead = l;
+  document.getElementById('apptLeadSearch').value = l.name;
+  document.getElementById('apptLeadResults').style.display = 'none';
+  const info = document.getElementById('apptSelectedLead');
+  info.style.display = 'block';
+  info.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-weight:800;font-size:14.5px;color:var(--navy-900)">${l.name}</div>
+      <span class="badge ${statusBadge(l.status)}">${l.status}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:12.5px">
+      <div><span style="color:var(--gray-500)">Phone:</span> <strong style="color:var(--navy-900)">${l.phone}</strong></div>
+      <div><span style="color:var(--gray-500)">Source:</span> <strong style="color:var(--navy-900)">${l.source||'—'}</strong></div>
+      <div><span style="color:var(--gray-500)">Agent:</span> <strong style="color:var(--navy-900)">${l.agent||'—'}</strong></div>
+      <div><span style="color:var(--gray-500)">Coverage:</span> <strong style="color:var(--navy-900)">${l.policy||'—'}</strong></div>
+    </div>
+    <button onclick="_apptSelectedLead=null;document.getElementById('apptSelectedLead').style.display='none';document.getElementById('apptLeadSearch').value=''" style="margin-top:10px;background:none;border:none;color:var(--gray-400);font-size:11.5px;cursor:pointer;padding:0;font-family:var(--font-body)">✕ Clear selection</button>
+  `;
+}
+
+function closeAddApptModal() {
+  const m = document.getElementById('addApptOverlay');
+  if (m) m.style.display = 'none';
+}
+
+function confirmAddAppt() {
+  if (!_apptSelectedLead) { alert('Please search for and select a lead first.'); return; }
+  const date = document.getElementById('addApptDate').value;
+  const time = document.getElementById('addApptTime').value;
+  const type = document.getElementById('addApptType').value;
+  const notes = document.getElementById('addApptNotes').value;
+  if (!date || !time) { alert('Please select a date and time.'); return; }
+  const fmt12 = t => {
+    const [h, mi] = t.split(':');
+    const hh = parseInt(h, 10);
+    const ampm = hh >= 12 ? 'PM' : 'AM';
+    const hr = hh > 12 ? hh - 12 : (hh === 0 ? 12 : hh);
+    return hr + ':' + mi + ' ' + ampm;
+  };
+  APPOINTMENTS.push({
+    id: 'A' + (APPOINTMENTS.length + 1),
+    date, time: fmt12(time), dur: 30,
+    lead: _apptSelectedLead.name,
+    phone: _apptSelectedLead.phone,
+    agent: _apptSelectedLead.agent || 'Unassigned',
+    status: 'New',
+    calls: 0, texts: 0, daysSinceContact: 0,
+    sold: false, type, notes,
+  });
+  closeAddApptModal();
+  window.CALENDAR_STATE.selectedDate = date;
+  refreshCalendar();
+}
+
 function renderCalendarPage() {
   const s = window.CALENDAR_STATE;
   const today = new Date(2026,4,2); // 2026-05-02
@@ -4367,7 +4513,7 @@ function renderCalendarPage() {
           <div class="card-title">${selDayLabel}</div>
           <div style="font-size:11px;color:var(--gray-400);margin-top:2px">${selAppts.length} appointment${selAppts.length===1?'':'s'} · ${selAppts.filter(calendarNeedsFollowUp).length} need follow-up</div>
         </div>
-        <button class="btn btn-primary" style="font-size:11.5px" onclick="alert('Add appointment for ${selDay}')">+ Add</button>
+        <button class="btn btn-primary" style="font-size:11.5px" onclick="openAddApptModal('${selDay}')">+ Add</button>
       </div>
       <div class="card-body" style="padding:14px 16px;max-height:65vh;overflow-y:auto">
         ${selAppts.length === 0
@@ -4649,95 +4795,103 @@ function renderLiveView() {
     <button class="btn btn-primary" style="font-size:14px;padding:10px 18px">📞 Dial</button>
   </div>`}
 
-  <!-- AGENT GRID + TRANSFER ZONES -->
-  <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-bottom:16px">
+  <!-- AGENT LIST + TRANSFER ZONES -->
+  <div style="display:grid;grid-template-columns:1fr 284px;gap:14px;margin-bottom:16px">
 
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">All Agents</div>
-        <span style="font-size:11px;color:var(--gray-400)">Drag an active call card onto a transfer target →</span>
-      </div>
-      <div class="card-body" style="padding:14px">
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">
-          ${agentList.map(a => {
-            const onCall = a.status === 'on-call';
-            const color  = liveStatusColor(a.status);
-            const isMe   = a.name === me.name;
-            return `
-            <div class="agent-card" ${onCall?'draggable="true"':''}
-              ${onCall?`ondragstart="onAgentCallDragStart(event,'${a.name.replace(/'/g,"\\'")}')" ondragend="onAgentCallDragEnd(event)"`:''}
-              style="border:1px solid ${isMe?'var(--green-500)':'var(--border)'};border-left:4px solid ${color};border-radius:var(--radius-md);padding:11px 13px;background:${isMe?'var(--green-50)':'var(--white)'};box-shadow:var(--shadow-sm);position:relative">
-              ${isMe?'<div style="position:absolute;top:6px;right:8px;font-size:9px;font-weight:800;background:var(--green-500);color:#fff;padding:1px 6px;border-radius:var(--radius-full);letter-spacing:0.4px">YOU</div>':''}
-              <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px">
-                <div class="avatar ${agentAv(a.name)}" style="width:34px;height:34px;font-size:11px">${initials(a.name)}</div>
-                <div style="flex:1;min-width:0">
-                  <div style="font-weight:700;font-size:13px;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div>
-                  <div style="font-size:11px;color:var(--gray-500)">Ext ${a.ext} · Team ${a.team}</div>
-                </div>
-              </div>
-              <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:${color}">
-                ${onCall?'<span class="live-dot" style="background:'+color+'"></span>':'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+color+';margin-right:6px"></span>'}
-                ${liveStatusLabel(a.status)}
-                ${onCall?` · ${fmtCallDuration(a.callDuration)}`:''}
-              </div>
-              ${onCall?`
-              <div style="margin-top:7px;padding:7px 10px;background:var(--gray-50);border-radius:var(--radius-sm);font-size:11.5px">
-                <div style="font-weight:700;color:var(--navy-900)">${a.callDirection==='outbound'?'→':'←'} ${a.leadName}</div>
-                <div style="font-size:10.5px;color:var(--gray-500);margin-top:1px">${a.leadPhone}</div>
-              </div>
-              <div style="display:flex;gap:5px;margin-top:7px">
-                <button type="button" class="btn btn-ghost" style="flex:1;justify-content:center;font-size:10.5px;padding:4px 0" onclick="alert('Whispering to ${a.name}…')">🤫 Whisper</button>
-                <button type="button" class="btn btn-ghost" style="flex:1;justify-content:center;font-size:10.5px;padding:4px 0" onclick="alert('Barging into call with ${a.leadName}…')">🎙 Barge</button>
-              </div>
-              `:`
-              <button type="button" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:7px;font-size:11.5px;padding:6px 0" onclick="alert('Direct dialing ${a.name} at ext ${a.ext}…')">📞 Dial Ext ${a.ext}</button>
-              `}
-            </div>`;
-          }).join('')}
+    <!-- AGENT LIST -->
+    <div class="card" style="overflow:hidden">
+      <div class="card-header" style="padding:12px 16px">
+        <div>
+          <div class="card-title">Agents</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:2px">${available} available · ${onCalls} on calls · drag a call row to transfer</div>
         </div>
+      </div>
+      <div style="padding:0">
+        ${agentList.map(a => {
+          const onCall = a.status === 'on-call';
+          const isMe   = a.name === me.name;
+          const dotColor = liveStatusColor(a.status);
+          const isAvail  = a.status === 'available';
+          return `
+          <div class="agent-card" ${onCall ? `draggable="true" ondragstart="onAgentCallDragStart(event,'${a.name.replace(/'/g,"\\'")}');this.style.opacity='0.5'" ondragend="onAgentCallDragEnd(event);this.style.opacity='1'"` : ''}
+            style="display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);background:${isMe ? 'rgba(59,170,71,0.04)' : 'var(--white)'};${onCall ? 'cursor:grab' : ''}">
+
+            <!-- Drag handle -->
+            <div style="font-size:15px;color:${onCall ? 'var(--gray-300)' : 'transparent'};flex-shrink:0;line-height:1;user-select:none">⠿</div>
+
+            <!-- Status dot -->
+            <div style="width:9px;height:9px;border-radius:50%;background:${dotColor};flex-shrink:0;${onCall ? 'box-shadow:0 0 0 3px rgba(239,68,68,0.18)' : ''}"></div>
+
+            <!-- Name + ext + call info -->
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:7px">
+                <div style="font-weight:700;font-size:13.5px;color:var(--navy-900)">${a.name}</div>
+                <div style="font-size:11px;color:var(--gray-400)">Ext ${a.ext}</div>
+                ${isMe ? '<span style="font-size:9px;font-weight:800;background:var(--green-500);color:#fff;padding:1px 7px;border-radius:var(--radius-full);letter-spacing:0.5px">YOU</span>' : ''}
+                <span style="font-size:11.5px;color:var(--gray-500);font-weight:500">${liveStatusLabel(a.status)}</span>
+              </div>
+              ${onCall ? `<div style="display:flex;align-items:center;gap:8px;margin-top:3px;font-size:11.5px;color:var(--gray-600)">
+                <span>${a.callDirection === 'outbound' ? '↗' : '↙'}</span>
+                <span style="font-weight:600;color:var(--navy-800)">${a.leadName}</span>
+                <span style="color:var(--gray-400)">${a.leadPhone}</span>
+                <span style="font-family:var(--font-display);font-weight:700;font-size:12px;color:var(--navy-900)">${fmtCallDuration(a.callDuration)}</span>
+              </div>` : ''}
+            </div>
+
+            <!-- Actions -->
+            <div style="display:flex;gap:5px;flex-shrink:0">
+              ${onCall ? `
+                <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="alert('Whispering to ${a.name}…')">🤫 Whisper</button>
+                <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="alert('Barging into call…')">🎙 Barge</button>
+              ` : isAvail ? `
+                <button type="button" onclick="alert('${isMe ? 'Dialing…' : 'Calling ' + a.name + ' at Ext ' + a.ext + '…'}')" style="background:var(--navy-900);color:#fff;border:none;border-radius:var(--radius-md);padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);display:inline-flex;align-items:center;gap:5px">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M2 2.5C2 2.5 3.5 1 5 1s2.5 1.5 3 3-1 2-1 3 2 2.5 3 3 3-1.5 3-3 1 3 1 3-1.5 2-3 2c-2 0-4-1-6-3S1 5.5 1 3.5C1 2.5 2 2.5 2 2.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  ${isMe ? 'Dial' : 'Call'}
+                </button>
+              ` : `<span style="font-size:11px;color:var(--gray-300);font-style:italic">${liveStatusLabel(a.status)}</span>`}
+            </div>
+          </div>`;
+        }).join('')}
       </div>
     </div>
 
-    <!-- TRANSFER TARGETS -->
-    <div class="card">
-      <div class="card-header"><div class="card-title">Transfer Targets</div><span style="font-size:11px;color:var(--gray-400)">Drop calls here</span></div>
-      <div class="card-body" style="padding:14px">
+    <!-- RIGHT PANEL -->
+    <div style="display:flex;flex-direction:column;gap:12px">
 
-        <!-- Broadcast / All Extensions -->
-        <div class="drop-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'all-extensions','All Extensions')"
-          style="padding:13px 14px;background:var(--blue-light);border:2px dashed #C3D6E8;border-radius:var(--radius-md);margin-bottom:10px;display:flex;align-items:center;gap:11px">
-          <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px">📡</div>
-          <div style="flex:1">
-            <div style="font-weight:700;font-size:12.5px;color:#0C1D33">All Extensions</div>
-            <div style="font-size:10.5px;color:#163D6B;margin-top:1px">Broadcast to everyone available</div>
+      <!-- TRANSFER TO ALL EXTENSIONS -->
+      <div class="card">
+        <div class="card-body" style="padding:12px">
+          <div class="drop-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'all-extensions','All Extensions')"
+            style="padding:16px 14px;background:var(--navy-50);border:2px dashed var(--navy-300);border-radius:var(--radius-md);text-align:center;cursor:pointer">
+            <div style="font-size:22px;margin-bottom:5px">📡</div>
+            <div style="font-weight:800;font-size:13px;color:var(--navy-900)">Transfer to All Extensions</div>
+            <div style="font-size:11px;color:var(--gray-500);margin-top:3px">Drop a call here to broadcast</div>
           </div>
         </div>
+      </div>
 
-        <!-- Available agents as drop targets -->
-        <div style="font-size:10px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin:8px 4px 6px">Specific Agent</div>
-        ${window.AGENT_LIVE.filter(a => a.status === 'available').map(a => `
-        <div class="drop-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'agent','${a.name.replace(/'/g,"\\'")}')"
-          style="padding:9px 11px;background:var(--white);border:1.5px dashed var(--border-strong);border-radius:var(--radius-md);margin-bottom:6px;display:flex;align-items:center;gap:9px;cursor:pointer">
-          <div class="avatar ${agentAv(a.name)}" style="width:28px;height:28px;font-size:10px">${initials(a.name)}</div>
-          <div style="flex:1">
-            <div style="font-size:12.5px;font-weight:700;color:var(--navy-900)">${a.name}</div>
-            <div style="font-size:10.5px;color:var(--gray-500)">Ext ${a.ext} · ${liveStatusLabel(a.status)}</div>
-          </div>
-          <span style="font-size:11px;color:var(--green-700);font-weight:700">↪</span>
-        </div>`).join('')}
-
-        <!-- Parking Lot -->
-        <div style="font-size:10px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin:14px 4px 6px">🅿 Parking Lot</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          ${s.parkingLot.map((p,i)=>`
+      <!-- PARKING LOT -->
+      <div class="card" style="flex:1">
+        <div class="card-header" style="padding:11px 14px">
+          <div class="card-title" style="font-size:13px">🅿 Parking Lot</div>
+          <span style="font-size:10.5px;color:var(--gray-400)">Drop to hold</span>
+        </div>
+        <div style="padding:10px;display:flex;flex-direction:column;gap:6px">
+          ${s.parkingLot.map((p, i) => `
           <div class="drop-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'park',${i})"
-            style="padding:10px;background:${p?'var(--amber-light)':'var(--gray-50)'};border:1.5px dashed ${p?'#FCD34D':'var(--border-strong)'};border-radius:var(--radius-md);text-align:center">
-            <div style="font-size:10px;font-weight:800;color:${p?'#B45309':'var(--gray-500)'};text-transform:uppercase;letter-spacing:0.5px">Slot ${i+1}</div>
-            ${p?`<div style="font-size:11.5px;font-weight:700;color:#92400E;margin-top:4px">${p.lead}</div><div style="font-size:10px;color:#B45309;margin-top:1px">parked ${p.parkedAt}</div><button type="button" style="background:transparent;border:none;color:var(--green-700);font-size:10.5px;font-weight:700;cursor:pointer;margin-top:4px" onclick="retrieveParkedCall(${i})">Retrieve →</button>`:`<div style="font-size:11px;color:var(--gray-400);margin-top:4px">empty</div>`}
+            style="padding:10px 12px;background:${p ? '#FFFBEB' : 'var(--gray-50)'};border:1.5px ${p ? 'solid #FCD34D' : 'dashed var(--border-strong)'};border-radius:var(--radius-md);display:flex;align-items:center;gap:9px;min-height:44px">
+            <div style="font-size:10px;font-weight:800;color:${p ? '#B45309' : 'var(--gray-400)'};text-transform:uppercase;letter-spacing:0.4px;min-width:40px">Slot ${i + 1}</div>
+            ${p ? `
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12px;font-weight:700;color:#92400E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.lead}</div>
+                <div style="font-size:10px;color:#B45309;margin-top:1px">parked ${p.parkedAt}</div>
+              </div>
+              <button type="button" onclick="retrieveParkedCall(${i})" style="background:var(--green-500);color:#fff;border:none;border-radius:var(--radius-md);padding:4px 9px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:var(--font-body);white-space:nowrap">Retrieve</button>
+            ` : `<div style="font-size:11px;color:var(--gray-300)">empty</div>`}
           </div>`).join('')}
         </div>
-
       </div>
+
     </div>
   </div>
 
