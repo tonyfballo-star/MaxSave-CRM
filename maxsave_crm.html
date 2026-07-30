@@ -716,7 +716,7 @@ function showNewLeadAlert(lead) {
   el.innerHTML =
     '<div style="width:11px;height:11px;border-radius:50%;background:#fff;flex-shrink:0;box-shadow:0 0 0 4px rgba(255,255,255,0.35);animation:notifPulse 1s ease-in-out infinite"></div>' +
     '<div style="flex-shrink:0">' +
-      '<div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.72);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:2px">New Lead</div>' +
+      '<div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.72);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:2px">' + (lead.type || 'New Lead') + '</div>' +
       '<div style="font-size:19px;font-weight:800;font-family:var(--font-display);line-height:1.1">' + lead.name + '</div>' +
     '</div>' +
     '<div class="notif-divider"></div>' +
@@ -1559,31 +1559,8 @@ function ensureToastContainer() {
 }
 
 function showIncomingText(name, phone, message) {
-  ensureToastContainer();
-  const id = 'toast-' + Date.now() + '-' + Math.floor(Math.random()*1000);
-  const init = (name||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-  const toast = document.createElement('div');
-  toast.id = id;
-  toast.className = 'incoming-toast';
-  toast.style.cssText = 'background:linear-gradient(135deg,var(--green-500) 0%,var(--green-700) 100%);color:#fff;padding:14px 16px;border-radius:var(--radius-lg);box-shadow:0 8px 28px rgba(59,170,71,0.40);cursor:pointer;min-width:300px;transition:transform 0.2s ease, box-shadow 0.2s ease';
-  toast.innerHTML = `
-    <div style="display:flex;align-items:flex-start;gap:11px">
-      <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.20);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;font-family:var(--font-display)">${init}</div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-          <div style="font-weight:800;font-size:13.5px;color:#fff">${name}</div>
-          <div style="font-size:10.5px;color:rgba(255,255,255,0.90);font-weight:600">just now</div>
-        </div>
-        <div style="font-size:10.5px;color:rgba(255,255,255,0.85);margin-top:1px;font-weight:600;letter-spacing:0.3px;text-transform:uppercase">📩 New text message</div>
-        <div style="font-size:13px;color:#fff;margin-top:7px;line-height:1.4">${(message||'').replace(/</g,'&lt;')}</div>
-        <div style="display:flex;gap:6px;margin-top:10px">
-          <button type="button" onclick="event.stopPropagation();dismissToast('${id}')" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.30);color:#fff;font-size:11px;padding:5px 11px;border-radius:var(--radius-md);cursor:pointer;font-weight:600">Dismiss</button>
-          <button type="button" onclick="event.stopPropagation();dismissToast('${id}');openTextThread('${(name||'').replace(/'/g,"\\'")}','${phone}')" style="background:#fff;color:var(--green-700);border:none;font-size:11.5px;padding:5px 14px;border-radius:var(--radius-md);cursor:pointer;font-weight:800">💬 Reply</button>
-        </div>
-      </div>
-    </div>`;
-  toast.onclick = function() { dismissToast(id); openTextThread(name, phone); };
-  document.getElementById('toastContainer').appendChild(toast);
+  // Show bottom-right white/blue popup
+  showTextPopup(name, phone, message);
 
   // Persist into conversations + mark thread unread
   if (!window.CONVERSATIONS) window.CONVERSATIONS = {};
@@ -1598,9 +1575,6 @@ function showIncomingText(name, phone, message) {
   // Update sidebar inbox badge
   const badge = document.getElementById('inboxBadge');
   if (badge) badge.textContent = window.UNREAD_THREADS.size;
-
-  // Auto-dismiss after 14 seconds
-  setTimeout(function(){ dismissToast(id); }, 14000);
 }
 function dismissToast(id) {
   const t = document.getElementById(id);
@@ -1609,12 +1583,13 @@ function dismissToast(id) {
   setTimeout(function(){ t.remove(); }, 240);
 }
 
-// Demo: simulate incoming texts a few seconds after first load so the toasts show
+// Demo: simulate notifications a few seconds after first load
 (function(){
   if (window._demoTextsScheduled) return;
   window._demoTextsScheduled = true;
-  setTimeout(function(){ showIncomingText('Maria Gonzalez', '(619) 555-0124', "Hey — what's the deductible on that comprehensive option?"); }, 4000);
-  setTimeout(function(){ showIncomingText('Robert Chen',    '(858) 555-0198', 'Sounds good for tomorrow. 10 AM works for me.'); }, 11000);
+  setTimeout(function(){ showNewLeadAlert({ name:'Amanda Foster', phone:'(760) 555-0311', source:'Everquote', type:'New Lead', coverage:'Full Coverage' }); }, 3000);
+  setTimeout(function(){ showIncomingText('Maria Gonzalez', '(619) 555-0124', "Hey — what's the deductible on that comprehensive option?"); }, 8000);
+  setTimeout(function(){ showIncomingText('Robert Chen',    '(858) 555-0198', 'Sounds good for tomorrow. 10 AM works for me.'); }, 16000);
 })();
 
 // ===== HELPERS =====
@@ -4859,10 +4834,10 @@ function renderLiveView() {
           const safe    = a.name.replace(/'/g,"\\'");
           return `
           <div class="agent-card" ${canDrag ? `draggable="true" ondragstart="onAgentCallDragStart(event,'${safe}');this.style.opacity='0.5'" ondragend="onAgentCallDragEnd(event);this.style.opacity='1'"` : ''}
-            style="display:flex;align-items:stretch;min-height:64px;border-bottom:1px solid var(--border);background:${rowBg};">
+            style="display:grid;grid-template-columns:1fr 190px 160px;min-height:68px;border-bottom:1px solid var(--border);background:${rowBg};">
 
             <!-- Left info -->
-            <div style="display:flex;align-items:center;gap:12px;padding:0 16px;flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:12px;padding:0 16px;min-width:0;">
               <div style="font-size:14px;color:${canDrag?'var(--gray-300)':'transparent'};flex-shrink:0;user-select:none;width:14px;text-align:center">⠿</div>
               <div style="width:10px;height:10px;border-radius:50%;background:${dot};flex-shrink:0;box-shadow:${glow}"></div>
               <div style="flex:1;min-width:0;">
@@ -4882,15 +4857,15 @@ function renderLiveView() {
             </div>
 
             <!-- Divider box: active call name or status -->
-            <div style="border-left:1.5px solid var(--border);border-right:1.5px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:center;min-width:190px;width:190px;background:${divBg};">
+            <div style="border-left:1.5px solid var(--border);border-right:1.5px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:center;background:${divBg};">
               ${onCall
                 ? `<div style="text-align:center;"><div style="font-size:9.5px;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:3px;">Active Call</div><div style="font-size:13.5px;font-weight:700;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:158px;">${a.leadName}</div></div>`
                 : `<span style="font-size:12px;color:var(--gray-400);font-style:italic;">${liveStatusLabel(a.status)}</span>`
               }
             </div>
 
-            <!-- CTA — fixed width so all rows align -->
-            <div style="display:flex;gap:6px;align-items:center;justify-content:center;padding:0 16px;flex-shrink:0;min-width:160px;width:160px;">
+            <!-- CTA -->
+            <div style="display:flex;gap:6px;align-items:center;justify-content:center;padding:0 16px;">
               ${onCall ? `
                 <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="alert('Whispering to ${safe}…')">🤫 Whisper</button>
                 <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="alert('Barging into call…')">🎙 Barge</button>
