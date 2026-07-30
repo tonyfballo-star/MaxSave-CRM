@@ -201,11 +201,10 @@ body.dark-mode #dashHero { background: linear-gradient(135deg,#1A1D2E 0%,#1E2238
 body.dark-mode .btn-navy { background: #323232; color: #C8C8C8; border: 1px solid rgba(255,255,255,0.12); }
 body.dark-mode .btn-navy:hover { background: #3E3E3E; }
 body.dark-mode .badge { filter: brightness(1.15); }
-body.dark-mode .tier-elite { background: linear-gradient(135deg, #2A3A5C, #354868); }
-body.dark-mode .tier-gold { background: #2A2210; color: #FCD34D; border-color: #7A5C10; }
-body.dark-mode .tier-platinum { background: #1E1A2E; color: #C4B5FD; border-color: #5B4A8A; }
-body.dark-mode .tier-silver { background: #222222; color: #B0B8C8; border-color: #4A4A55; }
-body.dark-mode .tier-bronze { background: #2A1E10; color: #D4A47A; border-color: #7A4A20; }
+body.dark-mode .tier-1 { background: linear-gradient(135deg, #2A3A5C, #354868); }
+body.dark-mode .tier-2 { background: #1E1A2E; color: #C4B5FD; border-color: #5B4A8A; }
+body.dark-mode .tier-3 { background: #2A2210; color: #FCD34D; border-color: #7A5C10; }
+body.dark-mode .tier-4 { background: #222222; color: #B0B8C8; border-color: #4A4A55; }
 body.dark-mode .pri-high { background: #3A1A1A; color: #F87171; }
 body.dark-mode .pri-med  { background: #2E2010; color: #FCD34D; }
 body.dark-mode .pri-low  { background: #252525; color: #909090; }
@@ -381,11 +380,10 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .b-new::before,.b-contacted::before,.b-quoted::before,.b-followup::before,.b-submitted::before,.b-sold::before,.b-lost::before,.b-pending::before,.b-noanswer::before { background: #163D6B; }
 
 .tier { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: var(--radius-full); font-size: 13px; font-weight: 700; letter-spacing: 0.2px; }
-.tier-bronze { background: #FFF7ED; color: #92400E; border: 1px solid #FDE68A; }
-.tier-silver { background: #F8FAFC; color: #475569; border: 1px solid #CBD5E1; }
-.tier-gold { background: #FFFBEB; color: #92400E; border: 1px solid #FCD34D; }
-.tier-platinum { background: #F5F3FF; color: #5B21B6; border: 1px solid #DDD6FE; }
-.tier-elite { background: linear-gradient(135deg, #1C2B4B, #253659); color: #fff; border: none; box-shadow: 0 2px 8px rgba(26,43,75,0.25); }
+.tier-1 { background: linear-gradient(135deg, #1C2B4B, #253659); color: #fff; border: none; box-shadow: 0 2px 8px rgba(26,43,75,0.25); }
+.tier-2 { background: #F5F3FF; color: #5B21B6; border: 1px solid #DDD6FE; }
+.tier-3 { background: #FFFBEB; color: #92400E; border: 1px solid #FCD34D; }
+.tier-4 { background: #F8FAFC; color: #475569; border: 1px solid #CBD5E1; }
 
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th { text-align: left; font-size: 12px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; padding: 11px 14px; border-bottom: 2px solid var(--border); white-space: nowrap; background: var(--gray-50); }
@@ -849,7 +847,7 @@ function nav(page, el) {
     agents:'Agent Management', reports:'Reports & Analytics', goals:'Goals & Tiers',
     finance:'Finance & Broker Fees', tasks:'Tasks & Follow-Ups',
     esignatures:'E Signatures', payment:'Payment Terminal', reputation:'Reputation Manager',
-    agency:'My Agency', admin:'Settings'
+    agency:'My Agency', admin:'Settings', agentprofile:'Agent Profile'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
   document.getElementById('content').innerHTML = '';
@@ -1062,7 +1060,6 @@ body.dark-mode .text-thread { background:#1E1E1E; }
 <div id="textThreadOverlay" class="logout-overlay" style="display:none;z-index:10001" onclick="if(event.target===this)closeTextThread()">
   <div class="logout-modal" style="width:520px;max-width:95vw;text-align:left;padding:20px 22px" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
-      <div id="textThreadAvatar" class="avatar av-purple" style="width:38px;height:38px;font-size:13px">MG</div>
       <div style="flex:1">
         <div id="textThreadName" style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--navy-900);margin:0">Maria Gonzalez</div>
         <div id="textThreadPhone" style="font-size:11.5px;color:var(--gray-500)">(619) 555-0124 · iMessage / SMS</div>
@@ -1598,7 +1595,7 @@ const fmt$ = v => '$' + Number(v).toLocaleString();
 const fmtK = v => v >= 1000 ? '$' + (v/1000).toFixed(1) + 'k' : fmt$(v);
 const progressColor = p => p >= 50 ? 'pb-green' : p >= 30 ? 'pb-amber' : 'pb-red';
 const progressTextColor = p => p >= 100 ? 'var(--green-700)' : p >= 70 ? 'var(--green-600)' : p >= 50 ? '#B45309' : 'var(--red)';
-const tierClass = t => ({ Elite:'tier-elite', Platinum:'tier-platinum', Gold:'tier-gold', Silver:'tier-silver', Bronze:'tier-bronze' })[t] || 'tier-bronze';
+const tierClass = t => ({ 'Tier 1':'tier-1', 'Tier 2':'tier-2', 'Tier 3':'tier-3', 'Tier 4':'tier-4' })[t] || 'tier-4';
 const statusBadge = s => ({ 'New Lead':'b-new','Quoted':'b-quoted','Appointment Set':'b-followup','Bad Lead':'b-lost','Contacted':'b-contacted','In Follow-Up':'b-followup','App Submitted':'b-submitted','Pending Docs':'b-pending','Bound/Sold':'b-sold','Lost':'b-lost','No Answer':'b-noanswer','Do Not Contact':'b-lost' })[s] || 'b-noanswer';
 const agentAv = name => ({ 'Sarah Kim':'av-purple','Marcus Rivera':'av-navy','Jordan Torres':'av-green','Ashley Lee':'av-amber','Chris Park':'av-teal','Nina Reyes':'av-red','Brian Walsh':'av-navy','Unassigned':'' })[name] || 'av-navy';
 const initials = name => name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
@@ -1606,13 +1603,13 @@ const sourceAbbrev = s => ({'Everquote':'EQ','EverQuote':'EQ','MediaAlpha':'MA',
 
 // ===== DATA =====
 const AGENTS = [
-  { name:'Sarah Kim', apps:28, goal:25, fee:12400, feeGoal:10000, premium:48200, tier:'Elite', close:'42.8%', contact:'78.3%', leads:34, rank:1 },
-  { name:'Marcus Rivera', apps:22, goal:20, fee:9800, feeGoal:8500, premium:39100, tier:'Platinum', close:'38.2%', contact:'71.4%', leads:41, rank:2 },
-  { name:'Jordan Torres', apps:17, goal:20, fee:7650, feeGoal:8000, premium:30200, tier:'Gold', close:'33.1%', contact:'65.8%', leads:52, rank:3 },
-  { name:'Ashley Lee', apps:14, goal:20, fee:6200, feeGoal:8000, premium:24400, tier:'Gold', close:'28.4%', contact:'61.2%', leads:49, rank:4 },
-  { name:'Chris Park', apps:8, goal:15, fee:3500, feeGoal:6000, premium:14000, tier:'Silver', close:'22.6%', contact:'54.3%', leads:35, rank:5 },
-  { name:'Nina Reyes', apps:7, goal:15, fee:3050, feeGoal:6000, premium:12200, tier:'Silver', close:'19.8%', contact:'52.1%', leads:36, rank:6 },
-  { name:'Brian Walsh', apps:4, goal:15, fee:1750, feeGoal:6000, premium:7200, tier:'Bronze', close:'15.2%', contact:'44.6%', leads:26, rank:7 },
+  { name:'Sarah Kim', apps:28, goal:25, fee:12400, feeGoal:10000, premium:48200, tier:'Tier 1', close:'42.8%', contact:'78.3%', leads:34, rank:1 },
+  { name:'Marcus Rivera', apps:22, goal:20, fee:9800, feeGoal:8500, premium:39100, tier:'Tier 2', close:'38.2%', contact:'71.4%', leads:41, rank:2 },
+  { name:'Jordan Torres', apps:17, goal:20, fee:7650, feeGoal:8000, premium:30200, tier:'Tier 3', close:'33.1%', contact:'65.8%', leads:52, rank:3 },
+  { name:'Ashley Lee', apps:14, goal:20, fee:6200, feeGoal:8000, premium:24400, tier:'Tier 3', close:'28.4%', contact:'61.2%', leads:49, rank:4 },
+  { name:'Chris Park', apps:8, goal:15, fee:3500, feeGoal:6000, premium:14000, tier:'Tier 4', close:'22.6%', contact:'54.3%', leads:35, rank:5 },
+  { name:'Nina Reyes', apps:7, goal:15, fee:3050, feeGoal:6000, premium:12200, tier:'Tier 4', close:'19.8%', contact:'52.1%', leads:36, rank:6 },
+  { name:'Brian Walsh', apps:4, goal:15, fee:1750, feeGoal:6000, premium:7200, tier:'Tier 4', close:'15.2%', contact:'44.6%', leads:26, rank:7 },
 ];
 
 // Allowed lead-list statuses: Quoted, Appointment Set, New Lead, Bad Lead
@@ -2035,7 +2032,6 @@ PAGES.dashboard = `
       ${AGENTS.slice(0,5).map((a,i)=>`
       <div class="lb-row" style="cursor:pointer;padding:12px 0" onclick="nav('reports',null)">
         <div class="lb-rank ${['r1','r2','r3','rn','rn'][i]}">${['🥇','🥈','🥉','',''][i]||(i+1)}</div>
-        <div class="avatar ${agentAv(a.name)}" style="width:34px;height:34px;font-size:12px">${initials(a.name)}</div>
         <div style="flex:1">
           <div style="font-size:15px;font-weight:700;color:var(--navy-900)">${a.name}</div>
           <div style="font-size:12px;color:var(--gray-400);margin-top:2px">${a.contact} contact · ${a.close} close</div>
@@ -3043,7 +3039,6 @@ body.dark-mode .text-thread { background:#1E1E1E; }
 <div id="textThreadOverlay" class="logout-overlay" style="display:none;z-index:10001" onclick="if(event.target===this)closeTextThread()">
   <div class="logout-modal" style="width:520px;max-width:95vw;text-align:left;padding:20px 22px" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
-      <div class="avatar av-purple" style="width:38px;height:38px;font-size:13px">MG</div>
       <div style="flex:1">
         <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--navy-900);margin:0">Maria Gonzalez</div>
         <div style="font-size:11.5px;color:var(--gray-500)">(619) 555-0124 · iMessage / SMS</div>
@@ -4548,7 +4543,7 @@ function renderCalendarPage() {
                 <div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">
                   <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--green-700);font-weight:700"><span>📞</span><span>${a.calls}</span></div>
                   <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--navy-600);font-weight:700"><span>💬</span><span>${a.texts}</span></div>
-                  <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray-500)"><div class="avatar ${agentAv(a.agent)}" style="width:20px;height:20px;font-size:8.5px">${initials(a.agent)}</div><span>${a.agent}</span></div>
+                  <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray-500)"><span>${a.agent}</span></div>
                 </div>
 
                 ${a.notes?`<div style="font-size:11.5px;color:var(--gray-600);margin-top:8px;padding:7px 10px;background:var(--gray-50);border-radius:var(--radius-sm);font-style:italic">"${a.notes}"</div>`:''}
@@ -5419,7 +5414,6 @@ function renderInboxEmails(emails) {
         const init = e.from.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
         return `
         <div onclick="alert('Opening: ${e.subject.replace(/'/g,"\\'")}')" style="display:flex;align-items:flex-start;gap:13px;padding:14px 18px;border-bottom:1px solid var(--border);cursor:pointer;background:${!e.read?'var(--green-50)':'transparent'};transition:background 0.15s;border-left:${!e.read?'3px solid var(--green-500)':'3px solid transparent'}" onmouseenter="if(${e.read})this.style.background='var(--gray-50)'" onmouseleave="if(${e.read})this.style.background='transparent'">
-          <div class="avatar ${agentAv(e.from)}" style="width:42px;height:42px;font-size:13px;flex-shrink:0">${init}</div>
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">
               <div style="font-weight:${!e.read?'800':'700'};font-size:14px;color:var(--navy-900)">${e.from}</div>
@@ -5623,19 +5617,19 @@ function renderRptProduction(sc) {
             const extFee = rptFee(ext.feeExtended || 0, sc);
             const prem   = rptVal(a.premium, sc);
             const p      = pct(apps, a.goal);
-            const tierColors = {Elite:'#7C3AED',Platinum:'#0369A1',Gold:'#B45309',Silver:'#64748B',Bronze:'#92400E'};
-            const tierBg    = {Elite:'#F5F3FF',Platinum:'#E0F2FE',Gold:'#FEF3C7',Silver:'#F1F5F9',Bronze:'#FEF9EC'};
+            const tierColors = {'Tier 1':'#1C2B4B','Tier 2':'#5B21B6','Tier 3':'#92400E','Tier 4':'#475569'};
+            const tierBg    = {'Tier 1':'#253659','Tier 2':'#F5F3FF','Tier 3':'#FFFBEB','Tier 4':'#F8FAFC'};
+            const tierText  = {'Tier 1':'#fff','Tier 2':'#5B21B6','Tier 3':'#92400E','Tier 4':'#475569'};
             return `<tr>
               <td>
                 <div style="display:flex;align-items:center;gap:8px">
-                  <div class="avatar ${agentAv(a.name)}" style="width:28px;height:28px;font-size:10px;flex-shrink:0">${initials(a.name)}</div>
                   <div>
                     <div class="lead-name-link" style="font-weight:700;color:#1A6ED0;cursor:pointer;font-size:13.5px" onclick="showAgentProfile('${a.name.replace(/'/g,"\\'")}',${sc})">${a.name}</div>
                     <div style="font-size:10.5px;color:var(--gray-400)">Rank #${a.rank}</div>
                   </div>
                 </div>
               </td>
-              <td><span style="background:${tierBg[a.tier]};color:${tierColors[a.tier]};border:1px solid ${tierColors[a.tier]}44;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:700">${a.tier}</span></td>
+              <td><span class="tier ${tierClass(a.tier)}">${a.tier}</span></td>
               <td style="font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--navy-900)">${apps}</td>
               <td style="color:var(--gray-500)">${a.goal}</td>
               <td>
@@ -5694,7 +5688,7 @@ function renderRptFinance(sc, totalFeeCollected, totalFeeExtended) {
           const rate   = total > 0 ? Math.round(fee / total * 100) : 0;
           const avgFee = apps > 0 ? Math.round(fee / apps) : 0;
           return `<tr>
-            <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar ${agentAv(a.name)}" style="width:24px;height:24px;font-size:9px">${initials(a.name)}</div><strong>${a.name}</strong></div></td>
+            <td><strong>${a.name}</strong></td>
             <td style="font-weight:700">${apps}</td>
             <td style="color:var(--green-700);font-weight:700">${fmt$(fee)}</td>
             <td style="color:#B45309;font-weight:700">${fmt$(extFee)}</td>
@@ -5714,22 +5708,30 @@ function renderRptFinance(sc, totalFeeCollected, totalFeeExtended) {
 }
 
 function showAgentProfile(name, sc) {
-  const a = AGENTS.find(x => x.name === name); if (!a) return;
-  const ext = AGENT_EXTENDED_DATA[name] || {};
-  sc = parseFloat(sc) || 1.0;
+  window.REPORTS_STATE.selectedAgent = name;
+  window.REPORTS_STATE.selectedScale = parseFloat(sc) || 1.0;
+  nav('agentprofile', null);
+}
 
-  const apps    = rptVal(a.apps, sc);
-  const fee     = rptFee(a.fee, sc);
-  const extFee  = rptFee(ext.feeExtended || 0, sc);
-  const prem    = rptVal(a.premium, sc);
-  const p       = pct(apps, a.goal);
-  const feeP    = pct(fee, a.feeGoal);
-  const fmtDur  = s => { const m=Math.floor(s/60),sec=s%60; return m+'m '+(sec<10?'0':'')+sec+'s'; };
+function renderAgentProfilePage() {
+  const s   = window.REPORTS_STATE || {};
+  const name = s.selectedAgent;
+  const sc   = s.selectedScale || 1.0;
+  const a    = AGENTS.find(x => x.name === name);
+  if (!a) { document.getElementById('content').innerHTML = '<div class="page-content"><div class="empty"><div class="empty-icon">❓</div><div class="empty-title">Agent not found</div></div></div>'; return; }
 
-  const tierColors = {Elite:'#7C3AED',Platinum:'#0369A1',Gold:'#B45309',Silver:'#64748B',Bronze:'#92400E'};
-  const tierBg    = {Elite:'#F5F3FF',Platinum:'#E0F2FE',Gold:'#FEF3C7',Silver:'#F1F5F9',Bronze:'#FEF9EC'};
-  const tc = tierColors[a.tier]||'#64748B', tb = tierBg[a.tier]||'#F1F5F9';
+  const ext  = AGENT_EXTENDED_DATA[name] || {};
+  const apps  = rptVal(a.apps, sc);
+  const fee   = rptFee(a.fee, sc);
+  const extFee= rptFee(ext.feeExtended || 0, sc);
+  const prem  = rptVal(a.premium, sc);
+  const p     = pct(apps, a.goal);
+  const feeP  = pct(fee, a.feeGoal);
+  const label = rptDateLabel(s);
+  const fmtDur = s2 => { const m=Math.floor(s2/60),sec=s2%60; return m+'m '+(sec<10?'0':'')+sec+'s'; };
 
+  const tc = {'Tier 1':'#fff','Tier 2':'#5B21B6','Tier 3':'#92400E','Tier 4':'#475569'}[a.tier]||'#475569';
+  const tb = {'Tier 1':'#253659','Tier 2':'#F5F3FF','Tier 3':'#FFFBEB','Tier 4':'#F8FAFC'}[a.tier]||'#F8FAFC';
   const tc2 = p>=100?'var(--green-500)':p>=70?'#1A6ED0':'var(--amber-500)';
   const fc2 = feeP>=100?'var(--green-500)':feeP>=70?'#1A6ED0':'var(--amber-500)';
 
@@ -5743,157 +5745,182 @@ function showAgentProfile(name, sc) {
   const missedPct     = totalCalls > 0 ? Math.round(missedCalls/totalCalls*100) : 0;
   const connectRate   = dials > 0 ? Math.round(outboundCalls/dials*100) : 0;
 
-  const kbox = (label, val, sub, bg) => `
-    <div style="padding:13px 14px;border-radius:var(--radius-md);background:${bg||'var(--gray-50)'};border:1px solid var(--border)">
-      <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">${label}</div>
-      <div style="font-size:21px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${val}</div>
-      ${sub?`<div style="font-size:10.5px;color:var(--gray-500);margin-top:2px">${sub}</div>`:''}
+  const kbox = (lbl, val, sub, bg) => `
+    <div style="padding:14px 16px;border-radius:var(--radius-md);background:${bg||'var(--gray-50)'};border:1px solid var(--border)">
+      <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">${lbl}</div>
+      <div style="font-size:22px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${val}</div>
+      ${sub?`<div style="font-size:10.5px;color:var(--gray-500);margin-top:3px">${sub}</div>`:''}
     </div>`;
 
-  const srow = (label, val, note) => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-bottom:1px solid var(--border)">
-      <span style="font-size:13px;color:var(--gray-700)">${label}</span>
+  const srow = (lbl, val, note) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px;color:var(--gray-700)">${lbl}</span>
       <div style="text-align:right">
         <span style="font-size:13.5px;font-weight:700;color:var(--navy-900)">${val}</span>
         ${note?`<div style="font-size:10px;color:var(--gray-400)">${note}</div>`:''}
       </div>
     </div>`;
 
-  const pbar = (label, val, max, color, fmt) => {
+  const pbar = (lbl, val, max, color, fmtFn) => {
     const pp = Math.min(Math.round(val/Math.max(max,1)*100), 100);
-    const display = fmt ? fmt(val) : val;
+    const display = fmtFn ? fmtFn(val) : val;
+    const maxDisplay = fmtFn ? fmtFn(max) : max;
     return `
-    <div style="margin-bottom:13px">
+    <div style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:12.5px;font-weight:600;color:var(--gray-700)">${label}</span>
-        <span style="font-size:12.5px;font-weight:700;color:${color}">${display} <span style="color:var(--gray-400);font-weight:500">/ ${fmt?fmt(max):max} (${pp}%)</span></span>
+        <span style="font-size:13px;font-weight:600;color:var(--gray-700)">${lbl}</span>
+        <span style="font-size:13px;font-weight:700;color:${color}">${display} <span style="color:var(--gray-400);font-weight:500">/ ${maxDisplay} (${pp}%)</span></span>
       </div>
-      <div style="height:7px;border-radius:4px;background:var(--gray-100);overflow:hidden">
+      <div style="height:8px;border-radius:4px;background:var(--gray-100);overflow:hidden">
         <div style="width:${pp}%;height:100%;border-radius:4px;background:${color}"></div>
       </div>
     </div>`;
   };
 
-  const label = rptDateLabel(window.REPORTS_STATE);
+  const sectionHead = (title) => `<div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.8px;padding-bottom:8px;border-bottom:2px solid var(--border);margin-bottom:14px">${title}</div>`;
 
   const html = `
-  <div id="agentProfileOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:11000;display:flex;align-items:flex-start;justify-content:flex-end;padding:0" onclick="if(event.target===this)closeAgentProfile()">
-    <div style="background:#fff;width:min(700px,96vw);height:100vh;overflow-y:auto;box-shadow:-8px 0 40px rgba(0,0,0,0.22);display:flex;flex-direction:column" onclick="event.stopPropagation()">
+  <!-- Back button + page header -->
+  <div class="page-header" style="margin-bottom:0">
+    <div class="page-header-left">
+      <button class="btn btn-ghost" style="font-size:13px;margin-bottom:8px" onclick="window.REPORTS_STATE.tab='production';nav('reports',null)">← Back to Reports</button>
+      <h1>${a.name}</h1>
+      <p style="color:#1A6ED0;font-weight:600">${label}</p>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-ghost" style="font-size:12px">⬇ Export Profile</button>
+    </div>
+  </div>
 
-      <!-- Gradient header -->
-      <div style="background:linear-gradient(135deg,#0E2340 0%,#1A6ED0 100%);padding:24px 24px 22px;flex-shrink:0">
-        <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:18px">
-          <div class="avatar ${agentAv(a.name)}" style="width:54px;height:54px;font-size:17px;flex-shrink:0;border:3px solid rgba(255,255,255,0.30)">${initials(a.name)}</div>
-          <div style="flex:1">
-            <div style="font-size:22px;font-weight:800;color:#fff;font-family:var(--font-display)">${a.name}</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap">
-              <span style="background:${tb};color:${tc};padding:3px 11px;border-radius:var(--radius-full);font-size:11.5px;font-weight:700">${a.tier}</span>
-              <span style="background:rgba(255,255,255,0.15);color:#fff;padding:3px 11px;border-radius:var(--radius-full);font-size:11.5px;font-weight:600">Rank #${a.rank}</span>
-              <span style="color:rgba(255,255,255,0.55);font-size:12px">${label}</span>
-            </div>
-          </div>
-          <div onclick="closeAgentProfile()" style="color:rgba(255,255,255,0.55);cursor:pointer;font-size:22px;line-height:1;padding:4px;flex-shrink:0;transition:color 0.15s" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='rgba(255,255,255,0.55)'">✕</div>
-        </div>
-        <!-- 4-up header stats -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
-          ${[['Apps',apps,'of '+a.goal+' goal'],['Fee Collected',fmt$(fee),feeP+'% to goal'],['Fee Extended',fmt$(extFee),'Pending collection'],['Premium',fmtK(prem),'Written']].map(([l,v,s2])=>`
-          <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:11px 12px">
-            <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${l}</div>
-            <div style="font-size:17px;font-weight:800;color:#fff">${v}</div>
-            <div style="font-size:9.5px;color:rgba(255,255,255,0.45);margin-top:2px">${s2}</div>
-          </div>`).join('')}
+  <!-- Hero strip -->
+  <div style="background:linear-gradient(135deg,#0E2340 0%,#1A6ED0 100%);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:20px;margin-top:16px">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+      <div style="flex:1">
+        <div style="font-size:26px;font-weight:800;color:#fff;font-family:var(--font-display)">${a.name}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
+          <span style="background:${tb};color:${tc};padding:3px 12px;border-radius:var(--radius-full);font-size:12px;font-weight:700">${a.tier}</span>
+          <span style="background:rgba(255,255,255,0.15);color:#fff;padding:3px 12px;border-radius:var(--radius-full);font-size:12px;font-weight:600">Rank #${a.rank}</span>
         </div>
       </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+      ${[['Apps', apps, 'of '+a.goal+' goal'],['Fee Collected',fmt$(fee),feeP+'% to goal'],['Fee Extended',fmt$(extFee),'Pending'],['Premium Written',fmtK(prem),'This period']].map(([l,v,s2])=>`
+      <div style="background:rgba(255,255,255,0.12);border-radius:var(--radius-md);padding:14px 16px">
+        <div style="font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px">${l}</div>
+        <div style="font-size:22px;font-weight:800;color:#fff">${v}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.45);margin-top:3px">${s2}</div>
+      </div>`).join('')}
+    </div>
+  </div>
 
-      <!-- Scrollable body -->
-      <div style="padding:20px 24px;flex:1;display:flex;flex-direction:column;gap:20px">
+  <!-- Two-column layout -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
 
-        <!-- Goals Progress -->
-        <div>
-          <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">Goals Progress</div>
-          ${pbar('Apps Toward Goal', apps, a.goal, tc2, null)}
-          ${pbar('Fee Collected Toward Goal', fee, a.feeGoal, fc2, fmt$)}
+    <!-- Goals Progress -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Goals Progress</div></div>
+      <div class="card-body" style="padding:16px 20px">
+        ${pbar('Apps Toward Goal', apps, a.goal, tc2, null)}
+        ${pbar('Fee Collected Toward Goal', fee, a.feeGoal, fc2, fmt$)}
+      </div>
+    </div>
+
+    <!-- Closing Metrics -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Closing Metrics</div></div>
+      <div class="card-body" style="padding:14px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+          ${[['Overall Close %',a.close,'All call types'],['Inbound Close %',ext.inboundClose||a.close,'From inbound'],['Outbound Close %',ext.outboundClose||a.close,'From dials']].map(([l,v,s2])=>kbox(l,v,s2,'#F0FDF4')).join('')}
         </div>
+      </div>
+    </div>
+  </div>
 
-        <!-- Call Performance -->
-        <div>
-          <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">Call Performance</div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px">
-            ${[['Total Calls',totalCalls,''],['↙ Inbound',inboundCalls,''],['↗ Outbound',outboundCalls,''],['⚠ Missed',missedCalls,missedPct+'% of calls']].map(([l,v,s2])=>kbox(l,v,s2)).join('')}
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-            ${[['Dials Made',dials,'Total outbound attempts'],['Avg Call Duration',fmtDur(ext.avgCallDur||360),''],['Connect Rate',connectRate+'%','Dials that connected']].map(([l,v,s2])=>kbox(l,v,s2)).join('')}
-          </div>
+  <!-- Call Performance (full width) -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header"><div class="card-title">Call Performance</div></div>
+    <div class="card-body" style="padding:14px">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px">
+        ${[
+          ['Total Calls', totalCalls, ''],
+          ['↙ Inbound', inboundCalls, ''],
+          ['↗ Outbound', outboundCalls, ''],
+          ['⚠ Missed', missedCalls, missedPct+'% of calls'],
+          ['Dials Made', dials, 'Outbound attempts'],
+          ['Connect Rate', connectRate+'%', 'Dials → connected'],
+          ['Avg Duration', fmtDur(ext.avgCallDur||360), ''],
+        ].map(([l,v,s2])=>kbox(l,v,s2)).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- Three-column: Lead metrics, SMS, Policy -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
+
+    <!-- Lead & Contact -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Lead & Contact Metrics</div></div>
+      <div style="border-top:1px solid var(--border)">
+        ${srow('Leads Assigned', a.leads, '')}
+        ${srow('Contact Rate', a.contact, 'Leads successfully reached')}
+        ${srow('Avg Response Time', ext.avgResponse||'N/A', 'To new leads')}
+        ${srow('Revenue per Lead', fmt$(ext.revenuePerLead||0), 'Avg fee per lead')}
+        ${srow('Lead-to-App Rate', a.close, 'Contacted → app submitted')}
+      </div>
+    </div>
+
+    <!-- SMS -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">SMS / Text Metrics</div></div>
+      <div class="card-body" style="padding:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          ${kbox('Texts Sent', textsSent, '')}
+          ${kbox('Texts Received', textsRecv, '')}
         </div>
+        ${kbox('Text Response Rate', textsRecv>0?Math.round(textsSent/textsRecv*100)+'%':'—', 'Replied vs. received')}
+      </div>
+    </div>
 
-        <!-- Closing Metrics -->
-        <div>
-          <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">Closing Metrics</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-            ${[['Overall Close %',a.close,'All call types'],['Inbound Close %',ext.inboundClose||a.close,'From inbound calls'],['Outbound Close %',ext.outboundClose||a.close,'From dials']].map(([l,v,s2])=>kbox(l,v,s2,'#F0FDF4')).join('')}
-          </div>
+    <!-- Policy -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Policy Metrics</div></div>
+      <div class="card-body" style="padding:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${[['Premium Written',fmtK(prem),''],['Policies Bound',apps,'Same as apps'],['Refunds/Cancels',ext.refunds||0,'This period'],['Retention Rate',ext.retention||'N/A','90-day']].map(([l,v,s2])=>kbox(l,v,s2)).join('')}
         </div>
+      </div>
+    </div>
+  </div>
 
-        <!-- Lead & Contact Metrics -->
-        <div>
-          <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">Lead & Contact Metrics</div>
-          <div style="border-radius:var(--radius-md);border:1px solid var(--border);overflow:hidden">
-            ${srow('Leads Assigned', a.leads, '')}
-            ${srow('Contact Rate', a.contact, 'Of assigned leads successfully reached')}
-            ${srow('Avg Response Time to New Lead', ext.avgResponse||'N/A', 'Faster = higher contact rate')}
-            ${srow('Revenue per Lead', fmt$(ext.revenuePerLead||0), 'Avg fee per assigned lead')}
-            ${srow('Lead-to-App Conversion', a.close, 'Contacted leads that became apps')}
-          </div>
-        </div>
+  <!-- Summary bar -->
+  <div style="background:var(--navy-50);border:1px solid var(--navy-200);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:16px">
+    <div style="font-size:11px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Quick Summary</div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;font-size:12.5px;color:var(--navy-900)">
+      <div>📋 <strong>${apps}</strong> apps (${p}% to goal)</div>
+      <div>💰 <strong>${fmt$(fee)}</strong> collected</div>
+      <div>📊 <strong>${fmt$(extFee)}</strong> extended</div>
+      <div>📞 <strong>${totalCalls}</strong> total calls</div>
+      <div>🎯 <strong>${a.close}</strong> overall close</div>
+      <div>⚡ <strong>${ext.avgResponse||'N/A'}</strong> avg response</div>
+    </div>
+  </div>
+  `;
 
-        <!-- Texting -->
-        <div>
-          <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">Text / SMS Metrics</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-            ${[['Texts Sent',textsSent,''],['Texts Received',textsRecv,''],['Text Response Rate',textsRecv>0?Math.round(textsSent/textsRecv*100)+'%':'—','Replied vs. received']].map(([l,v,s2])=>kbox(l,v,s2)).join('')}
-          </div>
-        </div>
-
-        <!-- Policy Metrics -->
-        <div>
-          <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">Policy Metrics</div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
-            ${[['Premium Written',fmtK(prem),''],['Policies Bound',apps,'Same as apps'],['Refunds / Cancels',ext.refunds||0,'This period'],['Retention Rate',ext.retention||'N/A','90-day']].map(([l,v,s2])=>kbox(l,v,s2)).join('')}
-          </div>
-        </div>
-
-        <!-- Summary row -->
-        <div style="padding:14px 16px;background:var(--navy-50);border-radius:var(--radius-md);border:1px solid var(--navy-200)">
-          <div style="font-size:11px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px">Quick Summary</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12.5px;color:var(--navy-900)">
-            <div>📋 <strong>${apps}</strong> apps (${p}% to goal)</div>
-            <div>💰 <strong>${fmt$(fee)}</strong> collected</div>
-            <div>📊 <strong>${fmt$(extFee)}</strong> extended</div>
-            <div>📞 <strong>${totalCalls}</strong> total calls</div>
-            <div>🎯 <strong>${a.close}</strong> close rate</div>
-            <div>⚡ <strong>${ext.avgResponse||'N/A'}</strong> avg response</div>
-          </div>
-        </div>
-
-      </div><!-- /body -->
-    </div><!-- /panel -->
-  </div>`;
-
-  const old = document.getElementById('agentProfileOverlay');
-  if (old) old.remove();
-  const wrap = document.createElement('div');
-  wrap.innerHTML = html;
-  document.body.appendChild(wrap.firstElementChild);
-}
-
-function closeAgentProfile() {
-  const el = document.getElementById('agentProfileOverlay');
-  if (el) { el.style.transition='opacity 0.2s'; el.style.opacity='0'; setTimeout(()=>el.remove(),200); }
+  const c = document.getElementById('content');
+  if (!c) return;
+  c.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'page-content';
+  div.innerHTML = html;
+  c.appendChild(div);
 }
 
 PAGES.reports = '';
 window.PAGE_INIT = window.PAGE_INIT || {};
 window.PAGE_INIT.reports = function(){ refreshReports(); };
+
+PAGES.agentprofile = '';
+window.PAGE_INIT.agentprofile = function() { renderAgentProfilePage(); };
 
 // ==================== TASKS ====================
 PAGES.tasks = '';
@@ -6000,7 +6027,7 @@ PAGES.goals = `
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
   ${AGENTS.map(a=>{const p=pct(a.apps,a.goal);return `<div class="goal-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="display:flex;align-items:center;gap:9px"><div class="avatar ${agentAv(a.name)}" style="width:32px;height:32px;font-size:12px">${initials(a.name)}</div><div><div style="font-weight:600;color:var(--navy-900)">${a.name}</div><div style="font-size:10.5px;color:var(--gray-400)">Rank #${a.rank}</div></div></div>
+      <div style="display:flex;align-items:center;gap:9px"><div><div style="font-weight:600;color:var(--navy-900)">${a.name}</div><div style="font-size:10.5px;color:var(--gray-400)">Rank #${a.rank}</div></div></div>
       <span class="tier ${tierClass(a.tier)}">${a.tier}</span>
     </div>
     <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px"><div class="goal-pct" style="color:${progressTextColor(p)}">${p}%</div><div style="font-size:12px;color:var(--gray-500)">to goal</div></div>
@@ -6120,7 +6147,6 @@ function renderAgentList() {
               const isArchived = a._archived || false;
               return `<tr onclick="window.ADMIN_STATE.viewingAgent=${i};refreshAdminPage()" style="cursor:pointer">
                 <td><div style="display:flex;align-items:center;gap:9px">
-                  <div class="avatar ${av}" style="width:32px;height:32px;font-size:11px;flex-shrink:0;opacity:${isArchived?0.45:1}">${ini}</div>
                   <div>
                     <div style="font-weight:600;color:var(--navy-900);display:flex;align-items:center;gap:7px">
                       ${a.name}
@@ -6134,7 +6160,7 @@ function renderAgentList() {
                 <td style="color:var(--gray-600);font-size:12px">(619) 555-0${100+i}</td>
                 <td style="font-size:12px;color:var(--navy-800);font-weight:500">CA-${3840000+i*11437}</td>
                 <td style="font-size:12px;color:var(--navy-800)">NPN${19200000+i*8321}</td>
-                <td><span class="tier-${a.tier.toLowerCase()}">${a.tier}</span></td>
+                <td><span class="tier ${tierClass(a.tier)}">${a.tier}</span></td>
                 <td>${isArchived
                   ? '<span style="background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200);padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:600">⏸ Archived</span>'
                   : '<span style="background:var(--green-50);color:var(--green-700);border:1px solid var(--green-200);padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:600">● Active</span>'
@@ -6180,9 +6206,6 @@ function renderAgentProfile(idx) {
     <div style="padding:22px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px">
       <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex-shrink:0" onclick="window.ADMIN_STATE.viewingAgent=null;refreshAdminPage()">← Back to Agents</button>
       <div style="flex:1;display:flex;align-items:center;gap:14px">
-        <div class="avatar ${av}" style="width:52px;height:52px;font-size:17px;flex-shrink:0;${isArchived?'opacity:0.5':''}">
-          ${ini}
-        </div>
         <div>
           <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--navy-900);display:flex;align-items:center;gap:8px">
             ${a.name}
@@ -6247,7 +6270,7 @@ function renderAgentProfile(idx) {
         ${field('Policy Goal', a.goal+' policies / period')}
         ${field('Broker Fee Goal', '$'+a.feeGoal.toLocaleString()+' / period')}
         ${field('Goal Period', 'Bi-weekly')}
-        ${field('Commission Tier', a.tier+' — '+({'Elite':'40%','Platinum':'35%','Gold':'30%','Silver':'25%','Bronze':'20%'}[a.tier]||'20%'))}
+        ${field('Commission Tier', a.tier+' — '+({'Tier 1':'40%','Tier 2':'35%','Tier 3':'30%','Tier 4':'25%'}[a.tier]||'25%'))}
         ${field('Total Fees Collected', '$'+a.fee.toLocaleString())}
       </div>
 
@@ -6492,10 +6515,10 @@ function renderAddAgentForm() {
         <div class="form-group">
           <div class="form-label">Starting Commission Tier</div>
           <select id="af_tier" class="form-control">
-            <option>Tier 1 — 25%</option>
-            <option>Tier 2 — 30%</option>
-            <option>Tier 3 — 35%</option>
-            <option>Tier 4 — 40%</option>
+            <option>Tier 1 — 40%</option>
+            <option>Tier 2 — 35%</option>
+            <option>Tier 3 — 30%</option>
+            <option>Tier 4 — 25%</option>
           </select>
         </div>
       </div>
@@ -6584,7 +6607,7 @@ function submitAddAgent() {
     name: get('af_first') + ' ' + get('af_last'),
     apps: 0, goal: parseInt(get('af_pgoal')) || 20,
     fee: 0, feeGoal: 8000, premium: 0,
-    tier: 'Bronze', close: '0%', contact: '0%', leads: 0,
+    tier: 'Tier 4', close: '0%', contact: '0%', leads: 0,
     rank: AGENTS.length + 1
   };
   AGENTS.push(newAgent);
