@@ -298,7 +298,8 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 
 /* ===== NOTIFICATION BANNERS ===== */
 .notif-banner { position:fixed; top:56px; left:138px; right:0; z-index:9900; display:flex; align-items:center; gap:16px; padding:13px 22px; box-shadow:0 6px 24px rgba(0,0,0,0.30); animation:notifSlideDown 0.32s cubic-bezier(0.34,1.56,0.64,1); font-family:var(--font-body); }
-.notif-banner.new-lead-banner { background:linear-gradient(135deg,#1A5C22 0%,#2B8035 55%,#33953D 100%); color:#fff; }
+.notif-banner.new-lead-banner { background:linear-gradient(135deg,#22C55E 0%,#16A34A 100%); color:#fff; }
+@keyframes textPopupSlide { from { opacity:0;transform:translateY(24px); } to { opacity:1;transform:translateY(0); } }
 .notif-banner.inbound-call-banner { background:linear-gradient(135deg,#0A1824 0%,#0E2340 60%,#122840 100%); color:#fff; }
 .notif-divider { width:1px; height:42px; background:rgba(255,255,255,0.20); flex-shrink:0; }
 .notif-chip { background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); padding:5px 12px; border-radius:var(--radius-full); font-size:11.5px; font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
@@ -707,29 +708,26 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
 window._notifTimers = {};
 
 function showNewLeadAlert(lead) {
-  lead = lead || { name:'Amanda Foster', phone:'(760) 555-0311', source:'Everquote', coverage:'Full Coverage', type:'Non-Standard Auto', agent:'Unassigned', received:'Just now' };
+  lead = lead || { name:'Amanda Foster', phone:'(760) 555-0311', source:'Everquote', coverage:'Full Coverage' };
   clearBanner('newlead');
   const el = document.createElement('div');
   el.id = 'newLeadBanner';
   el.className = 'notif-banner new-lead-banner';
   el.innerHTML =
-    '<div style="font-size:26px;flex-shrink:0;animation:notifPulse 1.4s infinite">🟢</div>' +
+    '<div style="width:11px;height:11px;border-radius:50%;background:#fff;flex-shrink:0;box-shadow:0 0 0 4px rgba(255,255,255,0.35);animation:notifPulse 1s ease-in-out infinite"></div>' +
     '<div style="flex-shrink:0">' +
-      '<div style="font-size:9.5px;font-weight:800;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">New Lead Incoming</div>' +
-      '<div style="font-size:18px;font-weight:800;font-family:var(--font-display);line-height:1.1">' + lead.name + '</div>' +
+      '<div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.72);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:2px">New Lead</div>' +
+      '<div style="font-size:19px;font-weight:800;font-family:var(--font-display);line-height:1.1">' + lead.name + '</div>' +
     '</div>' +
     '<div class="notif-divider"></div>' +
-    '<div style="display:flex;gap:20px;flex-wrap:wrap;flex:1">' +
-      '<div><div style="font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.52);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Phone</div><div style="font-size:14px;font-weight:700">' + lead.phone + '</div></div>' +
-      '<div><div style="font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.52);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Source</div><div style="font-size:14px;font-weight:700">' + lead.source + '</div></div>' +
-      '<div><div style="font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.52);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Coverage</div><div style="font-size:14px;font-weight:700">' + lead.coverage + '</div></div>' +
-      '<div><div style="font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.52);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Lead Type</div><div style="font-size:14px;font-weight:700">' + lead.type + '</div></div>' +
-      '<div><div style="font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.52);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Assigned</div><div style="font-size:14px;font-weight:700">' + lead.agent + '</div></div>' +
-      '<div><div style="font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.52);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Received</div><div style="font-size:14px;font-weight:700">' + lead.received + '</div></div>' +
+    '<div style="display:flex;gap:22px;flex-wrap:wrap;flex:1;align-items:center">' +
+      '<div><div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Phone</div><div style="font-size:14px;font-weight:700">' + lead.phone + '</div></div>' +
+      '<div><div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Source</div><div style="font-size:14px;font-weight:700">' + lead.source + '</div></div>' +
+      '<div><div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Coverage</div><div style="font-size:14px;font-weight:700">' + lead.coverage + '</div></div>' +
     '</div>' +
-    '<div style="display:flex;gap:8px;flex-shrink:0;align-items:center">' +
-      '<button class="notif-btn-white" style="color:#1A5C22" onclick="nav(\'leads\',null);dismissBanner(\'newlead\')">View Lead →</button>' +
-      '<button class="notif-btn-ghost" onclick="dismissBanner(\'newlead\')">Dismiss</button>' +
+    '<div style="display:flex;gap:10px;flex-shrink:0;align-items:center">' +
+      '<button style="background:#1A6ED0;color:#fff;border:none;padding:10px 24px;border-radius:var(--radius-md);font-family:var(--font-body);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap" onclick="nav(\'leads\',null);dismissBanner(\'newlead\')">Answer</button>' +
+      '<button style="background:#EF4444;color:#fff;border:none;padding:10px 20px;border-radius:var(--radius-md);font-family:var(--font-body);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap" onclick="dismissBanner(\'newlead\')">Ignore</button>' +
     '</div>';
   document.body.appendChild(el);
   window._notifTimers['newlead'] = setTimeout(function() { dismissBanner('newlead'); }, 30000);
@@ -807,6 +805,38 @@ function clearBanner(id) {
   if (el && el.parentNode) el.parentNode.removeChild(el);
   if (window._notifTimers[id]) clearTimeout(window._notifTimers[id]);
   if (id === 'inbound' && window._notifTimers['inbound_interval']) clearInterval(window._notifTimers['inbound_interval']);
+}
+
+function showTextPopup(contact, phone, preview) {
+  var old = document.getElementById('textNotifPopup');
+  if (old && old.parentNode) old.parentNode.removeChild(old);
+  var popup = document.createElement('div');
+  popup.id = 'textNotifPopup';
+  popup.style.cssText = 'position:fixed;bottom:24px;right:24px;width:310px;border-radius:12px;box-shadow:0 10px 36px rgba(0,0,0,0.20);z-index:9990;overflow:hidden;cursor:pointer;animation:textPopupSlide 0.32s cubic-bezier(0.34,1.56,0.64,1);font-family:var(--font-body)';
+  popup.onclick = function() {
+    if (window.INBOX_STATE) window.INBOX_STATE.tab = 'Texts';
+    nav('inbox', document.querySelector('.nav-item[onclick*="inbox"]'));
+    if (popup.parentNode) popup.parentNode.removeChild(popup);
+    if (window._textPopupTimer) clearTimeout(window._textPopupTimer);
+  };
+  popup.innerHTML =
+    '<div style="background:#1A6ED0;padding:8px 12px 8px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px">' +
+      '<span style="font-size:11.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3">' + contact + ' Texted You Saying:</span>' +
+      '<button onclick="event.stopPropagation();var p=document.getElementById(\'textNotifPopup\');if(p&&p.parentNode)p.parentNode.removeChild(p);if(window._textPopupTimer)clearTimeout(window._textPopupTimer)" style="background:none;border:none;color:rgba(255,255,255,0.80);font-size:18px;cursor:pointer;line-height:1;padding:0;flex-shrink:0">&times;</button>' +
+    '</div>' +
+    '<div style="background:#fff;padding:14px 16px">' +
+      '<div style="font-size:13px;color:#374151;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">' + preview + '</div>' +
+      '<div style="font-size:11px;color:#9CA3AF;margin-top:10px;font-weight:600">Tap to reply →</div>' +
+    '</div>';
+  document.body.appendChild(popup);
+  window._textPopupTimer = setTimeout(function() {
+    if (popup.parentNode) {
+      popup.style.transition = 'opacity 0.3s,transform 0.3s';
+      popup.style.opacity = '0';
+      popup.style.transform = 'translateY(20px)';
+      setTimeout(function() { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 320);
+    }
+  }, 8000);
 }
 
 // ===== NAVIGATION =====
@@ -4821,18 +4851,19 @@ function renderLiveView() {
           const onCall  = a.status === 'on-call';
           const isMe    = a.name === me.name;
           const isAvail = a.status === 'available';
+          const canDrag = onCall || isMe;
           const dot     = dotColor(a.status);
           const glow    = dotGlow(a.status);
           const rowBg   = isMe ? '#EFF6FF' : 'var(--white)';
           const divBg   = isMe ? '#DBEAFE' : 'var(--gray-50)';
           const safe    = a.name.replace(/'/g,"\\'");
           return `
-          <div class="agent-card" ${onCall ? `draggable="true" ondragstart="onAgentCallDragStart(event,'${safe}');this.style.opacity='0.5'" ondragend="onAgentCallDragEnd(event);this.style.opacity='1'"` : ''}
-            style="display:flex;align-items:stretch;border-bottom:1px solid var(--border);background:${rowBg};">
+          <div class="agent-card" ${canDrag ? `draggable="true" ondragstart="onAgentCallDragStart(event,'${safe}');this.style.opacity='0.5'" ondragend="onAgentCallDragEnd(event);this.style.opacity='1'"` : ''}
+            style="display:flex;align-items:stretch;min-height:64px;border-bottom:1px solid var(--border);background:${rowBg};">
 
             <!-- Left info -->
-            <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;flex:1;min-width:0;">
-              <div style="font-size:14px;color:${onCall?'var(--gray-300)':'transparent'};flex-shrink:0;user-select:none">⠿</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:0 16px;flex:1;min-width:0;">
+              <div style="font-size:14px;color:${canDrag?'var(--gray-300)':'transparent'};flex-shrink:0;user-select:none;width:14px;text-align:center">⠿</div>
               <div style="width:10px;height:10px;border-radius:50%;background:${dot};flex-shrink:0;box-shadow:${glow}"></div>
               <div style="flex:1;min-width:0;">
                 <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
@@ -4851,15 +4882,15 @@ function renderLiveView() {
             </div>
 
             <!-- Divider box: active call name or status -->
-            <div style="border-left:1.5px solid var(--border);border-right:1.5px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:center;min-width:180px;background:${divBg};">
+            <div style="border-left:1.5px solid var(--border);border-right:1.5px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:center;min-width:190px;width:190px;background:${divBg};">
               ${onCall
-                ? `<div style="text-align:center;"><div style="font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:3px;">Active Call</div><div style="font-size:13.5px;font-weight:700;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;">${a.leadName}</div></div>`
+                ? `<div style="text-align:center;"><div style="font-size:9.5px;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:3px;">Active Call</div><div style="font-size:13.5px;font-weight:700;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:158px;">${a.leadName}</div></div>`
                 : `<span style="font-size:12px;color:var(--gray-400);font-style:italic;">${liveStatusLabel(a.status)}</span>`
               }
             </div>
 
-            <!-- CTA -->
-            <div style="display:flex;gap:6px;align-items:center;padding:0 16px;flex-shrink:0;">
+            <!-- CTA — fixed width so all rows align -->
+            <div style="display:flex;gap:6px;align-items:center;justify-content:center;padding:0 16px;flex-shrink:0;min-width:160px;width:160px;">
               ${onCall ? `
                 <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="alert('Whispering to ${safe}…')">🤫 Whisper</button>
                 <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="alert('Barging into call…')">🎙 Barge</button>
@@ -5057,7 +5088,8 @@ function onTransferDrop(ev, type, target) {
   const fromName = window._dragCallFrom || (ev.dataTransfer && ev.dataTransfer.getData('text/plain'));
   if (!fromName) return;
   const fromAgent = window.AGENT_LIVE.find(a => a.name === fromName);
-  if (!fromAgent || fromAgent.status !== 'on-call') return;
+  const isLoggedIn = fromAgent && fromAgent.name === window.LIVEVIEW_STATE.loggedInAgent;
+  if (!fromAgent || (fromAgent.status !== 'on-call' && !isLoggedIn)) return;
   if (type === 'all-extensions') {
     alert('📡 Broadcasting ' + fromAgent.leadName + ' to all extensions…');
     fromAgent.status = 'wrap-up'; fromAgent.callDuration = 0; fromAgent.leadName = null; fromAgent.leadPhone = null; fromAgent.callDirection = null;
