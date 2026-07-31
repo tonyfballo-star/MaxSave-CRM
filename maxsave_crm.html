@@ -5470,8 +5470,57 @@ const AGENT_EXTENDED_DATA = {
   'Brian Walsh':   { feeExtended:700,  inboundClose:'18.9%', outboundClose:'13.1%', totalCalls:56,  inboundCalls:10, outboundCalls:46, missedCalls:26, avgCallDur:234, dials:64,  textsSent:16, textsRecv:27,  avgResponse:'24m 37s',revenuePerLead:67,  refunds:2, retention:'71.4%' },
 };
 
+const CARRIER_DATA = [
+  { name:'Progressive',    policies:68, premium:124800, bindRate:'82%', cancels:3, newClients:44, renewals:24 },
+  { name:'State Farm',     policies:42, premium:89200,  bindRate:'76%', cancels:2, newClients:28, renewals:14 },
+  { name:'Allstate',       policies:38, premium:81400,  bindRate:'71%', cancels:3, newClients:24, renewals:14 },
+  { name:'GEICO',          policies:31, premium:58600,  bindRate:'68%', cancels:4, newClients:19, renewals:12 },
+  { name:'Liberty Mutual', policies:24, premium:52100,  bindRate:'65%', cancels:2, newClients:14, renewals:10 },
+  { name:'Farmers',        policies:18, premium:39800,  bindRate:'61%', cancels:1, newClients:11, renewals:7  },
+  { name:'USAA',           policies:12, premium:28400,  bindRate:'88%', cancels:0, newClients:8,  renewals:4  },
+  { name:'Nationwide',     policies:14, premium:27600,  bindRate:'59%', cancels:2, newClients:8,  renewals:6  },
+];
+
+const LEAD_SOURCE_DATA = [
+  { source:'Everquote',      leads:84, contacted:66, quoted:42, apps:24, cost:2940 },
+  { source:'MediaAlpha',     leads:61, contacted:44, quoted:31, apps:19, cost:2440 },
+  { source:'Facebook Ads',   leads:47, contacted:32, quoted:22, apps:14, cost:3290 },
+  { source:'Google Ads',     leads:38, contacted:27, quoted:18, apps:11, cost:3040 },
+  { source:'Direct Call',    leads:29, contacted:28, quoted:21, apps:16, cost:0    },
+  { source:'Referral',       leads:22, contacted:22, quoted:18, apps:14, cost:0    },
+  { source:'SmartFinancial', leads:31, contacted:21, quoted:14, apps:8,  cost:1550 },
+  { source:'NetQuote',       leads:18, contacted:11, quoted:7,  apps:4,  cost:720  },
+];
+
+const POLICY_TYPE_DATA = [
+  { type:'Auto',       policies:142, premium:248600, newClients:98,  renewals:44 },
+  { type:'Home',       policies:48,  premium:96400,  newClients:32,  renewals:16 },
+  { type:'Life',       policies:31,  premium:58200,  newClients:24,  renewals:7  },
+  { type:'Commercial', policies:14,  premium:42800,  newClients:8,   renewals:6  },
+  { type:'Health',     policies:12,  premium:28400,  newClients:9,   renewals:3  },
+];
+
+const MONTHLY_REVENUE = [
+  { month:'Jan', collected:58200, extended:22400 },
+  { month:'Feb', collected:61800, extended:24100 },
+  { month:'Mar', collected:68400, extended:26800 },
+  { month:'Apr', collected:72100, extended:28400 },
+  { month:'May', collected:76400, extended:29100 },
+  { month:'Jun', collected:79800, extended:31200 },
+  { month:'Jul', collected:43200, extended:17350 },
+];
+
+const FEE_AGING_DATA = [
+  { bucket:'0–30 days',  amount:8200, count:12 },
+  { bucket:'31–60 days', amount:5400, count:8  },
+  { bucket:'61–90 days', amount:2600, count:5  },
+  { bucket:'90+ days',   amount:1150, count:3  },
+];
+
+const COMMISSION_RATES = { 'Tier 1':0.40, 'Tier 2':0.35, 'Tier 3':0.30, 'Tier 4':0.25 };
+
 // Default to current pay period: Jul 16–31, 2026
-window.REPORTS_STATE = window.REPORTS_STATE || { tab:'production', dateMode:'payperiod', startDate:'2026-07-16', endDate:'2026-07-31', selectedAgent:null };
+window.REPORTS_STATE = window.REPORTS_STATE || { tab:'agents', dateMode:'payperiod', startDate:'2026-07-16', endDate:'2026-07-31', selectedAgent:null, agentTierFilter:'All' };
 
 function rptDateLabel(s) {
   const modes = { payperiod:'Jul 16–31, 2026 (Current Pay Period)', thismonth:'Jul 1–31, 2026 (This Month)', lastmonth:'Jun 1–30, 2026 (Last Month)', ytd:'Jan 1–Jul 31, 2026 (Year to Date)' };
@@ -5517,8 +5566,19 @@ function renderReportsPage() {
 
   const chipStyle = (active) => `padding:5px 14px;border-radius:var(--radius-full);border:none;cursor:pointer;font-size:12.5px;font-weight:600;font-family:var(--font-body);transition:all 0.15s;background:${active?'#1A6ED0':'var(--gray-100)'};color:${active?'#fff':'var(--gray-600)'}`;
 
-  const tabs = ['production','pipeline','finance','activity'];
-  const tabLabels = { production:'📋 Production', pipeline:'🔀 Pipeline', finance:'💰 Finance', activity:'📅 Activity' };
+  const tabs = ['agents','leads','carriers','financial','payroll','activity','newbusiness','fees'];
+  const tabLabels = { agents:'👤 Agents', leads:'🎯 Leads', carriers:'🏢 Carriers', financial:'💼 Financial', payroll:'💵 Payroll', activity:'📅 Activity', newbusiness:'✨ New Business', fees:'💰 Fees' };
+
+  let tabContent = '';
+  if      (s.tab === 'agents')      tabContent = renderRptAgents(sc);
+  else if (s.tab === 'leads')       tabContent = renderRptLeads(sc);
+  else if (s.tab === 'carriers')    tabContent = renderRptCarriers(sc);
+  else if (s.tab === 'financial')   tabContent = renderRptFinancial(sc, totalFeeCollected, totalFeeExtended, totalPremium);
+  else if (s.tab === 'payroll')     tabContent = renderRptPayroll(sc);
+  else if (s.tab === 'activity')    tabContent = renderRptActivity(sc);
+  else if (s.tab === 'newbusiness') tabContent = renderRptNewBusiness(sc);
+  else if (s.tab === 'fees')        tabContent = renderRptFees(sc, totalFeeCollected, totalFeeExtended);
+  else                              tabContent = renderRptAgents(sc);
 
   return `
   <div class="page-header">
@@ -5549,7 +5609,7 @@ function renderReportsPage() {
     </div>
   </div>
 
-  <!-- KPI CARDS -->
+  <!-- GLOBAL KPI HEADER -->
   <div class="kpi-grid" style="margin-bottom:16px">
     <div class="kpi-card accent">
       <div class="kpi-label">Total Apps</div>
@@ -5561,10 +5621,10 @@ function renderReportsPage() {
       <div class="kpi-value green">${fmt$(totalFeeCollected)}</div>
       <div class="kpi-sub"><span class="trend up">↑ 12%</span> vs prior period</div>
     </div>
-    <div class="kpi-card" style="border-left:4px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%)">
+    <div class="kpi-card accent-amber" style="border-left:4px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%)">
       <div class="kpi-label">Fee Extended</div>
       <div class="kpi-value" style="color:#B45309">${fmt$(totalFeeExtended)}</div>
-      <div class="kpi-sub" style="color:#92400E">Pending collection · ${Math.round(totalFeeExtended/(totalFeeCollected+totalFeeExtended||1)*100)}% of total booked</div>
+      <div class="kpi-sub" style="color:#92400E">Pending · ${Math.round(totalFeeExtended/(totalFeeCollected+totalFeeExtended||1)*100)}% of total booked</div>
     </div>
     <div class="kpi-card accent">
       <div class="kpi-label">Avg Close Rate</div>
@@ -5578,56 +5638,65 @@ function renderReportsPage() {
     </div>
   </div>
 
-  <!-- TAB BAR -->
-  <div style="display:flex;gap:2px;background:#1A6ED0;border-radius:var(--radius-lg);padding:3px;width:fit-content;margin-bottom:16px;box-shadow:0 2px 8px rgba(26,110,208,0.25)">
+  <!-- 8-TAB BAR -->
+  <div style="display:flex;gap:2px;background:#1A6ED0;border-radius:var(--radius-lg);padding:3px;width:fit-content;margin-bottom:16px;box-shadow:0 2px 8px rgba(26,110,208,0.25);flex-wrap:wrap">
     ${tabs.map(t => {
       const isSel = s.tab === t;
-      return `<div onclick="window.REPORTS_STATE.tab='${t}';refreshReports()" style="padding:7px 20px;border-radius:var(--radius-md);cursor:pointer;font-size:14px;font-weight:${isSel?'700':'500'};color:${isSel?'#1A6ED0':'rgba(255,255,255,0.85)'};background:${isSel?'#fff':'transparent'};transition:all 0.15s;user-select:none">${tabLabels[t]}</div>`;
+      return `<div onclick="window.REPORTS_STATE.tab='${t}';refreshReports()" style="padding:7px 16px;border-radius:var(--radius-md);cursor:pointer;font-size:13px;font-weight:${isSel?'700':'500'};color:${isSel?'#1A6ED0':'rgba(255,255,255,0.85)'};background:${isSel?'#fff':'transparent'};transition:all 0.15s;user-select:none;white-space:nowrap">${tabLabels[t]}</div>`;
     }).join('')}
   </div>
 
-  ${s.tab === 'production' ? renderRptProduction(sc)
-  : s.tab === 'pipeline'   ? stubPage('🔀','Pipeline Report','Select filters and generate your pipeline analysis.')
-  : s.tab === 'finance'    ? renderRptFinance(sc, totalFeeCollected, totalFeeExtended)
-  :                          _actLogHTML}
+  ${tabContent}
   `;
 }
 
-function renderRptProduction(sc) {
+function renderRptAgents(sc) {
+  const s = window.REPORTS_STATE;
+  const tierFilter = s.agentTierFilter || 'All';
+  const filteredAgents = tierFilter === 'All' ? AGENTS : AGENTS.filter(a => a.tier === tierFilter);
+  const avgApps = filteredAgents.length ? (filteredAgents.reduce((sum,a)=>sum+rptVal(a.apps,sc),0)/filteredAgents.length).toFixed(1) : 0;
+  const avgGoalPct = filteredAgents.length ? (filteredAgents.reduce((sum,a)=>sum+pct(rptVal(a.apps,sc),a.goal),0)/filteredAgents.length).toFixed(1) : 0;
+  const t1 = AGENTS.filter(a=>a.tier==='Tier 1').length;
+  const t2 = AGENTS.filter(a=>a.tier==='Tier 2').length;
+  const t3t4 = AGENTS.filter(a=>a.tier==='Tier 3'||a.tier==='Tier 4').length;
+  const chipS = (active) => `padding:4px 12px;border-radius:var(--radius-full);border:1px solid ${active?'#1A6ED0':'var(--border)'};cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body);background:${active?'#1A6ED0':'#fff'};color:${active?'#fff':'var(--gray-600)'}`;
   return `
+  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(6,1fr)">
+    <div class="kpi-card accent"><div class="kpi-label">Total Agents</div><div class="kpi-value">${AGENTS.length}</div><div class="kpi-sub">Active producers</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Avg Apps</div><div class="kpi-value">${avgApps}</div><div class="kpi-sub">Per agent this period</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Avg % to Goal</div><div class="kpi-value">${avgGoalPct}%</div><div class="kpi-sub">Team average</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Tier 1</div><div class="kpi-value">${t1}</div><div class="kpi-sub">Top producers</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Tier 2</div><div class="kpi-value">${t2}</div><div class="kpi-sub">Senior agents</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Tier 3+4</div><div class="kpi-value">${t3t4}</div><div class="kpi-sub">Developing agents</div></div>
+  </div>
   <div class="card">
     <div class="card-header">
       <div class="card-title">Agent Production Detail</div>
       <span style="font-size:11px;color:var(--gray-400)">Click an agent name to view full profile</span>
     </div>
+    <div style="padding:10px 16px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px">Filter:</span>
+      ${['All','Tier 1','Tier 2','Tier 3','Tier 4'].map(t=>`<button onclick="window.REPORTS_STATE.agentTierFilter='${t}';refreshReports()" style="${chipS(tierFilter===t)}">${t}</button>`).join('')}
+    </div>
     <div style="overflow-x:auto">
       <table class="data-table">
-        <thead>
-          <tr>
-            <th>Agent</th><th>Tier</th><th>Apps</th><th>Goal</th><th>% to Goal</th>
-            <th>Fee Collected</th><th>Fee Extended</th><th>Premium</th>
-            <th>Close %</th><th>Contact %</th><th>Leads</th>
-          </tr>
-        </thead>
+        <thead><tr>
+          <th>Agent</th><th>Tier</th><th>Apps</th><th>Goal</th><th>% to Goal</th>
+          <th>Fee Collected</th><th>Fee Extended</th><th>Premium</th>
+          <th>Close %</th><th>Contact %</th><th>Avg Response</th><th>Leads</th>
+        </tr></thead>
         <tbody>
-          ${AGENTS.map(a => {
+          ${filteredAgents.map(a => {
             const ext    = AGENT_EXTENDED_DATA[a.name] || {};
             const apps   = rptVal(a.apps, sc);
             const fee    = rptFee(a.fee, sc);
             const extFee = rptFee(ext.feeExtended || 0, sc);
             const prem   = rptVal(a.premium, sc);
             const p      = pct(apps, a.goal);
-            const tierColors = {'Tier 1':'#1C2B4B','Tier 2':'#5B21B6','Tier 3':'#92400E','Tier 4':'#475569'};
-            const tierBg    = {'Tier 1':'#253659','Tier 2':'#F5F3FF','Tier 3':'#FFFBEB','Tier 4':'#F8FAFC'};
-            const tierText  = {'Tier 1':'#fff','Tier 2':'#5B21B6','Tier 3':'#92400E','Tier 4':'#475569'};
             return `<tr>
               <td>
-                <div style="display:flex;align-items:center;gap:8px">
-                  <div>
-                    <div class="lead-name-link" style="font-weight:700;color:#1A6ED0;cursor:pointer;font-size:13.5px" onclick="showAgentProfile('${a.name.replace(/'/g,"\\'")}',${sc})">${a.name}</div>
-                    <div style="font-size:10.5px;color:var(--gray-400)">Rank #${a.rank}</div>
-                  </div>
-                </div>
+                <div class="lead-name-link" style="font-weight:700;color:#1A6ED0;cursor:pointer;font-size:13.5px" onclick="showAgentProfile('${a.name.replace(/'/g,"\\'")}',${sc})">${a.name}</div>
+                <div style="font-size:10.5px;color:var(--gray-400)">Rank #${a.rank}</div>
               </td>
               <td><span class="tier ${tierClass(a.tier)}">${a.tier}</span></td>
               <td style="font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--navy-900)">${apps}</td>
@@ -5643,6 +5712,7 @@ function renderRptProduction(sc) {
               <td style="color:var(--navy-700);font-weight:600">${fmtK(prem)}</td>
               <td style="font-weight:600">${a.close}</td>
               <td style="font-weight:600">${a.contact}</td>
+              <td style="font-size:12px;color:var(--gray-500)">${ext.avgResponse||'—'}</td>
               <td style="color:var(--gray-600)">${a.leads}</td>
             </tr>`;
           }).join('')}
@@ -5652,54 +5722,519 @@ function renderRptProduction(sc) {
   </div>`;
 }
 
-function renderRptFinance(sc, totalFeeCollected, totalFeeExtended) {
-  const totalBooked = totalFeeCollected + totalFeeExtended;
-  const collectRate = totalBooked > 0 ? Math.round(totalFeeCollected / totalBooked * 100) : 0;
+function renderRptLeads(sc) {
+  const totalLeads     = LEAD_SOURCE_DATA.reduce((s,r)=>s+rptVal(r.leads,sc),0);
+  const totalContacted = LEAD_SOURCE_DATA.reduce((s,r)=>s+rptVal(r.contacted,sc),0);
+  const totalApps      = LEAD_SOURCE_DATA.reduce((s,r)=>s+rptVal(r.apps,sc),0);
+  const totalCost      = LEAD_SOURCE_DATA.reduce((s,r)=>s+rptVal(r.cost,sc),0);
+  const organicLeads   = LEAD_SOURCE_DATA.filter(r=>r.cost===0).reduce((s,r)=>s+rptVal(r.leads,sc),0);
+  const avgContactRate = totalLeads ? (totalContacted/totalLeads*100).toFixed(1) : 0;
+  const leadToApp      = totalLeads ? (totalApps/totalLeads*100).toFixed(1) : 0;
+  const avgCostPerApp  = totalApps ? Math.round(totalCost/totalApps) : 0;
   return `
-  <div class="kpi-grid" style="margin-bottom:14px">
-    <div class="kpi-card" style="border-left:4px solid var(--green-500);background:linear-gradient(135deg,#F0FDF4,#DCFCE7)">
-      <div class="kpi-label">Fee Collected</div><div class="kpi-value green">${fmt$(totalFeeCollected)}</div>
-      <div class="kpi-sub" style="color:var(--green-700)">Cash in hand</div>
+  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(6,1fr)">
+    <div class="kpi-card accent"><div class="kpi-label">Total Leads</div><div class="kpi-value">${totalLeads}</div><div class="kpi-sub"><span class="trend up">↑ 9%</span> vs prior</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Avg Contact Rate</div><div class="kpi-value">${avgContactRate}%</div><div class="kpi-sub">Leads reached</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Lead-to-App Rate</div><div class="kpi-value">${leadToApp}%</div><div class="kpi-sub">Leads → applications</div></div>
+    <div class="kpi-card accent-red" style="border-left:4px solid var(--red);background:linear-gradient(135deg,#FFF5F5,#FEE2E2)"><div class="kpi-label">Total Lead Cost</div><div class="kpi-value red">${fmt$(totalCost)}</div><div class="kpi-sub">Paid sources only</div></div>
+    <div class="kpi-card accent-amber" style="border-left:4px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB,#FEF3C7)"><div class="kpi-label">Avg Cost/App</div><div class="kpi-value" style="color:#B45309">${avgCostPerApp?fmt$(avgCostPerApp):'—'}</div><div class="kpi-sub">Paid leads only</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Organic Leads</div><div class="kpi-value">${organicLeads}</div><div class="kpi-sub">Referral + Direct</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Lead Source Funnel</div></div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr>
+          <th>Source</th><th>Leads</th><th>Contacted</th><th>Contact%</th><th>Quoted</th>
+          <th>Apps</th><th>Close%</th><th>Lead Cost</th><th>Cost/App</th><th>Est. Revenue</th>
+        </tr></thead>
+        <tbody>
+          ${LEAD_SOURCE_DATA.map(r => {
+            const leads     = rptVal(r.leads, sc);
+            const contacted = rptVal(r.contacted, sc);
+            const quoted    = rptVal(r.quoted, sc);
+            const apps      = rptVal(r.apps, sc);
+            const cost      = rptVal(r.cost, sc);
+            const contactPct = leads ? (contacted/leads*100).toFixed(0) : 0;
+            const closePct   = contacted ? (apps/contacted*100).toFixed(0) : 0;
+            const cpa        = apps && cost ? fmt$(Math.round(cost/apps)) : '—';
+            const revenue    = apps * 450;
+            return `<tr>
+              <td style="font-weight:700">${r.source}</td>
+              <td style="font-weight:700;color:var(--navy-900)">${leads}</td>
+              <td>${contacted}</td>
+              <td><span style="font-weight:700;color:${+contactPct>=70?'var(--green-700)':+contactPct>=50?'#1A6ED0':'var(--amber-600)'}">${contactPct}%</span></td>
+              <td>${quoted}</td>
+              <td style="font-weight:700;color:var(--navy-900)">${apps}</td>
+              <td><span style="font-weight:700;color:${+closePct>=40?'var(--green-700)':+closePct>=25?'#1A6ED0':'var(--amber-600)'}">${closePct}%</span></td>
+              <td style="color:${cost?'var(--red)':'var(--green-700)'};font-weight:600">${cost?fmt$(cost):'Free'}</td>
+              <td style="color:var(--gray-600)">${cpa}</td>
+              <td style="color:var(--green-700);font-weight:700">${fmt$(revenue)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
     </div>
-    <div class="kpi-card" style="border-left:4px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB,#FEF3C7)">
-      <div class="kpi-label">Fee Extended</div><div class="kpi-value" style="color:#B45309">${fmt$(totalFeeExtended)}</div>
-      <div class="kpi-sub" style="color:#92400E">Pending collection</div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="card-header"><div class="card-title">Lead Status Summary</div></div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:16px">
+      ${[['New Lead',Math.round(totalLeads*0.18),'#6B7280'],['Contacted',Math.round(totalLeads*0.24),'#1A6ED0'],['Quoted',Math.round(totalLeads*0.22),'#7C3AED'],['Appt Set',Math.round(totalLeads*0.14),'#F59E0B'],['App Submitted',Math.round(totalLeads*0.22),'var(--green-500)']].map(([lbl,cnt,color])=>`
+        <div style="text-align:center;padding:14px;border-radius:var(--radius-md);background:var(--gray-50);border:1px solid var(--border)">
+          <div style="font-size:24px;font-weight:800;color:${color};font-family:var(--font-display)">${cnt}</div>
+          <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:4px">${lbl}</div>
+        </div>`).join('')}
     </div>
-    <div class="kpi-card accent-navy">
-      <div class="kpi-label">Total Booked</div><div class="kpi-value">${fmt$(totalBooked)}</div>
-      <div class="kpi-sub">Collected + Extended</div>
-    </div>
-    <div class="kpi-card accent">
-      <div class="kpi-label">Collection Rate</div><div class="kpi-value green">${collectRate}%</div>
-      <div class="kpi-sub">Of total booked fees</div>
+  </div>`;
+}
+
+function renderRptCarriers(sc) {
+  const totalPolicies = CARRIER_DATA.reduce((s,r)=>s+rptVal(r.policies,sc),0);
+  const totalPremium  = CARRIER_DATA.reduce((s,r)=>s+rptVal(r.premium,sc),0);
+  const topCarrier    = [...CARRIER_DATA].sort((a,b)=>b.policies-a.policies)[0];
+  const avgPremPolicy = totalPolicies ? Math.round(totalPremium/totalPolicies) : 0;
+  return `
+  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(5,1fr)">
+    <div class="kpi-card accent"><div class="kpi-label">Active Carriers</div><div class="kpi-value">${CARRIER_DATA.length}</div><div class="kpi-sub">Writing business</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Total Policies</div><div class="kpi-value">${totalPolicies}</div><div class="kpi-sub"><span class="trend up">↑ 14%</span> vs prior</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Total Premium</div><div class="kpi-value">${fmtK(totalPremium)}</div><div class="kpi-sub">All carriers combined</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Top Carrier</div><div class="kpi-value" style="font-size:18px">${topCarrier.name}</div><div class="kpi-sub">${rptVal(topCarrier.policies,sc)} policies</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Avg Premium/Policy</div><div class="kpi-value">${fmt$(avgPremPolicy)}</div><div class="kpi-sub">All carriers avg</div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-header"><div class="card-title">Carrier Performance</div></div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr><th>Carrier</th><th>Policies</th><th>Premium</th><th>Avg Premium</th><th>Bind Rate</th><th>New Clients</th><th>Renewals</th><th>Cancels</th><th>% of Total</th></tr></thead>
+        <tbody>
+          ${CARRIER_DATA.map(r => {
+            const pol  = rptVal(r.policies, sc);
+            const prem = rptVal(r.premium,  sc);
+            const nc   = rptVal(r.newClients, sc);
+            const ren  = rptVal(r.renewals, sc);
+            const can  = rptVal(r.cancels,  sc);
+            const avg  = pol ? Math.round(prem/pol) : 0;
+            const mix  = totalPolicies ? Math.round(pol/totalPolicies*100) : 0;
+            return `<tr>
+              <td style="font-weight:700">${r.name}</td>
+              <td style="font-weight:700;color:var(--navy-900)">${pol}</td>
+              <td style="font-weight:700;color:var(--green-700)">${fmtK(prem)}</td>
+              <td style="color:var(--gray-600)">${fmt$(avg)}</td>
+              <td><span style="font-weight:700;color:${+r.bindRate>=80?'var(--green-700)':+r.bindRate>=65?'#1A6ED0':'var(--amber-600)'}">${r.bindRate}</span></td>
+              <td style="color:#1A6ED0;font-weight:600">${nc}</td>
+              <td style="color:var(--gray-600)">${ren}</td>
+              <td style="color:${can>2?'var(--red)':'var(--gray-500)'};font-weight:${can>2?'700':'400'}">${can}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div style="width:48px;height:5px;border-radius:3px;background:var(--gray-100);overflow:hidden"><div style="width:${mix}%;height:100%;background:#1A6ED0"></div></div>
+                  <span style="font-size:12px;font-weight:600">${mix}%</span>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
     </div>
   </div>
   <div class="card">
-    <div class="card-header"><div class="card-title">Fee Breakdown by Agent</div></div>
+    <div class="card-header"><div class="card-title">Policy Type Breakdown</div></div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr><th>Type</th><th>Policies</th><th>Premium</th><th>Avg Premium</th><th>New Clients</th><th>Renewals</th><th>Mix %</th></tr></thead>
+        <tbody>
+          ${(() => {
+            const totalPolT = POLICY_TYPE_DATA.reduce((s,r)=>s+rptVal(r.policies,sc),0);
+            return POLICY_TYPE_DATA.map(r => {
+              const pol  = rptVal(r.policies, sc);
+              const prem = rptVal(r.premium,  sc);
+              const nc   = rptVal(r.newClients, sc);
+              const ren  = rptVal(r.renewals,  sc);
+              const avg  = pol ? Math.round(prem/pol) : 0;
+              const mix  = totalPolT ? Math.round(pol/totalPolT*100) : 0;
+              return `<tr>
+                <td style="font-weight:700">${r.type}</td>
+                <td style="font-weight:700;color:var(--navy-900)">${pol}</td>
+                <td style="color:var(--green-700);font-weight:700">${fmtK(prem)}</td>
+                <td style="color:var(--gray-600)">${fmt$(avg)}</td>
+                <td style="color:#1A6ED0;font-weight:600">${nc}</td>
+                <td style="color:var(--gray-600)">${ren}</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <div style="width:48px;height:5px;border-radius:3px;background:var(--gray-100);overflow:hidden"><div style="width:${mix}%;height:100%;background:#1A6ED0"></div></div>
+                    <span style="font-size:12px;font-weight:600">${mix}%</span>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('');
+          })()}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderRptFinancial(sc, totalFeeCollected, totalFeeExtended, totalPremium) {
+  const ytdGoal    = 600000;
+  const ytdRevenue = MONTHLY_REVENUE.reduce((s,r)=>s+r.collected,0);
+  const ytdPct     = Math.round(ytdRevenue/ytdGoal*100);
+  const totalBooked = totalFeeCollected + totalFeeExtended;
+  const collectRate = totalBooked > 0 ? Math.round(totalFeeCollected/totalBooked*100) : 0;
+  const maxCollected = Math.max(...MONTHLY_REVENUE.map(r=>r.collected));
+  return `
+  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(5,1fr)">
+    <div class="kpi-card accent"><div class="kpi-label">YTD Revenue</div><div class="kpi-value green">${fmtK(ytdRevenue)}</div><div class="kpi-sub">Fee collected YTD</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">YTD Goal</div><div class="kpi-value">${fmtK(ytdGoal)}</div><div class="kpi-sub">Annual revenue target</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">YTD % to Goal</div><div class="kpi-value ${ytdPct>=100?'green':ytdPct>=70?'':'amber'}">${ytdPct}%</div><div class="kpi-sub">${ytdPct>=100?'Goal achieved!':ytdGoal-ytdRevenue>0?fmtK(ytdGoal-ytdRevenue)+' remaining':''}</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Fee Collection Rate</div><div class="kpi-value green">${collectRate}%</div><div class="kpi-sub">Of total booked this period</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">YTD Premium</div><div class="kpi-value">${fmtK(totalPremium)}</div><div class="kpi-sub">This period only</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Monthly Revenue Trend</div></div>
+      <table class="data-table">
+        <thead><tr><th>Month</th><th>Fee Collected</th><th>Fee Extended</th><th>Total Booked</th><th>Visual</th></tr></thead>
+        <tbody>
+          ${MONTHLY_REVENUE.map(r => {
+            const barW = Math.round(r.collected/maxCollected*100);
+            return `<tr>
+              <td style="font-weight:700">${r.month}</td>
+              <td style="color:var(--green-700);font-weight:700">${fmt$(r.collected)}</td>
+              <td style="color:#B45309;font-weight:600">${fmt$(r.extended)}</td>
+              <td style="font-weight:700;color:var(--navy-900)">${fmt$(r.collected+r.extended)}</td>
+              <td style="min-width:100px">
+                <div style="height:8px;border-radius:4px;background:var(--gray-100);overflow:hidden">
+                  <div style="width:${barW}%;height:100%;background:var(--green-500)"></div>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Revenue Mix</div></div>
+      <div class="card-body" style="padding:20px">
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">This Period</div>
+          <div style="font-size:32px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${fmt$(totalBooked)}</div>
+          <div style="font-size:12px;color:var(--gray-500)">Total booked revenue</div>
+        </div>
+        <div style="display:flex;height:16px;border-radius:8px;overflow:hidden;margin-bottom:12px">
+          <div style="width:${collectRate}%;background:var(--green-500)"></div>
+          <div style="flex:1;background:#F59E0B"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:2px;background:var(--green-500)"></div><span style="font-size:12.5px;color:var(--gray-700)">Collected</span></div>
+            <span style="font-weight:700;font-size:13px;color:var(--green-700)">${fmt$(totalFeeCollected)} (${collectRate}%)</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:2px;background:#F59E0B"></div><span style="font-size:12.5px;color:var(--gray-700)">Extended</span></div>
+            <span style="font-weight:700;font-size:13px;color:#B45309">${fmt$(totalFeeExtended)} (${100-collectRate}%)</span>
+          </div>
+        </div>
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Overhead Est.</div>
+          ${[['Office / Rent','$3,200'],['Software & Tools','$1,450'],['Marketing Spend',fmt$(Math.round(LEAD_SOURCE_DATA.reduce((s,r)=>s+r.cost,0)*sc))],['Other','$850']].map(([l,v])=>`
+          <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--gray-50)">
+            <span style="color:var(--gray-600)">${l}</span><span style="font-weight:600;color:var(--navy-900)">${v}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderRptPayroll(sc) {
+  const BASE_PAY = 2500;
+  let totPayroll=0, totCommission=0, totBase=0;
+  const rows = AGENTS.map(a => {
+    const fee  = rptFee(a.fee, sc);
+    const rate = COMMISSION_RATES[a.tier] || 0.25;
+    const comm = Math.round(fee * rate);
+    const base = BASE_PAY;
+    const total= comm + base;
+    totCommission += comm; totBase += base; totPayroll += total;
+    return { a, fee, rate, comm, base, total, apps: rptVal(a.apps, sc) };
+  });
+  const highEarner = rows.reduce((m,r)=>r.total>m.total?r:m, rows[0]);
+  const avgEarnings = AGENTS.length ? Math.round(totPayroll/AGENTS.length) : 0;
+  return `
+  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(5,1fr)">
+    <div class="kpi-card accent"><div class="kpi-label">Total Payroll</div><div class="kpi-value red">${fmt$(totPayroll)}</div><div class="kpi-sub">Commission + Base</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Total Commission</div><div class="kpi-value">${fmt$(totCommission)}</div><div class="kpi-sub">Performance-based</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Total Base</div><div class="kpi-value">${fmt$(totBase)}</div><div class="kpi-sub">${fmt$(BASE_PAY)}/agent · ${AGENTS.length} agents</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Avg Agent Earnings</div><div class="kpi-value">${fmt$(avgEarnings)}</div><div class="kpi-sub">Per agent this period</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Highest Earner</div><div class="kpi-value" style="font-size:17px">${highEarner.a.name.split(' ')[0]}</div><div class="kpi-sub">${fmt$(highEarner.total)} total pay</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Payroll Detail by Agent</div></div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr><th>Agent</th><th>Tier</th><th>Comm Rate</th><th>Apps</th><th>Fee Collected</th><th>Commission</th><th>Base Pay</th><th>Total Pay</th></tr></thead>
+        <tbody>
+          ${rows.map(r => `<tr>
+            <td style="font-weight:700">${r.a.name}</td>
+            <td><span class="tier ${tierClass(r.a.tier)}">${r.a.tier}</span></td>
+            <td style="font-weight:700;color:#1A6ED0">${Math.round(r.rate*100)}%</td>
+            <td style="font-weight:700;color:var(--navy-900)">${r.apps}</td>
+            <td style="color:var(--green-700);font-weight:700">${fmt$(r.fee)}</td>
+            <td style="color:#1A6ED0;font-weight:700">${fmt$(r.comm)}</td>
+            <td style="color:var(--gray-600);font-weight:600">${fmt$(r.base)}</td>
+            <td style="font-weight:800;color:var(--navy-900);font-size:14px">${fmt$(r.total)}</td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="background:var(--gray-50);font-weight:800">
+            <td colspan="5" style="font-weight:800;color:var(--navy-900)">TOTALS</td>
+            <td style="color:#1A6ED0;font-weight:800">${fmt$(totCommission)}</td>
+            <td style="color:var(--gray-600);font-weight:800">${fmt$(totBase)}</td>
+            <td style="color:var(--navy-900);font-weight:800;font-size:14px">${fmt$(totPayroll)}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div style="padding:12px 16px;background:var(--gray-50);border-top:1px solid var(--border);font-size:12px;color:var(--gray-500)">
+      Pay schedule: bi-weekly · Base ${fmt$(BASE_PAY)}/period · Commission paid on collected fees only · Next payroll: Aug 1, 2026
+    </div>
+  </div>`;
+}
+
+function renderRptActivity(sc) {
+  const totCalls  = AGENTS.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).totalCalls||0,sc),0);
+  const totTexts  = AGENTS.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).textsSent||0,sc),0);
+  const totDials  = AGENTS.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).dials||0,sc),0);
+  const avgDurSec = Math.round(Object.values(AGENT_EXTENDED_DATA).reduce((s,e)=>s+(e.avgCallDur||0),0)/Object.values(AGENT_EXTENDED_DATA).length);
+  const fmtDur = secs => { const m=Math.floor(secs/60),sec=secs%60; return m+'m '+(sec<10?'0':'')+sec+'s'; };
+  return `
+  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(5,1fr)">
+    <div class="kpi-card accent"><div class="kpi-label">Total Calls</div><div class="kpi-value">${totCalls}</div><div class="kpi-sub"><span class="trend up">↑ 8%</span> vs prior</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Texts Sent</div><div class="kpi-value">${totTexts}</div><div class="kpi-sub">Team total</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Dials Made</div><div class="kpi-value">${totDials}</div><div class="kpi-sub">Outbound attempts</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Avg Call Duration</div><div class="kpi-value" style="font-size:18px">${fmtDur(avgDurSec)}</div><div class="kpi-sub">Team average</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Avg Response Time</div><div class="kpi-value" style="font-size:18px">11m 8s</div><div class="kpi-sub">Team average</div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-header"><div class="card-title">Agent Activity Detail</div></div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr><th>Agent</th><th>Calls</th><th>Inbound</th><th>Outbound</th><th>Missed</th><th>Dials</th><th>Texts Sent</th><th>Texts Recv</th><th>Avg Duration</th><th>Avg Response</th></tr></thead>
+        <tbody>
+          ${AGENTS.map(a => {
+            const ext = AGENT_EXTENDED_DATA[a.name] || {};
+            const tc  = rptVal(ext.totalCalls||0, sc);
+            const ic  = rptVal(ext.inboundCalls||0, sc);
+            const oc  = rptVal(ext.outboundCalls||0, sc);
+            const mc  = rptVal(ext.missedCalls||0, sc);
+            const d   = rptVal(ext.dials||0, sc);
+            const ts  = rptVal(ext.textsSent||0, sc);
+            const tr  = rptVal(ext.textsRecv||0, sc);
+            return `<tr>
+              <td style="font-weight:700">${a.name}</td>
+              <td style="font-weight:700;color:var(--navy-900)">${tc}</td>
+              <td style="color:#1A6ED0">${ic}</td>
+              <td style="color:var(--green-700)">${oc}</td>
+              <td style="color:${mc>20?'var(--red)':'var(--gray-500)'}">${mc}</td>
+              <td style="color:var(--gray-600)">${d}</td>
+              <td style="color:#1A6ED0">${ts}</td>
+              <td style="color:var(--gray-600)">${tr}</td>
+              <td style="font-size:12px;color:var(--gray-600)">${fmtDur(ext.avgCallDur||0)}</td>
+              <td style="font-size:12px;color:var(--gray-500)">${ext.avgResponse||'—'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  ${_actLogHTML}`;
+}
+
+function renderRptNewBusiness(sc) {
+  const totalNewPolicies = POLICY_TYPE_DATA.reduce((s,r)=>s+rptVal(r.newClients,sc),0);
+  const totalNewPremium  = POLICY_TYPE_DATA.reduce((s,r)=>s+Math.round(rptVal(r.premium,sc)*(rptVal(r.newClients,sc)/(rptVal(r.policies,sc)||1))),0);
+  const totalRenewals    = POLICY_TYPE_DATA.reduce((s,r)=>s+rptVal(r.renewals,sc),0);
+  const totalPoliciesAll = POLICY_TYPE_DATA.reduce((s,r)=>s+rptVal(r.policies,sc),0);
+  const retentionRate    = totalPoliciesAll ? Math.round(totalRenewals/totalPoliciesAll*100) : 0;
+  const avgPrem          = totalPoliciesAll ? Math.round(POLICY_TYPE_DATA.reduce((s,r)=>s+rptVal(r.premium,sc),0)/totalPoliciesAll) : 0;
+  const topAgents        = [...AGENTS].sort((a,b)=>b.apps-a.apps).slice(0,3);
+  return `
+  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(6,1fr)">
+    <div class="kpi-card accent"><div class="kpi-label">New Policies</div><div class="kpi-value">${totalNewPolicies}</div><div class="kpi-sub"><span class="trend up">↑ 16%</span> vs prior</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">New Premium</div><div class="kpi-value green">${fmtK(totalNewPremium)}</div><div class="kpi-sub">New clients only</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">New Clients</div><div class="kpi-value">${totalNewPolicies}</div><div class="kpi-sub">First-time policies</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Renewals</div><div class="kpi-value">${totalRenewals}</div><div class="kpi-sub">Retained clients</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Avg Premium</div><div class="kpi-value">${fmt$(avgPrem)}</div><div class="kpi-sub">Per policy</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Client Retention</div><div class="kpi-value green">${retentionRate}%</div><div class="kpi-sub">Renewal rate</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">New Business by Policy Type</div></div>
+      <table class="data-table">
+        <thead><tr><th>Type</th><th>New Policies</th><th>New Premium</th><th>Renewals</th><th>Mix %</th></tr></thead>
+        <tbody>
+          ${(() => {
+            const totNP = POLICY_TYPE_DATA.reduce((s,r)=>s+rptVal(r.newClients,sc),0);
+            return POLICY_TYPE_DATA.map(r => {
+              const nc   = rptVal(r.newClients, sc);
+              const ren  = rptVal(r.renewals, sc);
+              const pol  = rptVal(r.policies, sc);
+              const prem = rptVal(r.premium, sc);
+              const nprem= pol ? Math.round(prem*(nc/pol)) : 0;
+              const mix  = totNP ? Math.round(nc/totNP*100) : 0;
+              return `<tr>
+                <td style="font-weight:700">${r.type}</td>
+                <td style="font-weight:700;color:var(--navy-900)">${nc}</td>
+                <td style="color:var(--green-700);font-weight:700">${fmtK(nprem)}</td>
+                <td style="color:var(--gray-600)">${ren}</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <div style="width:40px;height:5px;border-radius:3px;background:var(--gray-100);overflow:hidden"><div style="width:${mix}%;height:100%;background:#1A6ED0"></div></div>
+                    <span style="font-size:12px;font-weight:600">${mix}%</span>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('');
+          })()}
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">New Business by Carrier</div></div>
+      <table class="data-table">
+        <thead><tr><th>Carrier</th><th>New Clients</th><th>Renewals</th><th>New Premium</th></tr></thead>
+        <tbody>
+          ${CARRIER_DATA.slice(0,6).map(r => {
+            const nc  = rptVal(r.newClients, sc);
+            const ren = rptVal(r.renewals, sc);
+            const np  = rptVal(r.policies, sc) ? Math.round(rptVal(r.premium, sc)*(nc/rptVal(r.policies, sc))) : 0;
+            return `<tr>
+              <td style="font-weight:700">${r.name}</td>
+              <td style="font-weight:700;color:#1A6ED0">${nc}</td>
+              <td style="color:var(--gray-600)">${ren}</td>
+              <td style="color:var(--green-700);font-weight:700">${fmtK(np)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Top Agents — New Business</div></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px">
+      ${topAgents.map((a,i)=>{
+        const apps = rptVal(a.apps, sc);
+        const fee  = rptFee(a.fee, sc);
+        const medals = ['🥇','🥈','🥉'];
+        return `<div style="border:2px solid ${i===0?'#F59E0B':i===1?'#94A3B8':'#CD7C4E'};border-radius:var(--radius-lg);padding:18px;text-align:center">
+          <div style="font-size:28px;margin-bottom:6px">${medals[i]}</div>
+          <div style="font-weight:800;font-size:16px;color:var(--navy-900)">${a.name}</div>
+          <div style="margin-top:2px"><span class="tier ${tierClass(a.tier)}">${a.tier}</span></div>
+          <div style="font-size:28px;font-weight:800;color:#1A6ED0;font-family:var(--font-display);margin:10px 0 2px">${apps}</div>
+          <div style="font-size:11px;color:var(--gray-500)">apps · ${fmt$(fee)} collected</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function renderRptFees(sc, totalFeeCollected, totalFeeExtended) {
+  const totalBooked   = totalFeeCollected + totalFeeExtended;
+  const collectRate   = totalBooked ? Math.round(totalFeeCollected/totalBooked*100) : 0;
+  const totalApps     = AGENTS.reduce((s,a)=>s+rptVal(a.apps,sc),0);
+  const avgFeeApp     = totalApps ? Math.round(totalFeeCollected/totalApps) : 0;
+  const outstanding   = FEE_AGING_DATA.reduce((s,r)=>s+r.amount,0);
+  return `
+  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(6,1fr)">
+    <div class="kpi-card accent"><div class="kpi-label">Fee Collected</div><div class="kpi-value green">${fmt$(totalFeeCollected)}</div><div class="kpi-sub">Cash received</div></div>
+    <div class="kpi-card accent-amber" style="border-left:4px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB,#FEF3C7)"><div class="kpi-label">Fee Extended</div><div class="kpi-value" style="color:#B45309">${fmt$(totalFeeExtended)}</div><div class="kpi-sub">Pending collection</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Total Booked</div><div class="kpi-value">${fmt$(totalBooked)}</div><div class="kpi-sub">Collected + Extended</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Collection Rate</div><div class="kpi-value green">${collectRate}%</div><div class="kpi-sub">Of total booked</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Avg Fee/App</div><div class="kpi-value">${fmt$(avgFeeApp)}</div><div class="kpi-sub">Per application</div></div>
+    <div class="kpi-card accent-red" style="border-left:4px solid var(--red);background:linear-gradient(135deg,#FFF5F5,#FEE2E2)"><div class="kpi-label">Outstanding</div><div class="kpi-value red">${fmt$(outstanding)}</div><div class="kpi-sub">${FEE_AGING_DATA.reduce((s,r)=>s+r.count,0)} accounts</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:14px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Fee Collection by Agent</div></div>
+      <table class="data-table">
+        <thead><tr><th>Agent</th><th>Apps</th><th>Fee Collected</th><th>Fee Extended</th><th>Total Booked</th><th>Collection Rate</th><th>Avg Fee/App</th></tr></thead>
+        <tbody>
+          ${AGENTS.map(a => {
+            const ext    = AGENT_EXTENDED_DATA[a.name] || {};
+            const apps   = rptVal(a.apps, sc);
+            const fee    = rptFee(a.fee, sc);
+            const extFee = rptFee(ext.feeExtended||0, sc);
+            const total  = fee + extFee;
+            const rate   = total ? Math.round(fee/total*100) : 0;
+            const avgF   = apps ? Math.round(fee/apps) : 0;
+            return `<tr>
+              <td style="font-weight:700">${a.name}</td>
+              <td style="font-weight:700;color:var(--navy-900)">${apps}</td>
+              <td style="color:var(--green-700);font-weight:700">${fmt$(fee)}</td>
+              <td style="color:#B45309;font-weight:700">${fmt$(extFee)}</td>
+              <td style="font-weight:700;color:var(--navy-900)">${fmt$(total)}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:7px">
+                  <div style="width:60px;height:6px;border-radius:3px;background:var(--gray-100);overflow:hidden"><div style="width:${rate}%;height:100%;background:${rate>=80?'var(--green-500)':rate>=60?'#1A6ED0':'var(--amber-500)'}"></div></div>
+                  <span style="font-weight:700;font-size:12.5px">${rate}%</span>
+                </div>
+              </td>
+              <td style="color:var(--gray-600);font-weight:600">${fmt$(avgF)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Fee Aging Report</div></div>
+      <table class="data-table">
+        <thead><tr><th>Bucket</th><th>Amount</th><th>Count</th><th>% of Outstanding</th></tr></thead>
+        <tbody>
+          ${FEE_AGING_DATA.map((r,i) => {
+            const pct2   = outstanding ? Math.round(r.amount/outstanding*100) : 0;
+            const colors = ['var(--green-500)','#F59E0B','#F97316','var(--red)'];
+            return `<tr>
+              <td style="font-weight:700">${r.bucket}</td>
+              <td style="font-weight:700;color:var(--navy-900)">${fmt$(r.amount)}</td>
+              <td style="color:var(--gray-600)">${r.count}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:7px">
+                  <div style="width:64px;height:7px;border-radius:4px;background:var(--gray-100);overflow:hidden"><div style="width:${pct2}%;height:100%;background:${colors[i]}"></div></div>
+                  <span style="font-weight:700;font-size:12.5px;color:${colors[i]}">${pct2}%</span>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="background:var(--gray-50)">
+            <td style="font-weight:800">Total Outstanding</td>
+            <td style="font-weight:800;color:var(--red)">${fmt$(outstanding)}</td>
+            <td style="font-weight:800">${FEE_AGING_DATA.reduce((s,r)=>s+r.count,0)}</td>
+            <td style="font-weight:700;color:var(--gray-500)">100%</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Monthly Fee Trend</div></div>
     <table class="data-table">
-      <thead><tr><th>Agent</th><th>Apps</th><th>Fee Collected</th><th>Fee Extended</th><th>Total Booked</th><th>Collection Rate</th><th>Avg Fee/App</th></tr></thead>
+      <thead><tr><th>Month</th><th>Fee Collected</th><th>Fee Extended</th><th>Total Booked</th><th>Collection Rate</th></tr></thead>
       <tbody>
-        ${AGENTS.map(a => {
-          const ext    = AGENT_EXTENDED_DATA[a.name] || {};
-          const apps   = rptVal(a.apps, sc);
-          const fee    = rptFee(a.fee, sc);
-          const extFee = rptFee(ext.feeExtended || 0, sc);
-          const total  = fee + extFee;
-          const rate   = total > 0 ? Math.round(fee / total * 100) : 0;
-          const avgFee = apps > 0 ? Math.round(fee / apps) : 0;
+        ${MONTHLY_REVENUE.map(r => {
+          const total  = r.collected + r.extended;
+          const rate   = total ? Math.round(r.collected/total*100) : 0;
           return `<tr>
-            <td><strong>${a.name}</strong></td>
-            <td style="font-weight:700">${apps}</td>
-            <td style="color:var(--green-700);font-weight:700">${fmt$(fee)}</td>
-            <td style="color:#B45309;font-weight:700">${fmt$(extFee)}</td>
+            <td style="font-weight:700">${r.month} 2026</td>
+            <td style="color:var(--green-700);font-weight:700">${fmt$(r.collected)}</td>
+            <td style="color:#B45309;font-weight:600">${fmt$(r.extended)}</td>
             <td style="font-weight:700;color:var(--navy-900)">${fmt$(total)}</td>
             <td>
-              <div style="display:flex;align-items:center;gap:8px">
-                <div style="width:60px;height:6px;border-radius:3px;background:var(--gray-100);overflow:hidden"><div style="width:${rate}%;height:100%;background:var(--green-500)"></div></div>
-                <span style="font-weight:700;font-size:12.5px">${rate}%</span>
+              <div style="display:flex;align-items:center;gap:7px">
+                <div style="width:64px;height:6px;border-radius:3px;background:var(--gray-100);overflow:hidden"><div style="width:${rate}%;height:100%;background:var(--green-500)"></div></div>
+                <span style="font-weight:600;font-size:12.5px">${rate}%</span>
               </div>
             </td>
-            <td style="color:var(--gray-600);font-weight:600">${fmt$(avgFee)}</td>
           </tr>`;
         }).join('')}
       </tbody>
@@ -5712,6 +6247,7 @@ function showAgentProfile(name, sc) {
   window.REPORTS_STATE.selectedScale = parseFloat(sc) || 1.0;
   nav('agentprofile', null);
 }
+
 
 function renderAgentProfilePage() {
   const s   = window.REPORTS_STATE || {};
@@ -5783,7 +6319,7 @@ function renderAgentProfilePage() {
   <!-- Back button + page header -->
   <div class="page-header" style="margin-bottom:0">
     <div class="page-header-left">
-      <button class="btn btn-ghost" style="font-size:13px;margin-bottom:8px" onclick="window.REPORTS_STATE.tab='production';nav('reports',null)">← Back to Reports</button>
+      <button class="btn btn-ghost" style="font-size:13px;margin-bottom:8px" onclick="window.REPORTS_STATE.tab='agents';nav('reports',null)">← Back to Reports</button>
       <h1>${a.name}</h1>
       <p style="color:#1A6ED0;font-weight:600">${label}</p>
     </div>
