@@ -1162,6 +1162,7 @@ function closeTextThread() {
   if (overlay) overlay.style.display = 'none';
 }
 
+
 function applyThreadTemplate(value) {
   if (!value) return;
   const input = document.getElementById('textThreadInput');
@@ -2654,7 +2655,7 @@ function startPowerDial() {
 // ==================== LEAD DETAIL ====================
 PAGES.leaddetail = `
 <!-- BLUE NAME BAR -->
-<div style="background:linear-gradient(135deg,#1A6ED0 0%,#1558B0 100%);border-radius:var(--radius-xl);padding:16px 24px;display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap">
+<div style="background:linear-gradient(175deg,#0A1624 0%,#122B47 100%);border-radius:var(--radius-xl);padding:16px 24px;display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap">
   <button onclick="nav('leads',document.querySelector('[onclick*=leads]'))" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:var(--radius-md);padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);white-space:nowrap;flex-shrink:0">← All Leads</button>
   <div style="flex:1;min-width:180px">
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -2693,66 +2694,57 @@ PAGES.leaddetail = `
   </div>
 </div>
 
-<!-- COMPACT LEAD INFO CARD -->
-<div style="background:#1C2B4B;border-radius:var(--radius-xl);padding:20px 24px;margin-bottom:14px">
+<!-- LEAD INFO CARD -->
+<div style="background:#fff;border-radius:var(--radius-xl);padding:22px 28px;margin-bottom:14px;border:1px solid #E5E7EB;box-shadow:0 1px 4px rgba(0,0,0,0.05)">
 
-  <!-- CONTACT INFORMATION -->
-  <div style="font-size:10.5px;font-weight:800;color:#4A9EE8;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:2px solid rgba(74,158,232,0.25);margin-bottom:10px">Contact Information</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;margin-bottom:18px">
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">First Name</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Maria</span><button onclick="copyToClipboard('Maria',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Last Name</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Gonzalez</span><button onclick="copyToClipboard('Gonzalez',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Date of Birth</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">03/14/1982</span><button onclick="copyToClipboard('03/14/1982',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Gender</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Female</span><button onclick="copyToClipboard('Female',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Phone</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">(619) 555-0124</span><button onclick="copyToClipboard('(619) 555-0124',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Email</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">maria.g@email.com</span><button onclick="copyToClipboard('maria.g@email.com',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Marital Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Married</span><button onclick="copyToClipboard('Married',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Language</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Spanish</span><button onclick="copyToClipboard('Spanish',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06);grid-column:span 2"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Address</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">1234 Main St, San Diego, CA 92101</span><button onclick="copyToClipboard('1234 Main St, San Diego, CA 92101',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-  </div>
-
-  <!-- DRIVER 1 — PRIMARY -->
-  <div style="font-size:10.5px;font-weight:800;color:#4A9EE8;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:2px solid rgba(74,158,232,0.25);margin-bottom:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08)">Driver 1 — Primary</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;margin-bottom:18px">
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Name</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Maria Gonzalez</span><button onclick="copyToClipboard('Maria Gonzalez',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Date of Birth</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">03/14/1982</span><button onclick="copyToClipboard('03/14/1982',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Gender</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Female</span><button onclick="copyToClipboard('Female',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">License #</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">B1234567</span><button onclick="copyToClipboard('B1234567',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Marital Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Married</span><button onclick="copyToClipboard('Married',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Violations</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#FCD34D">1 minor speeding (2024)</span><button onclick="copyToClipboard('1 minor speeding (2024)',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">SR-22 Required</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#4ADE80">No</span><button onclick="copyToClipboard('No',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+  <!-- PRIMARY DRIVER -->
+  <div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#1C2B4B;padding:9px 14px;border-radius:6px;margin-bottom:14px">Primary Driver</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 36px;margin-bottom:24px">
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">First Name</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Maria</span><button onclick="copyToClipboard('Maria',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Last Name</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Gonzalez</span><button onclick="copyToClipboard('Gonzalez',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Date of Birth</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">03/14/1982</span><button onclick="copyToClipboard('03/14/1982',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Gender</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Female</span><button onclick="copyToClipboard('Female',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Phone</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">(619) 555-0124</span><button onclick="copyToClipboard('(619) 555-0124',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Email</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">maria.g@email.com</span><button onclick="copyToClipboard('maria.g@email.com',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Marital Status</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Married</span><button onclick="copyToClipboard('Married',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Language</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Spanish</span><button onclick="copyToClipboard('Spanish',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">License #</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">B1234567</span><button onclick="copyToClipboard('B1234567',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Violations</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#B45309">1 minor speeding (2024)</span><button onclick="copyToClipboard('1 minor speeding (2024)',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">SR-22 Required</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#16A34A">No</span><button onclick="copyToClipboard('No',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB;grid-column:span 2"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Address</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">1234 Main St, San Diego, CA 92101</span><button onclick="copyToClipboard('1234 Main St, San Diego, CA 92101',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
   </div>
 
   <!-- DRIVER 2 — ADDITIONAL -->
-  <div style="font-size:10.5px;font-weight:800;color:#4A9EE8;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:2px solid rgba(74,158,232,0.25);margin-bottom:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08)">Driver 2 — Additional</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;margin-bottom:18px">
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Name</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Carlos Gonzalez</span><button onclick="copyToClipboard('Carlos Gonzalez',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Date of Birth</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">07/04/1980</span><button onclick="copyToClipboard('07/04/1980',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Gender</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Male</span><button onclick="copyToClipboard('Male',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">License #</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">C9876543</span><button onclick="copyToClipboard('C9876543',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Violations</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#4ADE80">None</span><button onclick="copyToClipboard('None',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">SR-22 Required</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#4ADE80">No</span><button onclick="copyToClipboard('No',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+  <div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#1C2B4B;padding:9px 14px;border-radius:6px;margin-bottom:14px;margin-top:20px">Driver 2 — Additional</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 36px;margin-bottom:24px">
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Name</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Carlos Gonzalez</span><button onclick="copyToClipboard('Carlos Gonzalez',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Date of Birth</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">07/04/1980</span><button onclick="copyToClipboard('07/04/1980',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Gender</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Male</span><button onclick="copyToClipboard('Male',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">License #</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">C9876543</span><button onclick="copyToClipboard('C9876543',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Violations</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#16A34A">None</span><button onclick="copyToClipboard('None',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">SR-22 Required</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#16A34A">No</span><button onclick="copyToClipboard('No',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
   </div>
 
   <!-- VEHICLE 1 -->
-  <div style="font-size:10.5px;font-weight:800;color:#4A9EE8;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:2px solid rgba(74,158,232,0.25);margin-bottom:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08)">Vehicle 1</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px;margin-bottom:18px">
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Year</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">2021</span><button onclick="copyToClipboard('2021',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Make</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Honda</span><button onclick="copyToClipboard('Honda',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Model</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">CR-V EX</span><button onclick="copyToClipboard('CR-V EX',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">VIN</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;font-weight:600;color:#fff;font-family:monospace">2HKRW2H58MH123456</span><button onclick="copyToClipboard('2HKRW2H58MH123456',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Annual Mileage</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">12,000 mi/yr</span><button onclick="copyToClipboard('12000',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Primary Use</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Commute</span><button onclick="copyToClipboard('Commute',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+  <div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#1C2B4B;padding:9px 14px;border-radius:6px;margin-bottom:14px;margin-top:20px">Vehicle 1</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 36px;margin-bottom:24px">
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Year</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">2021</span><button onclick="copyToClipboard('2021',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Make</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Honda</span><button onclick="copyToClipboard('Honda',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Model</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">CR-V EX</span><button onclick="copyToClipboard('CR-V EX',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">VIN</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px;font-weight:600;color:#1C2B4B;font-family:monospace">2HKRW2H58MH123456</span><button onclick="copyToClipboard('2HKRW2H58MH123456',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Annual Mileage</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">12,000 mi/yr</span><button onclick="copyToClipboard('12000',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Primary Use</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Commute</span><button onclick="copyToClipboard('Commute',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
   </div>
 
   <!-- COVERAGE REQUESTED -->
-  <div style="font-size:10.5px;font-weight:800;color:#4A9EE8;text-transform:uppercase;letter-spacing:1px;padding-bottom:8px;border-bottom:2px solid rgba(74,158,232,0.25);margin-bottom:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08)">Coverage Requested</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px">
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Coverage Type</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Liability + UM/UIM</span><button onclick="copyToClipboard('Liability + UM/UIM',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">CSL Limits</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">50/100</span><button onclick="copyToClipboard('50/100',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Prior Coverage</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">State Farm</span><button onclick="copyToClipboard('State Farm',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Insurance Status</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#FCA5A5">Uninsured — lapse 18d</span><button onclick="copyToClipboard('Uninsured - lapse 18 days',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">License State</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">California</span><button onclick="copyToClipboard('California',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><div style="font-size:10px;color:rgba(255,255,255,0.40);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px">Best Contact Time</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;font-weight:600;color:#fff">Evenings</span><button onclick="copyToClipboard('Evenings',this)" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:5px;color:rgba(255,255,255,0.72);cursor:pointer;padding:2px 7px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+  <div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#1C2B4B;padding:9px 14px;border-radius:6px;margin-bottom:14px;margin-top:20px">Coverage Requested</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 36px">
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Coverage Type</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Liability + UM/UIM</span><button onclick="copyToClipboard('Liability + UM/UIM',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">CSL Limits</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">50/100</span><button onclick="copyToClipboard('50/100',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Prior Coverage</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">State Farm</span><button onclick="copyToClipboard('State Farm',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Insurance Status</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#DC2626">Uninsured — lapse 18d</span><button onclick="copyToClipboard('Uninsured - lapse 18 days',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">License State</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">California</span><button onclick="copyToClipboard('California',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
+    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Best Contact Time</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Evenings</span><button onclick="copyToClipboard('Evenings',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
   </div>
 </div>
 
@@ -2761,7 +2753,7 @@ PAGES.leaddetail = `
 
     <!-- NOTES -->
     <div class="card" style="margin-bottom:14px">
-      <div class="card-header" style="background:#1C2B4B;border-radius:var(--radius-lg) var(--radius-lg) 0 0"><div class="card-title" style="color:#fff">Notes</div><button class="btn btn-primary" style="font-size:11.5px" onclick="addNote()">+ Add Note</button></div>
+      <div class="card-header"><div class="card-title">Notes</div><button class="btn btn-primary" style="font-size:11.5px" onclick="addNote()">+ Add Note</button></div>
       <div class="card-body">
         <textarea id="noteInput" class="form-control" placeholder="Add a quick note about this lead… (visible to the team)" rows="3" style="width:100%;resize:vertical;font-family:var(--font-body);font-size:13px;margin-bottom:12px"></textarea>
         <div id="notesList">
@@ -2779,7 +2771,7 @@ PAGES.leaddetail = `
 
     <!-- ACTIVITY TIMELINE -->
     <div class="card">
-      <div class="card-header" style="background:#1C2B4B;border-radius:var(--radius-lg) var(--radius-lg) 0 0"><div class="card-title" style="color:#fff">Activity Timeline</div></div>
+      <div class="card-header"><div class="card-title">Activity Timeline</div></div>
       <div class="card-body">
         <!-- Summary stats -->
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
@@ -2864,7 +2856,7 @@ PAGES.leaddetail = `
   <div>
     <!-- PIPELINE STAGE -->
     <div class="card" style="margin-bottom:14px">
-      <div class="card-header" style="background:#1C2B4B;border-radius:var(--radius-lg) var(--radius-lg) 0 0"><div class="card-title" style="color:#fff">Pipeline Stage</div></div>
+      <div class="card-header"><div class="card-title">Pipeline Stage</div></div>
       <div class="card-body">
         ${[['New Lead',true,false],['Quoted',false,true],['Appointment Set',false,false],['Sold',false,false]].map(([st,done,curr])=>`
         <div class="stage-step ${done?'done':curr?'current':'future'}">
@@ -2877,7 +2869,7 @@ PAGES.leaddetail = `
 
     <!-- QUOTED SECTION (replaces Broker Fee Tracking) -->
     <div class="card" style="margin-bottom:14px">
-      <div class="card-header" style="background:#1C2B4B;border-radius:var(--radius-lg) var(--radius-lg) 0 0"><div class="card-title" style="color:#fff">Quoted</div><button class="btn btn-ghost" style="font-size:11.5px;color:rgba(255,255,255,0.75);border-color:rgba(255,255,255,0.22)" onclick="addQuote()">+ Add Quote</button></div>
+      <div class="card-header"><div class="card-title">Quoted</div><button class="btn btn-ghost" style="font-size:11.5px" onclick="addQuote()">+ Add Quote</button></div>
       <div class="card-body" id="quotesList">
 
         <!-- existing quote -->
@@ -5520,7 +5512,7 @@ const FEE_AGING_DATA = [
 const COMMISSION_RATES = { 'Tier 1':0.40, 'Tier 2':0.35, 'Tier 3':0.30, 'Tier 4':0.25 };
 
 // Default to current pay period: Jul 16–31, 2026
-window.REPORTS_STATE = window.REPORTS_STATE || { tab:'agents', dateMode:'payperiod', startDate:'2026-07-16', endDate:'2026-07-31', selectedAgent:null, agentTierFilter:'All' };
+window.REPORTS_STATE = window.REPORTS_STATE || { tab:'overview', dateMode:'payperiod', startDate:'2026-07-16', endDate:'2026-07-31', selectedAgent:null, agentTierFilter:'All' };
 
 function rptDateLabel(s) {
   const modes = { payperiod:'Jul 16–31, 2026 (Current Pay Period)', thismonth:'Jul 1–31, 2026 (This Month)', lastmonth:'Jun 1–30, 2026 (Last Month)', ytd:'Jan 1–Jul 31, 2026 (Year to Date)' };
@@ -5566,11 +5558,12 @@ function renderReportsPage() {
 
   const chipStyle = (active) => `padding:5px 14px;border-radius:var(--radius-full);border:none;cursor:pointer;font-size:12.5px;font-weight:600;font-family:var(--font-body);transition:all 0.15s;background:${active?'#1A6ED0':'var(--gray-100)'};color:${active?'#fff':'var(--gray-600)'}`;
 
-  const tabs = ['agents','leads','carriers','financial','payroll','activity','newbusiness','fees'];
-  const tabLabels = { agents:'👤 Agents', leads:'🎯 Leads', carriers:'🏢 Carriers', financial:'💼 Financial', payroll:'💵 Payroll', activity:'📅 Activity', newbusiness:'✨ New Business', fees:'💰 Fees' };
+  const tabs = ['overview','agents','leads','carriers','financial','payroll','activity','newbusiness','fees'];
+  const tabLabels = { overview:'🏠 Overview', agents:'👤 Agents', leads:'🎯 Leads', carriers:'🏢 Carriers', financial:'💼 Financial', payroll:'💵 Payroll', activity:'📅 Activity', newbusiness:'✨ New Business', fees:'💰 Fees' };
 
   let tabContent = '';
-  if      (s.tab === 'agents')      tabContent = renderRptAgents(sc);
+  if      (s.tab === 'overview')    tabContent = renderRptOverview(sc, totalApps, totalFeeCollected, totalFeeExtended, totalPremium, avgClose);
+  else if (s.tab === 'agents')      tabContent = renderRptAgents(sc);
   else if (s.tab === 'leads')       tabContent = renderRptLeads(sc);
   else if (s.tab === 'carriers')    tabContent = renderRptCarriers(sc);
   else if (s.tab === 'financial')   tabContent = renderRptFinancial(sc, totalFeeCollected, totalFeeExtended, totalPremium);
@@ -5578,7 +5571,7 @@ function renderReportsPage() {
   else if (s.tab === 'activity')    tabContent = renderRptActivity(sc);
   else if (s.tab === 'newbusiness') tabContent = renderRptNewBusiness(sc);
   else if (s.tab === 'fees')        tabContent = renderRptFees(sc, totalFeeCollected, totalFeeExtended);
-  else                              tabContent = renderRptAgents(sc);
+  else                              tabContent = renderRptOverview(sc, totalApps, totalFeeCollected, totalFeeExtended, totalPremium, avgClose);
 
   return `
   <div class="page-header">
@@ -5609,8 +5602,38 @@ function renderReportsPage() {
     </div>
   </div>
 
-  <!-- GLOBAL KPI HEADER -->
-  <div class="kpi-grid" style="margin-bottom:16px">
+  <!-- TAB BAR -->
+  <div style="display:flex;gap:2px;background:#1A6ED0;border-radius:var(--radius-lg);padding:3px;width:fit-content;margin-bottom:16px;box-shadow:0 2px 8px rgba(26,110,208,0.25);flex-wrap:wrap">
+    ${tabs.map(t => {
+      const isSel = s.tab === t;
+      return `<div onclick="window.REPORTS_STATE.tab='${t}';refreshReports()" style="padding:7px 16px;border-radius:var(--radius-md);cursor:pointer;font-size:13px;font-weight:${isSel?'700':'500'};color:${isSel?'#1A6ED0':'rgba(255,255,255,0.85)'};background:${isSel?'#fff':'transparent'};transition:all 0.15s;user-select:none;white-space:nowrap">${tabLabels[t]}</div>`;
+    }).join('')}
+  </div>
+
+  ${tabContent}
+  `;
+}
+
+function renderRptOverview(sc, totalApps, totalFeeCollected, totalFeeExtended, totalPremium, avgClose) {
+  const totalLeads     = LEAD_SOURCE_DATA.reduce((s,r)=>s+rptVal(r.leads,sc),0);
+  const totalContacted = LEAD_SOURCE_DATA.reduce((s,r)=>s+rptVal(r.contacted,sc),0);
+  const totalAppsL     = LEAD_SOURCE_DATA.reduce((s,r)=>s+rptVal(r.apps,sc),0);
+  const totalCost      = LEAD_SOURCE_DATA.reduce((s,r)=>s+rptVal(r.cost,sc),0);
+  const avgContactRate = totalLeads ? (totalContacted/totalLeads*100).toFixed(1) : 0;
+  const totalPolicies  = CARRIER_DATA.reduce((s,r)=>s+rptVal(r.policies,sc),0);
+  const totalPremC     = CARRIER_DATA.reduce((s,r)=>s+rptVal(r.premium,sc),0);
+  const totalAgents    = AGENTS.length;
+  const topAgent       = [...AGENTS].sort((a,b)=>rptVal(b.apps,sc)-rptVal(a.apps,sc))[0];
+  const totalGoal      = AGENTS.reduce((s,a)=>s+a.goal,0);
+  const goalPct        = totalGoal ? Math.round(totalApps/totalGoal*100) : 0;
+  const totalBooked    = totalFeeCollected + totalFeeExtended;
+  const feeCollPct     = totalBooked ? Math.round(totalFeeCollected/totalBooked*100) : 0;
+  const estRevenue     = totalAppsL * 450;
+  const topCarrier     = [...CARRIER_DATA].sort((a,b)=>rptVal(b.policies,sc)-rptVal(a.policies,sc))[0];
+
+  return `
+  <!-- ROW 1: 5 core KPIs -->
+  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(5,1fr)">
     <div class="kpi-card accent">
       <div class="kpi-label">Total Apps</div>
       <div class="kpi-value">${totalApps}</div>
@@ -5621,10 +5644,10 @@ function renderReportsPage() {
       <div class="kpi-value green">${fmt$(totalFeeCollected)}</div>
       <div class="kpi-sub"><span class="trend up">↑ 12%</span> vs prior period</div>
     </div>
-    <div class="kpi-card accent-amber" style="border-left:4px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%)">
+    <div class="kpi-card" style="border-left:4px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB,#FEF3C7)">
       <div class="kpi-label">Fee Extended</div>
       <div class="kpi-value" style="color:#B45309">${fmt$(totalFeeExtended)}</div>
-      <div class="kpi-sub" style="color:#92400E">Pending · ${Math.round(totalFeeExtended/(totalFeeCollected+totalFeeExtended||1)*100)}% of total booked</div>
+      <div class="kpi-sub" style="color:#92400E">Pending · ${100-feeCollPct}% of booked</div>
     </div>
     <div class="kpi-card accent">
       <div class="kpi-label">Avg Close Rate</div>
@@ -5638,36 +5661,155 @@ function renderReportsPage() {
     </div>
   </div>
 
-  <!-- 8-TAB BAR -->
-  <div style="display:flex;gap:2px;background:#1A6ED0;border-radius:var(--radius-lg);padding:3px;width:fit-content;margin-bottom:16px;box-shadow:0 2px 8px rgba(26,110,208,0.25);flex-wrap:wrap">
-    ${tabs.map(t => {
-      const isSel = s.tab === t;
-      return `<div onclick="window.REPORTS_STATE.tab='${t}';refreshReports()" style="padding:7px 16px;border-radius:var(--radius-md);cursor:pointer;font-size:13px;font-weight:${isSel?'700':'500'};color:${isSel?'#1A6ED0':'rgba(255,255,255,0.85)'};background:${isSel?'#fff':'transparent'};transition:all 0.15s;user-select:none;white-space:nowrap">${tabLabels[t]}</div>`;
-    }).join('')}
+  <!-- ROW 2: secondary metrics -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px">
+    <div class="kpi-card"><div class="kpi-label">Total Leads</div><div class="kpi-value" style="font-size:22px">${totalLeads}</div><div class="kpi-sub">All sources this period</div></div>
+    <div class="kpi-card"><div class="kpi-label">Contact Rate</div><div class="kpi-value" style="font-size:22px">${avgContactRate}%</div><div class="kpi-sub">${totalContacted} of ${totalLeads} reached</div></div>
+    <div class="kpi-card"><div class="kpi-label">Lead Spend</div><div class="kpi-value" style="font-size:22px;color:var(--red)">${fmt$(totalCost)}</div><div class="kpi-sub">Paid sources</div></div>
+    <div class="kpi-card"><div class="kpi-label">Est. Revenue</div><div class="kpi-value" style="font-size:22px;color:var(--green-700)">${fmt$(estRevenue)}</div><div class="kpi-sub">Based on apps × avg fee</div></div>
   </div>
 
-  ${tabContent}
-  `;
+  <!-- ROW 3: Goal progress + Agent leaderboard + Carrier breakdown -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+
+    <!-- Goal & Fee Collection Progress -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Agency Goal Progress</div></div>
+      <div style="padding:18px 20px">
+        <div style="margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px">
+            <span style="color:var(--gray-700)">Apps vs Goal</span>
+            <span style="color:${goalPct>=100?'var(--green-700)':goalPct>=70?'#1A6ED0':'var(--amber-600)'};font-weight:800">${totalApps} / ${totalGoal} &nbsp;(${goalPct}%)</span>
+          </div>
+          <div style="height:12px;background:var(--gray-100);border-radius:8px;overflow:hidden">
+            <div style="width:${Math.min(goalPct,100)}%;height:100%;background:${goalPct>=100?'var(--green-500)':goalPct>=70?'#1A6ED0':'var(--amber-500)'};border-radius:8px;transition:width 0.5s"></div>
+          </div>
+        </div>
+        <div style="margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px">
+            <span style="color:var(--gray-700)">Fee Collected vs Total Booked</span>
+            <span style="color:var(--green-700);font-weight:800">${feeCollPct}%</span>
+          </div>
+          <div style="height:12px;background:var(--gray-100);border-radius:8px;overflow:hidden">
+            <div style="width:${feeCollPct}%;height:100%;background:var(--green-500);border-radius:8px"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--gray-400)">
+            <span>${fmt$(totalFeeCollected)} collected</span>
+            <span>${fmt$(totalFeeExtended)} remaining</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px">
+          <div style="text-align:center;padding:10px;background:var(--gray-50);border-radius:8px;border:1px solid var(--border)">
+            <div style="font-size:16px;font-weight:800;color:var(--navy-900)">${totalAgents}</div>
+            <div style="font-size:10.5px;color:var(--gray-500)">Active Agents</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:var(--gray-50);border-radius:8px;border:1px solid var(--border)">
+            <div style="font-size:16px;font-weight:800;color:var(--navy-900)">${totalPolicies}</div>
+            <div style="font-size:10.5px;color:var(--gray-500)">Active Policies</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:var(--gray-50);border-radius:8px;border:1px solid var(--border)">
+            <div style="font-size:16px;font-weight:800;color:var(--green-700)">${fmtK(totalPremC)}</div>
+            <div style="font-size:10.5px;color:var(--gray-500)">Total Premium</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent Leaderboard -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Agent Leaderboard</div><button onclick="window.REPORTS_STATE.tab='agents';refreshReports()" style="font-size:11px;color:#1A6ED0;background:none;border:none;cursor:pointer;font-weight:700">View All →</button></div>
+      <div style="padding:8px 0">
+        ${AGENTS.slice(0,7).map((a,i) => {
+          const apps = rptVal(a.apps, sc);
+          const p    = pct(apps, a.goal);
+          const medals = ['🥇','🥈','🥉'];
+          return `<div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border)">
+            <div style="font-size:15px;min-width:22px;text-align:center">${medals[i]||'#'+(i+1)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:13.5px;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div>
+              <div style="height:4px;background:var(--gray-100);border-radius:3px;margin-top:4px;overflow:hidden"><div style="width:${Math.min(p,100)}%;height:100%;background:${p>=100?'var(--green-500)':'#1A6ED0'}"></div></div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-weight:800;font-size:15px;color:var(--navy-900)">${apps}</div>
+              <div style="font-size:10.5px;color:var(--gray-400)">${p}% to goal</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 4: Lead source summary + Top carriers -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+    <!-- Top lead sources -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Top Lead Sources</div><button onclick="window.REPORTS_STATE.tab='leads';refreshReports()" style="font-size:11px;color:#1A6ED0;background:none;border:none;cursor:pointer;font-weight:700">View All →</button></div>
+      <div style="padding:8px 0">
+        ${[...LEAD_SOURCE_DATA].sort((a,b)=>rptVal(b.apps,sc)-rptVal(a.apps,sc)).slice(0,6).map(r => {
+          const leads = rptVal(r.leads, sc);
+          const apps  = rptVal(r.apps, sc);
+          const closePct = leads ? Math.round(apps/leads*100) : 0;
+          const barW = totalLeads ? Math.round(leads/totalLeads*100) : 0;
+          return `<div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openLeadSourceModal('${r.source.replace(/'/g,"\\'")}',${sc})" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background=''">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:13px;color:#1A6ED0">${r.source}</div>
+              <div style="height:4px;background:var(--gray-100);border-radius:3px;margin-top:4px;overflow:hidden"><div style="width:${barW}%;height:100%;background:var(--green-500)"></div></div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-weight:800;font-size:14px;color:var(--navy-900)">${leads} leads</div>
+              <div style="font-size:10.5px;color:var(--gray-400)">${apps} apps · ${closePct}% close</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- Top carriers -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Top Carriers</div><button onclick="window.REPORTS_STATE.tab='carriers';refreshReports()" style="font-size:11px;color:#1A6ED0;background:none;border:none;cursor:pointer;font-weight:700">View All →</button></div>
+      <div style="padding:8px 0">
+        ${[...CARRIER_DATA].sort((a,b)=>rptVal(b.policies,sc)-rptVal(a.policies,sc)).slice(0,6).map(r => {
+          const pol  = rptVal(r.policies, sc);
+          const prem = rptVal(r.premium, sc);
+          const mix  = totalPolicies ? Math.round(pol/totalPolicies*100) : 0;
+          return `<div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openCarrierModal('${r.name.replace(/'/g,"\\'")}',${sc})" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background=''">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:13px;color:#1A6ED0">${r.name}</div>
+              <div style="height:4px;background:var(--gray-100);border-radius:3px;margin-top:4px;overflow:hidden"><div style="width:${mix}%;height:100%;background:#1A6ED0"></div></div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-weight:800;font-size:14px;color:var(--navy-900)">${pol} policies</div>
+              <div style="font-size:10.5px;color:var(--gray-400)">${fmtK(prem)} premium · ${mix}% book</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
 }
 
 function renderRptAgents(sc) {
   const s = window.REPORTS_STATE;
   const tierFilter = s.agentTierFilter || 'All';
   const filteredAgents = tierFilter === 'All' ? AGENTS : AGENTS.filter(a => a.tier === tierFilter);
-  const avgApps = filteredAgents.length ? (filteredAgents.reduce((sum,a)=>sum+rptVal(a.apps,sc),0)/filteredAgents.length).toFixed(1) : 0;
-  const avgGoalPct = filteredAgents.length ? (filteredAgents.reduce((sum,a)=>sum+pct(rptVal(a.apps,sc),a.goal),0)/filteredAgents.length).toFixed(1) : 0;
-  const t1 = AGENTS.filter(a=>a.tier==='Tier 1').length;
-  const t2 = AGENTS.filter(a=>a.tier==='Tier 2').length;
-  const t3t4 = AGENTS.filter(a=>a.tier==='Tier 3'||a.tier==='Tier 4').length;
+  const totApps    = filteredAgents.reduce((sum,a)=>sum+rptVal(a.apps,sc),0);
+  const totGoal    = filteredAgents.reduce((sum,a)=>sum+a.goal,0);
+  const totPct     = totGoal ? Math.round(totApps/totGoal*100) : 0;
+  const totFee     = filteredAgents.reduce((sum,a)=>sum+rptFee(a.fee,sc),0);
+  const totExtFee  = filteredAgents.reduce((sum,a)=>sum+rptFee((AGENT_EXTENDED_DATA[a.name]||{}).feeExtended||0,sc),0);
+  const totPrem    = filteredAgents.reduce((sum,a)=>sum+rptVal(a.premium,sc),0);
+  const totLeads   = filteredAgents.reduce((sum,a)=>sum+a.leads,0);
+  const avgClose   = filteredAgents.length ? (filteredAgents.reduce((sum,a)=>sum+parseFloat(a.close),0)/filteredAgents.length).toFixed(1) : 0;
+  const avgContact = filteredAgents.length ? (filteredAgents.reduce((sum,a)=>sum+parseFloat(a.contact),0)/filteredAgents.length).toFixed(1) : 0;
   const chipS = (active) => `padding:4px 12px;border-radius:var(--radius-full);border:1px solid ${active?'#1A6ED0':'var(--border)'};cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body);background:${active?'#1A6ED0':'#fff'};color:${active?'#fff':'var(--gray-600)'}`;
   return `
-  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(6,1fr)">
-    <div class="kpi-card accent"><div class="kpi-label">Total Agents</div><div class="kpi-value">${AGENTS.length}</div><div class="kpi-sub">Active producers</div></div>
-    <div class="kpi-card accent"><div class="kpi-label">Avg Apps</div><div class="kpi-value">${avgApps}</div><div class="kpi-sub">Per agent this period</div></div>
-    <div class="kpi-card accent"><div class="kpi-label">Avg % to Goal</div><div class="kpi-value">${avgGoalPct}%</div><div class="kpi-sub">Team average</div></div>
-    <div class="kpi-card accent-navy"><div class="kpi-label">Tier 1</div><div class="kpi-value">${t1}</div><div class="kpi-sub">Top producers</div></div>
-    <div class="kpi-card accent-navy"><div class="kpi-label">Tier 2</div><div class="kpi-value">${t2}</div><div class="kpi-sub">Senior agents</div></div>
-    <div class="kpi-card accent"><div class="kpi-label">Tier 3+4</div><div class="kpi-value">${t3t4}</div><div class="kpi-sub">Developing agents</div></div>
+  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(5,1fr)">
+    <div class="kpi-card accent"><div class="kpi-label">Total Apps</div><div class="kpi-value">${totApps}</div><div class="kpi-sub">Applications this period</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Fee Collected</div><div class="kpi-value">${fmt$(totFee)}</div><div class="kpi-sub">Broker fees received</div></div>
+    <div class="kpi-card" style="border-left:4px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB,#FEF3C7)"><div class="kpi-label">Fee Extended</div><div class="kpi-value" style="color:#B45309">${fmt$(totExtFee)}</div><div class="kpi-sub">Balance remaining</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Avg Close Rate</div><div class="kpi-value">${avgClose}%</div><div class="kpi-sub">Team average</div></div>
+    <div class="kpi-card accent-navy"><div class="kpi-label">Premium Written</div><div class="kpi-value">${fmtK(totPrem)}</div><div class="kpi-sub">Total premium volume</div></div>
   </div>
   <div class="card">
     <div class="card-header">
@@ -5695,7 +5837,7 @@ function renderRptAgents(sc) {
             const p      = pct(apps, a.goal);
             return `<tr>
               <td>
-                <div class="lead-name-link" style="font-weight:700;color:#1A6ED0;cursor:pointer;font-size:13.5px" onclick="showAgentProfile('${a.name.replace(/'/g,"\\'")}',${sc})">${a.name}</div>
+                <div class="lead-name-link" style="font-weight:700;color:#1A6ED0;cursor:pointer;font-size:15.5px" onclick="showAgentProfile('${a.name.replace(/'/g,"\\'")}',${sc})">${a.name}</div>
                 <div style="font-size:10.5px;color:var(--gray-400)">Rank #${a.rank}</div>
               </td>
               <td><span class="tier ${tierClass(a.tier)}">${a.tier}</span></td>
@@ -5717,9 +5859,198 @@ function renderRptAgents(sc) {
             </tr>`;
           }).join('')}
         </tbody>
+        <tfoot>
+          <tr style="background:var(--navy-900)">
+            <td style="font-weight:800;font-size:13.5px;color:#fff;padding:13px 14px">Agency Total</td>
+            <td style="color:rgba(255,255,255,0.4);font-size:11px;padding:13px 14px">${filteredAgents.length} agents</td>
+            <td style="font-family:var(--font-display);font-weight:800;font-size:17px;color:#fff;padding:13px 14px">${totApps}</td>
+            <td style="font-weight:700;color:rgba(255,255,255,0.65);padding:13px 14px">${totGoal}</td>
+            <td style="font-weight:800;color:${totPct>=100?'#6EE7B7':totPct>=70?'#93C5FD':'#FCD34D'};padding:13px 14px">${totPct}%</td>
+            <td style="color:#6EE7B7;font-weight:800;padding:13px 14px">${fmt$(totFee)}</td>
+            <td style="color:#FCD34D;font-weight:800;padding:13px 14px">${fmt$(totExtFee)}</td>
+            <td style="color:rgba(255,255,255,0.85);font-weight:700;padding:13px 14px">${fmtK(totPrem)}</td>
+            <td style="color:rgba(255,255,255,0.75);font-weight:700;padding:13px 14px">${avgClose}%</td>
+            <td style="color:rgba(255,255,255,0.75);font-weight:700;padding:13px 14px">${avgContact}%</td>
+            <td style="color:rgba(255,255,255,0.35);padding:13px 14px">—</td>
+            <td style="color:rgba(255,255,255,0.85);font-weight:700;padding:13px 14px">${totLeads}</td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   </div>`;
+}
+
+function openLeadSourceModal(source, sc) {
+  const r = LEAD_SOURCE_DATA.find(x => x.source === source);
+  if (!r) return;
+  sc = sc || 1;
+  const leads      = rptVal(r.leads, sc);
+  const contacted  = rptVal(r.contacted, sc);
+  const quoted     = rptVal(r.quoted, sc);
+  const apps       = rptVal(r.apps, sc);
+  const cost       = rptVal(r.cost, sc);
+  const contactPct = leads ? (contacted/leads*100).toFixed(1) : 0;
+  const quotePct   = contacted ? (quoted/contacted*100).toFixed(1) : 0;
+  const closePct   = contacted ? (apps/contacted*100).toFixed(1) : 0;
+  const cpa        = apps && cost ? Math.round(cost/apps) : 0;
+  const revenue    = apps * 450;
+  const roi        = cost ? (((revenue - cost)/cost)*100).toFixed(0) : '∞';
+  const steps = [
+    {label:'Leads In', val:leads, color:'#1A6ED0'},
+    {label:'Contacted', val:contacted, color:'#7C3AED'},
+    {label:'Quoted', val:quoted, color:'#F59E0B'},
+    {label:'Apps', val:apps, color:'var(--green-500)'},
+  ];
+  const maxVal = leads || 1;
+  let el = document.getElementById('leadSrcModalOverlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'leadSrcModalOverlay';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
+    el.addEventListener('click', function(e){ if(e.target===el) closeLeadSourceModal(); });
+    document.body.appendChild(el);
+  }
+  el.innerHTML = `
+    <div style="background:#fff;border-radius:16px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.25)">
+      <div style="background:var(--navy-900);padding:24px 28px;border-radius:16px 16px 0 0;display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Lead Source</div>
+          <div style="font-size:24px;font-weight:800;color:#fff;font-family:var(--font-display)">${source}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px">${cost ? 'Paid source · ' + fmt$(cost) + ' spend' : 'Organic / free source'}</div>
+        </div>
+        <button onclick="closeLeadSourceModal()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
+      </div>
+      <div style="padding:24px 28px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px">
+          <div style="background:#F0F7FF;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:#1A6ED0;font-family:var(--font-display)">${leads}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:3px">Total Leads</div>
+          </div>
+          <div style="background:#F0FDF4;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:var(--green-700);font-family:var(--font-display)">${apps}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:3px">Applications</div>
+          </div>
+          <div style="background:${cost?'#FEF2F2':'#F0FDF4'};border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:${cost?'#DC2626':'var(--green-700)'};font-family:var(--font-display)">${cost ? fmt$(cost) : 'Free'}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:3px">Lead Cost</div>
+          </div>
+          <div style="background:#FFFBEB;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:#B45309;font-family:var(--font-display)">${contactPct}%</div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:3px">Contact Rate</div>
+          </div>
+          <div style="background:#F5F3FF;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:#7C3AED;font-family:var(--font-display)">${closePct}%</div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:3px">Close Rate</div>
+          </div>
+          <div style="background:#F0FDF4;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:var(--green-700);font-family:var(--font-display)">${fmt$(revenue)}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:3px">Est. Revenue</div>
+          </div>
+        </div>
+        <div style="margin-bottom:20px">
+          <div style="font-size:12px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">Lead Funnel</div>
+          ${steps.map(st => {
+            const w = Math.round(st.val / maxVal * 100);
+            return `<div style="margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:4px">
+                <span style="color:var(--gray-700)">${st.label}</span>
+                <span style="color:${st.color};font-weight:700">${st.val}</span>
+              </div>
+              <div style="height:10px;background:var(--gray-100);border-radius:6px;overflow:hidden">
+                <div style="width:${w}%;height:100%;background:${st.color};border-radius:6px;transition:width 0.4s"></div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;background:var(--gray-50);border-radius:10px;border:1px solid var(--border)">
+          <div style="text-align:center"><div style="font-size:13px;font-weight:700;color:var(--navy-900)">${quoted}</div><div style="font-size:10.5px;color:var(--gray-500)">Quoted</div></div>
+          <div style="text-align:center"><div style="font-size:13px;font-weight:700;color:var(--navy-900)">${cpa ? fmt$(cpa) : '—'}</div><div style="font-size:10.5px;color:var(--gray-500)">Cost per App</div></div>
+          <div style="text-align:center"><div style="font-size:13px;font-weight:700;color:${+roi>=0?'var(--green-700)':'var(--red)'}">${cost ? roi + '%' : '—'}</div><div style="font-size:10.5px;color:var(--gray-500)">ROI</div></div>
+        </div>
+      </div>
+    </div>`;
+  el.style.display = 'flex';
+}
+
+function closeLeadSourceModal() {
+  const el = document.getElementById('leadSrcModalOverlay');
+  if (el) el.style.display = 'none';
+}
+
+function openCarrierModal(name, sc) {
+  const r = CARRIER_DATA.find(x => x.name === name);
+  if (!r) return;
+  sc = sc || 1;
+  const pol  = rptVal(r.policies, sc);
+  const prem = rptVal(r.premium, sc);
+  const nc   = rptVal(r.newClients, sc);
+  const ren  = rptVal(r.renewals, sc);
+  const can  = rptVal(r.cancels, sc);
+  const avg  = pol ? Math.round(prem/pol) : 0;
+  const totPol = CARRIER_DATA.reduce((s,x)=>s+rptVal(x.policies,sc),0);
+  const mix    = totPol ? Math.round(pol/totPol*100) : 0;
+  let el = document.getElementById('carrierModalOverlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'carrierModalOverlay';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
+    el.addEventListener('click', function(e){ if(e.target===el) closeCarrierModal(); });
+    document.body.appendChild(el);
+  }
+  el.innerHTML = `
+    <div style="background:#fff;border-radius:16px;width:100%;max-width:620px;box-shadow:0 24px 64px rgba(0,0,0,0.25)">
+      <div style="background:var(--navy-900);padding:24px 28px;border-radius:16px 16px 0 0;display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Carrier</div>
+          <div style="font-size:24px;font-weight:800;color:#fff;font-family:var(--font-display)">${name}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px">Bind Rate: <strong style="color:#93C5FD">${r.bindRate}</strong> &nbsp;·&nbsp; ${mix}% of total book</div>
+        </div>
+        <button onclick="closeCarrierModal()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
+      </div>
+      <div style="padding:24px 28px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+          <div style="background:#F0F7FF;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:#1A6ED0;font-family:var(--font-display)">${pol}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:3px">Active Policies</div>
+          </div>
+          <div style="background:#F0FDF4;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:var(--green-700);font-family:var(--font-display)">${fmtK(prem)}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:3px">Total Premium</div>
+          </div>
+          <div style="background:#F5F3FF;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:#7C3AED;font-family:var(--font-display)">${fmt$(avg)}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:3px">Avg Premium</div>
+          </div>
+          <div style="background:#F0FDF4;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:var(--green-700);font-family:var(--font-display)">${nc}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:3px">New Clients</div>
+          </div>
+          <div style="background:#F0F7FF;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:#1A6ED0;font-family:var(--font-display)">${ren}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:3px">Renewals</div>
+          </div>
+          <div style="background:${can>2?'#FEF2F2':'var(--gray-50)'};border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:${can>2?'#DC2626':'var(--gray-600)'};font-family:var(--font-display)">${can}</div>
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-top:3px">Cancellations</div>
+          </div>
+        </div>
+        <div style="background:var(--gray-50);border-radius:10px;border:1px solid var(--border);padding:14px 18px">
+          <div style="font-size:11.5px;font-weight:700;color:var(--gray-500);margin-bottom:8px">Book Share</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="flex:1;height:10px;background:var(--gray-200);border-radius:6px;overflow:hidden">
+              <div style="width:${mix}%;height:100%;background:#1A6ED0;border-radius:6px"></div>
+            </div>
+            <span style="font-size:14px;font-weight:800;color:#1A6ED0;min-width:36px">${mix}%</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  el.style.display = 'flex';
+}
+
+function closeCarrierModal() {
+  const el = document.getElementById('carrierModalOverlay');
+  if (el) el.style.display = 'none';
 }
 
 function renderRptLeads(sc) {
@@ -5727,6 +6058,8 @@ function renderRptLeads(sc) {
   const totalContacted = LEAD_SOURCE_DATA.reduce((s,r)=>s+rptVal(r.contacted,sc),0);
   const totalApps      = LEAD_SOURCE_DATA.reduce((s,r)=>s+rptVal(r.apps,sc),0);
   const totalCost      = LEAD_SOURCE_DATA.reduce((s,r)=>s+rptVal(r.cost,sc),0);
+  const totalQuoted    = LEAD_SOURCE_DATA.reduce((s,r)=>s+rptVal(r.quoted,sc),0);
+  const totalRevenue   = totalApps * 450;
   const organicLeads   = LEAD_SOURCE_DATA.filter(r=>r.cost===0).reduce((s,r)=>s+rptVal(r.leads,sc),0);
   const avgContactRate = totalLeads ? (totalContacted/totalLeads*100).toFixed(1) : 0;
   const leadToApp      = totalLeads ? (totalApps/totalLeads*100).toFixed(1) : 0;
@@ -5741,7 +6074,7 @@ function renderRptLeads(sc) {
     <div class="kpi-card accent-navy"><div class="kpi-label">Organic Leads</div><div class="kpi-value">${organicLeads}</div><div class="kpi-sub">Referral + Direct</div></div>
   </div>
   <div class="card">
-    <div class="card-header"><div class="card-title">Lead Source Funnel</div></div>
+    <div class="card-header"><div class="card-title">Lead Source Funnel</div><span style="font-size:11px;color:var(--gray-400)">Click any source to view full breakdown</span></div>
     <div style="overflow-x:auto">
       <table class="data-table">
         <thead><tr>
@@ -5759,8 +6092,8 @@ function renderRptLeads(sc) {
             const closePct   = contacted ? (apps/contacted*100).toFixed(0) : 0;
             const cpa        = apps && cost ? fmt$(Math.round(cost/apps)) : '—';
             const revenue    = apps * 450;
-            return `<tr>
-              <td style="font-weight:700">${r.source}</td>
+            return `<tr style="cursor:pointer" onclick="openLeadSourceModal('${r.source.replace(/'/g,"\\'")}',${sc})" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background=''">
+              <td><div style="font-weight:700;color:#1A6ED0">${r.source}</div><div style="font-size:10.5px;color:var(--gray-400);margin-top:2px">Click to expand ↗</div></td>
               <td style="font-weight:700;color:var(--navy-900)">${leads}</td>
               <td>${contacted}</td>
               <td><span style="font-weight:700;color:${+contactPct>=70?'var(--green-700)':+contactPct>=50?'#1A6ED0':'var(--amber-600)'}">${contactPct}%</span></td>
@@ -5773,6 +6106,20 @@ function renderRptLeads(sc) {
             </tr>`;
           }).join('')}
         </tbody>
+        <tfoot>
+          <tr style="background:var(--navy-900)">
+            <td style="font-weight:800;font-size:13.5px;color:#fff;padding:13px 14px">Agency Total</td>
+            <td style="font-family:var(--font-display);font-weight:800;font-size:16px;color:#fff;padding:13px 14px">${totalLeads}</td>
+            <td style="font-weight:700;color:rgba(255,255,255,0.75);padding:13px 14px">${totalContacted}</td>
+            <td style="font-weight:800;color:#93C5FD;padding:13px 14px">${avgContactRate}%</td>
+            <td style="font-weight:700;color:rgba(255,255,255,0.75);padding:13px 14px">${totalQuoted}</td>
+            <td style="font-family:var(--font-display);font-weight:800;font-size:16px;color:#fff;padding:13px 14px">${totalApps}</td>
+            <td style="font-weight:800;color:#6EE7B7;padding:13px 14px">${totalContacted?Math.round(totalApps/totalContacted*100):'—'}%</td>
+            <td style="color:#FCA5A5;font-weight:800;padding:13px 14px">${totalCost?fmt$(totalCost):'$0'}</td>
+            <td style="color:#FCD34D;font-weight:700;padding:13px 14px">${avgCostPerApp?fmt$(avgCostPerApp):'—'}</td>
+            <td style="color:#6EE7B7;font-weight:800;padding:13px 14px">${fmt$(totalRevenue)}</td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   </div>
@@ -5802,7 +6149,7 @@ function renderRptCarriers(sc) {
     <div class="kpi-card accent-navy"><div class="kpi-label">Avg Premium/Policy</div><div class="kpi-value">${fmt$(avgPremPolicy)}</div><div class="kpi-sub">All carriers avg</div></div>
   </div>
   <div class="card" style="margin-bottom:14px">
-    <div class="card-header"><div class="card-title">Carrier Performance</div></div>
+    <div class="card-header"><div class="card-title">Carrier Performance</div><span style="font-size:11px;color:var(--gray-400)">Click any carrier to view full details</span></div>
     <div style="overflow-x:auto">
       <table class="data-table">
         <thead><tr><th>Carrier</th><th>Policies</th><th>Premium</th><th>Avg Premium</th><th>Bind Rate</th><th>New Clients</th><th>Renewals</th><th>Cancels</th><th>% of Total</th></tr></thead>
@@ -5815,8 +6162,8 @@ function renderRptCarriers(sc) {
             const can  = rptVal(r.cancels,  sc);
             const avg  = pol ? Math.round(prem/pol) : 0;
             const mix  = totalPolicies ? Math.round(pol/totalPolicies*100) : 0;
-            return `<tr>
-              <td style="font-weight:700">${r.name}</td>
+            return `<tr style="cursor:pointer" onclick="openCarrierModal('${r.name.replace(/'/g,"\\'")}',${sc})" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background=''">
+              <td><div style="font-weight:700;color:#1A6ED0">${r.name}</div><div style="font-size:10.5px;color:var(--gray-400);margin-top:2px">Click to expand ↗</div></td>
               <td style="font-weight:700;color:var(--navy-900)">${pol}</td>
               <td style="font-weight:700;color:var(--green-700)">${fmtK(prem)}</td>
               <td style="color:var(--gray-600)">${fmt$(avg)}</td>
@@ -5833,6 +6180,28 @@ function renderRptCarriers(sc) {
             </tr>`;
           }).join('')}
         </tbody>
+        <tfoot>
+          ${(()=>{
+            const totPol = CARRIER_DATA.reduce((s,r)=>s+rptVal(r.policies,sc),0);
+            const totPrm = CARRIER_DATA.reduce((s,r)=>s+rptVal(r.premium,sc),0);
+            const totNC  = CARRIER_DATA.reduce((s,r)=>s+rptVal(r.newClients,sc),0);
+            const totRen = CARRIER_DATA.reduce((s,r)=>s+rptVal(r.renewals,sc),0);
+            const totCan = CARRIER_DATA.reduce((s,r)=>s+rptVal(r.cancels,sc),0);
+            const avgPrm = totPol ? Math.round(totPrm/totPol) : 0;
+            const avgBR  = CARRIER_DATA.length ? (CARRIER_DATA.reduce((s,r)=>s+parseFloat(r.bindRate),0)/CARRIER_DATA.length).toFixed(0) : 0;
+            return `<tr style="background:var(--navy-900)">
+              <td style="font-weight:800;font-size:13.5px;color:#fff;padding:13px 14px">Agency Total</td>
+              <td style="font-family:var(--font-display);font-weight:800;font-size:17px;color:#fff;padding:13px 14px">${totPol}</td>
+              <td style="color:#6EE7B7;font-weight:800;padding:13px 14px">${fmtK(totPrm)}</td>
+              <td style="color:rgba(255,255,255,0.65);font-weight:700;padding:13px 14px">${fmt$(avgPrm)}</td>
+              <td style="color:#93C5FD;font-weight:800;padding:13px 14px">${avgBR}%</td>
+              <td style="color:#6EE7B7;font-weight:700;padding:13px 14px">${totNC}</td>
+              <td style="color:rgba(255,255,255,0.65);font-weight:700;padding:13px 14px">${totRen}</td>
+              <td style="color:${totCan>10?'#FCA5A5':'rgba(255,255,255,0.5)'};font-weight:700;padding:13px 14px">${totCan}</td>
+              <td style="color:rgba(255,255,255,0.4);padding:13px 14px">100%</td>
+            </tr>`;
+          })()}
+        </tfoot>
       </table>
     </div>
   </div>
