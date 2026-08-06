@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tierlink — Brand Fulfillment</title>
+<style>
+  /* ============================================================
+     TIERLINK DARK THEME
+     ============================================================ */
+  :root {
+    color-scheme: dark;
+    --page:        #0d0d0d;
+    --surface:     #1a1a19;
+    --surface-2:   #222221;
+    --ink:         #ffffff;
+    --ink-2:       #c3c2b7;
+    --ink-muted:   #898781;
+    --grid:        #2c2c2a;
+    --baseline:    #383835;
+    --border:      rgba(255,255,255,0.10);
+    --accent:      #3987e5;
+    --series-1:    #3987e5;
+    --series-2:    #d95926;
+    --series-3:    #199e70;
+    --series-4:    #c98500;
+    --good:        #0ca30c;
+    --warning:     #fab219;
+    --serious:     #ec835a;
+    --critical:    #d03b3b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  /* ---------- Layout ---------- */
+  .app { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 220px; flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .logo {
+    padding: 22px 20px 18px;
+    display: flex; align-items: center; gap: 1px;
+  }
+  .logo svg { width: 30px; height: 30px; flex-shrink: 0; }
+  .logo .word { font-size: 23px; font-weight: 800; color: #fff; letter-spacing: -0.5px; line-height: 1; }
+  .nav { flex: 1; padding: 8px 10px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 12px; margin-bottom: 2px;
+    border-radius: 8px; cursor: pointer;
+    color: var(--ink-2); font-weight: 500; user-select: none;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--ink); }
+  .nav-item.active { background: rgba(57,135,229,0.16); color: #8db9f0; }
+  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .sidebar-foot {
+    padding: 14px 20px; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--ink-muted);
+  }
+  .sidebar-foot b { display: block; color: var(--ink-2); font-size: 13px; }
+
+  .main { flex: 1; padding: 26px 30px 60px; min-width: 0; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+  .page-head h1 { font-size: 22px; font-weight: 700; }
+  .page-head .sub { color: var(--ink-muted); font-size: 13px; }
+
+  /* ---------- Cards / tiles ---------- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .card h3 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 12px; letter-spacing: .3px; }
+  .grid { display: grid; gap: 14px; }
+  .kpi-row { grid-template-columns: repeat(auto-fit, minmax(138px, 1fr)); margin-bottom: 16px; }
+  .kpi { padding: 16px 16px; }
+  .kpi .label { font-size: 12px; color: var(--ink-muted); margin-bottom: 6px; }
+  .kpi .value { font-size: 24px; font-weight: 700; }
+  .kpi .delta { font-size: 12px; margin-top: 4px; color: var(--ink-muted); }
+  .kpi .delta.up   { color: var(--good); }
+  .kpi .delta.down { color: var(--critical); }
+
+  .two-col { grid-template-columns: 1.6fr 1fr; margin-bottom: 16px; }
+  @media (max-width: 980px) { .two-col { grid-template-columns: 1fr; } .sidebar { width: 64px; } .logo, .nav-item span, .sidebar-foot { display: none; } .nav-item { justify-content: center; } .sidebar { padding-top: 16px; } }
+
+  /* ---------- Tables ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .6px; color: var(--ink-muted);
+    border-bottom: 1px solid var(--baseline);
+  }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--grid); color: var(--ink-2); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(255,255,255,0.03); }
+  td b { color: var(--ink); font-weight: 600; }
+  .table-scroll { overflow-x: auto; }
+
+  /* ---------- Badges ---------- */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+    white-space: nowrap;
+  }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .b-good     { color: var(--good);     background: rgba(12,163,12,0.13); }
+  .b-warning  { color: var(--warning);  background: rgba(250,178,25,0.12); }
+  .b-serious  { color: var(--serious);  background: rgba(236,131,90,0.13); }
+  .b-critical { color: var(--critical); background: rgba(208,59,59,0.13); }
+  .b-neutral  { color: var(--ink-2);    background: rgba(255,255,255,0.08); }
+  .b-accent   { color: #8db9f0;         background: rgba(57,135,229,0.15); }
+
+  /* ---------- Alerts ---------- */
+  .alert {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 11px 14px; border-radius: 10px; margin-bottom: 8px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    font-size: 13px; color: var(--ink-2);
+  }
+  .alert:last-child { margin-bottom: 0; }
+  .alert .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .alert b { color: var(--ink); }
+  .alert .when { margin-left: auto; color: var(--ink-muted); font-size: 12px; white-space: nowrap; }
+
+  /* ---------- Brand cards ---------- */
+  .brand-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .brand-card .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+  .brand-card .name { font-size: 16px; font-weight: 700; }
+  .brand-card .cat { font-size: 12px; color: var(--ink-muted); margin-bottom: 14px; }
+  .brand-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .brand-stats .bs .v { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .brand-stats .bs .l { font-size: 11px; color: var(--ink-muted); }
+  .brand-foot { display: flex; justify-content: space-between; border-top: 1px solid var(--grid); padding-top: 10px; font-size: 12px; color: var(--ink-2); }
+  .brand-foot b { color: var(--ink); }
+
+  /* ---------- Filters ---------- */
+  .filter-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  input[type="text"], select {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--ink); padding: 8px 12px; font-size: 13px; font-family: inherit;
+    outline: none;
+  }
+  input[type="text"]:focus, select:focus { border-color: var(--accent); }
+  input[type="text"] { min-width: 220px; }
+
+  /* ---------- Charts ---------- */
+  .chart-wrap { position: relative; }
+  .chart-wrap svg { display: block; width: 100%; height: auto; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
+  .legend .li { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
+  .legend .sw { width: 10px; height: 10px; border-radius: 3px; }
+  #tooltip {
+    position: fixed; pointer-events: none; z-index: 50; display: none;
+    background: #262625; border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 11px; font-size: 12px; color: var(--ink-2);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5); max-width: 260px;
+  }
+  #tooltip b { color: var(--ink); }
+
+  /* ---------- Settings ---------- */
+  .settings-grid { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); align-items: start; }
+  .set-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--grid); gap: 16px; }
+  .set-row:last-child { border-bottom: none; }
+  .set-row .t { font-weight: 500; }
+  .set-row .d { font-size: 12px; color: var(--ink-muted); }
+  .toggle { width: 38px; height: 21px; border-radius: 999px; background: var(--baseline); position: relative; cursor: pointer; flex-shrink: 0; transition: background .15s; }
+  .toggle::after { content: ""; position: absolute; top: 2.5px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink-2); transition: left .15s, background .15s; }
+  .toggle.on { background: var(--good); }
+  .toggle.on::after { left: 19px; background: #fff; }
+  .btn {
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--ink-2); }
+
+  .section-note { font-size: 12px; color: var(--ink-muted); margin-top: 14px; }
+  .mb { margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<div id="tooltip"></div>
+
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="logo">
+      <svg viewBox="0 0 100 104" aria-hidden="true">
+        <defs>
+          <linearGradient id="tl-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#d9ec2e"/>
+            <stop offset="0.5" stop-color="#3fd58c"/>
+            <stop offset="1" stop-color="#2fc4f3"/>
+          </linearGradient>
+        </defs>
+        <rect x="2" y="8" width="96" height="52" rx="26" fill="url(#tl-grad)"/>
+        <rect x="18" y="22" width="64" height="15" rx="5" fill="var(--surface)"/>
+        <polygon points="37,60 63,60 55,100 45,100" fill="url(#tl-grad)"/>
+        <rect x="43" y="30" width="14" height="32" fill="url(#tl-grad)"/>
+      </svg>
+      <span class="word">ierlink</span>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-item active" data-page="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z"/></svg>
+        <span>Home</span>
+      </div>
+      <div class="nav-item" data-page="brands">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v5.5L5.5 14a4.5 4.5 0 0 0 3.9 6.8h5.2a4.5 4.5 0 0 0 3.9-6.8L14 7.5V2"/><path d="M8.5 2h7"/></svg>
+        <span>Brands</span>
+      </div>
+      <div class="nav-item" data-page="inventory">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+        <span>Inventory</span>
+      </div>
+      <div class="nav-item" data-page="analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-6"/><path d="M22 20H2"/></svg>
+        <span>Analytics</span>
+      </div>
+      <div class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+        <span>Settings</span>
+      </div>
+    </nav>
+    <div class="sidebar-foot"><b>Tierlink Ownership</b>Admin view</div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+
+    <!-- ========== HOME ========== -->
+    <section class="page active" id="page-home">
+      <div class="page-head">
+        <h1>Home</h1>
+        <div class="sub" id="today-label"></div>
+      </div>
+
+      <div class="grid kpi-row" id="home-kpis"></div>
+
+      <div class="grid two-col">
+        <div class="card">
+          <h3>Cases Shipped — Last 6 Months (Top 3 Brands)</h3>
+          <div class="legend" id="ship-legend"></div>
+          <div class="chart-wrap" id="ship-chart"></div>
+        </div>
+        <div class="card">
+          <h3>Action Items</h3>
+          <div id="alerts"></div>
+        </div>
+      </div>
+
+      <div class="grid two-col">
+        <div class="card">
+          <h3>Recent Orders</h3>
+          <div class="table-scroll"><table id="orders-table"></table></div>
+        </div>
+        <div class="card">
+          <h3>Compliance Snapshot</h3>
+          <div class="table-scroll"><table id="compliance-table"></table></div>
+          <div class="section-note">COLA = federal label approval (TTB). Track renewals and new-state registrations here.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== BRANDS ========== -->
+    <section class="page" id="page-brands">
+      <div class="page-head">
+        <h1>Brands</h1>
+        <div class="sub" id="brand-count"></div>
+      </div>
+      <div class="grid brand-grid" id="brand-cards"></div>
+    </section>
+
+    <!-- ========== INVENTORY ========== -->
+    <section class="page" id="page-inventory">
+      <div class="page-head">
+        <h1>Inventory</h1>
+        <div class="sub">On-hand by SKU across all warehouses</div>
+      </div>
+      <div class="grid kpi-row" id="inv-kpis"></div>
+      <div class="filter-row">
+        <input type="text" id="inv-search" placeholder="Search SKU or product…">
+        <select id="inv-brand"><option value="">All brands</option></select>
+        <select id="inv-status">
+          <option value="">All statuses</option>
+          <option>In Stock</option>
+          <option>Low Stock</option>
+          <option>Reorder Now</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="table-scroll"><table id="inv-table"></table></div>
+      </div>
+    </section>
+
+    <!-- ========== ANALYTICS ========== -->
+    <section class="page" id="page-analytics">
+      <div class="page-head">
+        <h1>Analytics</h1>
+        <div class="sub">Year to date · all brands</div>
+      </div>
+      <div class="grid kpi-row" id="ana-kpis"></div>
+      <div class="grid two-col">
+        <div class="card">
+          <h3>YTD Revenue by Brand</h3>
+          <div class="chart-wrap" id="rev-chart"></div>
+        </div>
+        <div class="card">
+          <h3>Channel Mix — YTD Cases</h3>
+          <div id="channel-chart"></div>
+        </div>
+      </div>
+      <div class="grid two-col">
+        <div class="card">
+          <h3>Total Cases Shipped — Monthly</h3>
+          <div class="chart-wrap" id="total-chart"></div>
+        </div>
+        <div class="card">
+          <h3>Top States by Depletions (YTD)</h3>
+          <div class="table-scroll"><table id="states-table"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SETTINGS ========== -->
+    <section class="page" id="page-settings">
+      <div class="page-head">
+        <h1>Settings</h1>
+        <div class="sub">Company, team, and notifications</div>
+      </div>
+      <div class="grid settings-grid">
+        <div class="card mb">
+          <h3>Company Profile</h3>
+          <div class="set-row"><div><div class="t">Company</div><div class="d">Tierlink LLC</div></div></div>
+          <div class="set-row"><div><div class="t">Primary warehouse</div><div class="d">Bayonne, NJ</div></div></div>
+          <div class="set-row"><div><div class="t">Fulfillment partners</div><div class="d">NJ · TX · CA (3PL)</div></div></div>
+          <div class="set-row"><div><div class="t">Fiscal year start</div><div class="d">January</div></div></div>
+        </div>
+        <div class="card mb">
+          <h3>Notifications</h3>
+          <div class="set-row"><div><div class="t">Low-stock alerts</div><div class="d">Email when available falls below reorder point</div></div><div class="toggle on"></div></div>
+          <div class="set-row"><div><div class="t">Compliance deadlines</div><div class="d">30 / 14 / 7 days before renewal dates</div></div><div class="toggle on"></div></div>
+          <div class="set-row"><div><div class="t">Order holds</div><div class="d">Immediate alert when an order goes on hold</div></div><div class="toggle on"></div></div>
+          <div class="set-row"><div><div class="t">Weekly summary</div><div class="d">Monday morning digest of all brands</div></div><div class="toggle"></div></div>
+        </div>
+        <div class="card mb">
+          <h3>Team</h3>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Name</th><th>Role</th><th>Access</th></tr></thead>
+            <tbody>
+              <tr><td><b>Owner Account</b></td><td>Ownership</td><td><span class="badge b-accent">Admin</span></td></tr>
+              <tr><td>Ops Manager</td><td>Fulfillment</td><td><span class="badge b-neutral">Editor</span></td></tr>
+              <tr><td>Compliance Lead</td><td>Regulatory</td><td><span class="badge b-neutral">Editor</span></td></tr>
+              <tr><td>Bookkeeper</td><td>Finance</td><td><span class="badge b-neutral">View only</span></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="card mb">
+          <h3>Integrations</h3>
+          <div class="set-row"><div><div class="t">Google Sheets</div><div class="d">Sync orders &amp; inventory data</div></div><button class="btn ghost">Connect</button></div>
+          <div class="set-row"><div><div class="t">ShipStation</div><div class="d">Pull tracking &amp; shipment status</div></div><button class="btn ghost">Connect</button></div>
+          <div class="set-row"><div><div class="t">QuickBooks</div><div class="d">Invoice &amp; revenue sync</div></div><button class="btn ghost">Connect</button></div>
+          <div class="section-note">Integration buttons are placeholders — this dashboard runs on the sample data below until a data source is connected.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   SAMPLE DATA — edit everything in this block.
+   All brands, orders, and inventory below are fictional
+   placeholders. Replace with your real numbers.
+   ============================================================ */
+
+const BOTTLES_PER_CASE = 12; /* used to estimate Bottles Shipped from cases */
+
+const BRANDS = [
+  { name: "Northlight Vodka",    cat: "Vodka · 80 proof",          skus: 5, states: 22, distributors: 17, mtdCases: 2950, ytdRevenue: 3900000, status: "Active" },
+  { name: "Oakhaven Bourbon",    cat: "Straight Bourbon Whiskey",  skus: 4, states: 18, distributors: 14, mtdCases: 2310, ytdRevenue: 3400000, status: "Active" },
+  { name: "Solora Spritz",       cat: "RTD · Wine Spritz",         skus: 8, states: 9,  distributors: 6,  mtdCases: 4120, ytdRevenue: 1800000, status: "Active" },
+  { name: "Cerro Azul Tequila",  cat: "Tequila · Blanco / Repo",   skus: 6, states: 12, distributors: 9,  mtdCases: 1840, ytdRevenue: 2100000, status: "Active" },
+  { name: "Villa Marea Prosecco",cat: "Sparkling Wine · DOC",      skus: 4, states: 15, distributors: 11, mtdCases: 1120, ytdRevenue: 1500000, status: "Active" },
+  { name: "Copperline Rye",      cat: "Rye Whiskey · Small Batch", skus: 3, states: 8,  distributors: 5,  mtdCases: 640,  ytdRevenue: 890000,  status: "Watch" },
+];
+
+/* Monthly cases shipped, Mar–Aug, for the Home line chart (top 3 brands) */
+const MONTHS = ["Mar", "Apr", "May", "Jun", "Jul", "Aug"];
+const SHIP_SERIES = [
+  { name: "Northlight Vodka", values: [2380, 2510, 2640, 2790, 2870, 2950] },
+  { name: "Solora Spritz",    values: [1650, 2100, 2680, 3350, 3840, 4120] },
+  { name: "Oakhaven Bourbon", values: [2150, 2080, 2210, 2260, 2290, 2310] },
+];
+
+/* Total monthly cases (all brands) for Analytics */
+const TOTAL_MONTHLY = { labels: MONTHS, values: [9800, 10400, 11350, 12300, 12750, 12980] };
+
+const ORDERS = [
+  { id: "SO-2841", distributor: "Garden State Bev Co.", brand: "Northlight Vodka",   state: "NJ", cases: 420, status: "Shipped" },
+  { id: "SO-2840", distributor: "Lone Star Distributing", brand: "Solora Spritz",    state: "TX", cases: 610, status: "Processing" },
+  { id: "SO-2839", distributor: "Pacific Crest Wine & Spirits", brand: "Cerro Azul Tequila", state: "CA", cases: 260, status: "Shipped" },
+  { id: "SO-2838", distributor: "Empire Metro Beverage", brand: "Oakhaven Bourbon",  state: "NY", cases: 380, status: "Delivered" },
+  { id: "SO-2837", distributor: "Sunbelt Beverage Group", brand: "Villa Marea Prosecco", state: "FL", cases: 190, status: "Delivered" },
+  { id: "SO-2836", distributor: "Great Lakes Spirits", brand: "Copperline Rye",      state: "IL", cases: 85,  status: "On Hold" },
+  { id: "SO-2835", distributor: "Garden State Bev Co.", brand: "Solora Spritz",      state: "NJ", cases: 540, status: "Delivered" },
+  { id: "SO-2834", distributor: "Blue Ridge Wholesale", brand: "Oakhaven Bourbon",   state: "NC", cases: 220, status: "Delivered" },
+];
+
+const COMPLIANCE = [
+  { item: "COLA renewal — Copperline Rye 750ml", due: "Aug 20, 2026", status: "Due Soon" },
+  { item: "NY state brand registration — Solora Spritz", due: "Sep 1, 2026",  status: "In Progress" },
+  { item: "TX price posting — all brands", due: "Sep 10, 2026", status: "On Track" },
+  { item: "CA ABC renewal — Cerro Azul Tequila", due: "Oct 4, 2026",  status: "On Track" },
+  { item: "FL brand registration — Villa Marea", due: "Nov 15, 2026", status: "On Track" },
+];
+
+const ALERTS = [
+  { level: "critical", text: "<b>Order SO-2836 on hold</b> — Great Lakes Spirits credit check pending", when: "2h ago" },
+  { level: "serious",  text: "<b>Reorder now:</b> Solora Spritz Variety 12pk (NJ) below reorder point", when: "Today" },
+  { level: "serious",  text: "<b>COLA renewal due Aug 20</b> — Copperline Rye 750ml label", when: "15 days" },
+  { level: "warning",  text: "<b>Low stock:</b> Cerro Azul Reposado 750ml (CA) — 12 days of supply left", when: "Today" },
+  { level: "warning",  text: "<b>Aging inventory:</b> Villa Marea 187ml 4pk — 140 days on hand in TX", when: "This week" },
+];
+
+const INVENTORY = [
+  { sku: "NLV-750",  product: "Northlight Vodka 750ml",        brand: "Northlight Vodka",     wh: "NJ", onHand: 4200, allocated: 900,  reorder: 1500 },
+  { sku: "NLV-1750", product: "Northlight Vodka 1.75L",        brand: "Northlight Vodka",     wh: "NJ", onHand: 2100, allocated: 380,  reorder: 800  },
+  { sku: "NLV-750W", product: "Northlight Vodka 750ml",        brand: "Northlight Vodka",     wh: "CA", onHand: 1750, allocated: 420,  reorder: 700  },
+  { sku: "OHB-750",  product: "Oakhaven Bourbon 750ml",        brand: "Oakhaven Bourbon",     wh: "NJ", onHand: 3100, allocated: 760,  reorder: 1200 },
+  { sku: "OHB-SB",   product: "Oakhaven Single Barrel 750ml",  brand: "Oakhaven Bourbon",     wh: "NJ", onHand: 640,  allocated: 120,  reorder: 300  },
+  { sku: "OHB-750T", product: "Oakhaven Bourbon 750ml",        brand: "Oakhaven Bourbon",     wh: "TX", onHand: 1450, allocated: 510,  reorder: 600  },
+  { sku: "SSP-V12",  product: "Solora Spritz Variety 12pk",    brand: "Solora Spritz",        wh: "NJ", onHand: 820,  allocated: 640,  reorder: 1000 },
+  { sku: "SSP-P12",  product: "Solora Spritz Peach 12pk",      brand: "Solora Spritz",        wh: "NJ", onHand: 1900, allocated: 450,  reorder: 800  },
+  { sku: "SSP-V12T", product: "Solora Spritz Variety 12pk",    brand: "Solora Spritz",        wh: "TX", onHand: 1150, allocated: 610,  reorder: 700  },
+  { sku: "CAT-BL",   product: "Cerro Azul Blanco 750ml",       brand: "Cerro Azul Tequila",   wh: "CA", onHand: 2300, allocated: 380,  reorder: 900  },
+  { sku: "CAT-RP",   product: "Cerro Azul Reposado 750ml",     brand: "Cerro Azul Tequila",   wh: "CA", onHand: 690,  allocated: 260,  reorder: 500  },
+  { sku: "VMP-750",  product: "Villa Marea Prosecco 750ml",    brand: "Villa Marea Prosecco", wh: "NJ", onHand: 2750, allocated: 310,  reorder: 900  },
+  { sku: "VMP-187",  product: "Villa Marea 187ml 4pk",         brand: "Villa Marea Prosecco", wh: "TX", onHand: 980,  allocated: 60,   reorder: 300  },
+  { sku: "CLR-750",  product: "Copperline Rye 750ml",          brand: "Copperline Rye",       wh: "NJ", onHand: 1100, allocated: 150,  reorder: 400  },
+];
+
+const CHANNELS = [
+  { name: "Distributor / Wholesale", cases: 48200 },
+  { name: "National Accounts",       cases: 14800 },
+  { name: "DTC / E-commerce",        cases: 4300  },
+];
+
+const TOP_STATES = [
+  { state: "New Jersey", cases: 11400, pct: "+12%" },
+  { state: "Texas",      cases: 9800,  pct: "+21%" },
+  { state: "California", cases: 9100,  pct: "+8%"  },
+  { state: "New York",   cases: 8300,  pct: "+15%" },
+  { state: "Florida",    cases: 6900,  pct: "+9%"  },
+  { state: "Illinois",   cases: 4200,  pct: "-3%"  },
+];
+
+/* ============================================================
+   RENDERING — no need to edit below this line
+   ============================================================ */
+
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => n.toLocaleString("en-US");
+const money = (n) => n >= 1e6 ? "$" + (n / 1e6).toFixed(1) + "M" : "$" + Math.round(n / 1e3) + "K";
+const SERIES_COLORS = ["var(--series-1)", "var(--series-2)", "var(--series-3)", "var(--series-4)"];
+const SERIES_HEX = ["#3987e5", "#d95926", "#199e70", "#c98500"];
+
+/* ----- Navigation ----- */
+document.querySelectorAll(".nav-item").forEach((el) => {
+  el.addEventListener("click", () => {
+    document.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+    document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+    el.classList.add("active");
+    $("page-" + el.dataset.page).classList.add("active");
+  });
+});
+
+/* ----- Tooltip ----- */
+const tip = $("tooltip");
+function showTip(html, x, y) {
+  tip.innerHTML = html;
+  tip.style.display = "block";
+  const pad = 14;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  let left = x + pad, top = y - h - 10;
+  if (left + w > innerWidth - 8) left = x - w - pad;
+  if (top < 8) top = y + pad;
+  tip.style.left = left + "px";
+  tip.style.top = top + "px";
+}
+function hideTip() { tip.style.display = "none"; }
+
+/* ----- KPI tile helper ----- */
+function kpi(label, value, delta, dir) {
+  return `<div class="card kpi"><div class="label">${label}</div><div class="value">${value}</div>` +
+    (delta ? `<div class="delta ${dir || ""}">${delta}</div>` : "") + `</div>`;
+}
+
+/* ----- HOME ----- */
+$("today-label").textContent = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+
+const totalMtd = BRANDS.reduce((s, b) => s + b.mtdCases, 0);
+const openOrders = ORDERS.filter((o) => o.status === "Processing" || o.status === "On Hold").length;
+const lowSkus = INVENTORY.filter((r) => r.onHand - r.allocated <= r.reorder).length;
+
+$("home-kpis").innerHTML =
+  kpi("Active Brands", BRANDS.length) +
+  kpi("Bottles Shipped", fmt(totalMtd * BOTTLES_PER_CASE), "month to date", "") +
+  kpi("Cases Shipped", fmt(totalMtd), "▲ 6.2% vs July", "up") +
+  kpi("Gross Revenue", "$1.42M", "▲ 4.8% vs July", "up") +
+  kpi("Open Orders", openOrders, "1 on hold", openOrders ? "down" : "") +
+  kpi("On-Time Fulfillment", "96.4%", "▲ 1.1 pts", "up") +
+  kpi("SKUs Needing Reorder", lowSkus, "across 3 warehouses", lowSkus ? "down" : "");
+
+$("alerts").innerHTML = ALERTS.map((a) =>
+  `<div class="alert"><div class="dot" style="background:var(--${a.level})"></div><div>${a.text}</div><div class="when">${a.when}</div></div>`
+).join("");
+
+const ORDER_BADGE = { "Delivered": "b-good", "Shipped": "b-accent", "Processing": "b-warning", "On Hold": "b-critical" };
+$("orders-table").innerHTML =
+  `<thead><tr><th>Order</th><th>Distributor</th><th>Brand</th><th>State</th><th class="num">Cases</th><th>Status</th></tr></thead><tbody>` +
+  ORDERS.map((o) =>
+    `<tr><td><b>${o.id}</b></td><td>${o.distributor}</td><td>${o.brand}</td><td>${o.state}</td><td class="num">${fmt(o.cases)}</td><td><span class="badge ${ORDER_BADGE[o.status]}">${o.status}</span></td></tr>`
+  ).join("") + `</tbody>`;
+
+const COMP_BADGE = { "Due Soon": "b-serious", "In Progress": "b-warning", "On Track": "b-good" };
+$("compliance-table").innerHTML =
+  `<thead><tr><th>Item</th><th>Due</th><th>Status</th></tr></thead><tbody>` +
+  COMPLIANCE.map((c) =>
+    `<tr><td>${c.item}</td><td style="white-space:nowrap">${c.due}</td><td><span class="badge ${COMP_BADGE[c.status]}">${c.status}</span></td></tr>`
+  ).join("") + `</tbody>`;
+
+/* ----- Line chart (shared by Home + Analytics) ----- */
+function lineChart(containerId, labels, seriesList, opts = {}) {
+  const W = 640, H = 280, padL = 52, padR = 16, padT = 14, padB = 30;
+  const iw = W - padL - padR, ih = H - padT - padB;
+  const allVals = seriesList.flatMap((s) => s.values);
+  const maxV = Math.max(...allVals) * 1.12;
+  const x = (i) => padL + (i / (labels.length - 1)) * iw;
+  const y = (v) => padT + ih - (v / maxV) * ih;
+
+  let g = "";
+  const ticks = 4;
+  for (let t = 0; t <= ticks; t++) {
+    const v = (maxV / ticks) * t, yy = y(v);
+    g += `<line x1="${padL}" y1="${yy}" x2="${W - padR}" y2="${yy}" stroke="var(--grid)" stroke-width="1"/>`;
+    g += `<text x="${padL - 8}" y="${yy + 4}" text-anchor="end" font-size="11" fill="var(--ink-muted)">${fmt(Math.round(v))}</text>`;
+  }
+  labels.forEach((lb, i) => {
+    g += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="var(--ink-muted)">${lb}</text>`;
+  });
+  g += `<line x1="${padL}" y1="${padT + ih}" x2="${W - padR}" y2="${padT + ih}" stroke="var(--baseline)" stroke-width="1"/>`;
+
+  seriesList.forEach((s, si) => {
+    const pts = s.values.map((v, i) => `${x(i)},${y(v)}`).join(" ");
+    g += `<polyline points="${pts}" fill="none" stroke="${SERIES_COLORS[si]}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+
+  g += `<line id="${containerId}-xhair" x1="0" y1="${padT}" x2="0" y2="${padT + ih}" stroke="var(--ink-muted)" stroke-width="1" stroke-dasharray="3 3" style="display:none"/>`;
+  seriesList.forEach((s, si) => {
+    s.values.forEach((v, i) => {
+      g += `<circle class="${containerId}-dot ${containerId}-dot-${i}" cx="${x(i)}" cy="${y(v)}" r="4" fill="${SERIES_COLORS[si]}" stroke="var(--surface)" stroke-width="2" style="display:none"/>`;
+    });
+  });
+
+  const el = $(containerId);
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Line chart">${g}</svg>`;
+  const svg = el.querySelector("svg");
+
+  svg.addEventListener("mousemove", (e) => {
+    const r = svg.getBoundingClientRect();
+    const mx = ((e.clientX - r.left) / r.width) * W;
+    let idx = Math.round(((mx - padL) / iw) * (labels.length - 1));
+    idx = Math.max(0, Math.min(labels.length - 1, idx));
+    const xh = svg.querySelector(`#${containerId}-xhair`);
+    xh.style.display = "block";
+    xh.setAttribute("x1", x(idx)); xh.setAttribute("x2", x(idx));
+    svg.querySelectorAll(`.${containerId}-dot`).forEach((d) => (d.style.display = "none"));
+    svg.querySelectorAll(`.${containerId}-dot-${idx}`).forEach((d) => (d.style.display = "block"));
+    const rows = seriesList.map((s, si) =>
+      `<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="width:9px;height:9px;border-radius:3px;background:${SERIES_HEX[si]};display:inline-block"></span>${s.name}: <b>${fmt(s.values[idx])}</b></div>`
+    ).join("");
+    showTip(`<b>${labels[idx]}</b>${rows}`, e.clientX, e.clientY);
+  });
+  svg.addEventListener("mouseleave", () => {
+    hideTip();
+    svg.querySelector(`#${containerId}-xhair`).style.display = "none";
+    svg.querySelectorAll(`.${containerId}-dot`).forEach((d) => (d.style.display = "none"));
+  });
+}
+
+$("ship-legend").innerHTML = SHIP_SERIES.map((s, i) =>
+  `<div class="li"><span class="sw" style="background:${SERIES_HEX[i]}"></span>${s.name}</div>`
+).join("");
+lineChart("ship-chart", MONTHS, SHIP_SERIES);
+
+/* ----- BRANDS ----- */
+$("brand-count").textContent = BRANDS.length + " brands in portfolio";
+$("brand-cards").innerHTML = BRANDS.map((b) => {
+  const badge = b.status === "Active" ? "b-good" : "b-warning";
+  return `<div class="card brand-card">
+    <div class="top"><div class="name">${b.name}</div><span class="badge ${badge}">${b.status}</span></div>
+    <div class="cat">${b.cat}</div>
+    <div class="brand-stats">
+      <div class="bs"><div class="v">${b.skus}</div><div class="l">SKUs</div></div>
+      <div class="bs"><div class="v">${b.states}</div><div class="l">States</div></div>
+      <div class="bs"><div class="v">${b.distributors}</div><div class="l">Distributors</div></div>
+    </div>
+    <div class="brand-foot"><div>MTD Cases <b>${fmt(b.mtdCases)}</b></div><div>YTD Rev <b>${money(b.ytdRevenue)}</b></div></div>
+  </div>`;
+}).join("");
+
+/* ----- INVENTORY ----- */
+function invStatus(r) {
+  const avail = r.onHand - r.allocated;
+  if (avail <= r.reorder * 0.6) return "Reorder Now";
+  if (avail <= r.reorder) return "Low Stock";
+  return "In Stock";
+}
+const INV_BADGE = { "In Stock": "b-good", "Low Stock": "b-warning", "Reorder Now": "b-critical" };
+
+const totOnHand = INVENTORY.reduce((s, r) => s + r.onHand, 0);
+const totAlloc = INVENTORY.reduce((s, r) => s + r.allocated, 0);
+$("inv-kpis").innerHTML =
+  kpi("Total Cases On Hand", fmt(totOnHand)) +
+  kpi("Allocated to Orders", fmt(totAlloc)) +
+  kpi("Available to Sell", fmt(totOnHand - totAlloc)) +
+  kpi("SKUs Below Reorder", INVENTORY.filter((r) => invStatus(r) !== "In Stock").length, "needs attention", "down");
+
+[...new Set(INVENTORY.map((r) => r.brand))].forEach((b) => {
+  $("inv-brand").insertAdjacentHTML("beforeend", `<option>${b}</option>`);
+});
+
+function renderInventory() {
+  const q = $("inv-search").value.toLowerCase();
+  const fb = $("inv-brand").value;
+  const fs = $("inv-status").value;
+  const rows = INVENTORY.filter((r) => {
+    const st = invStatus(r);
+    return (!q || r.sku.toLowerCase().includes(q) || r.product.toLowerCase().includes(q)) &&
+           (!fb || r.brand === fb) && (!fs || st === fs);
+  });
+  $("inv-table").innerHTML =
+    `<thead><tr><th>SKU</th><th>Product</th><th>Brand</th><th>WH</th><th class="num">On Hand</th><th class="num">Allocated</th><th class="num">Available</th><th class="num">Reorder Pt</th><th>Status</th></tr></thead><tbody>` +
+    (rows.length ? rows.map((r) => {
+      const st = invStatus(r);
+      return `<tr><td><b>${r.sku}</b></td><td>${r.product}</td><td>${r.brand}</td><td>${r.wh}</td><td class="num">${fmt(r.onHand)}</td><td class="num">${fmt(r.allocated)}</td><td class="num">${fmt(r.onHand - r.allocated)}</td><td class="num">${fmt(r.reorder)}</td><td><span class="badge ${INV_BADGE[st]}">${st}</span></td></tr>`;
+    }).join("") : `<tr><td colspan="9" style="text-align:center;color:var(--ink-muted);padding:24px">No SKUs match these filters</td></tr>`) +
+    `</tbody>`;
+}
+["inv-search", "inv-brand", "inv-status"].forEach((id) => $(id).addEventListener("input", renderInventory));
+renderInventory();
+
+/* ----- ANALYTICS ----- */
+const ytdRev = BRANDS.reduce((s, b) => s + b.ytdRevenue, 0);
+const ytdCases = CHANNELS.reduce((s, c) => s + c.cases, 0);
+$("ana-kpis").innerHTML =
+  kpi("YTD Revenue", money(ytdRev), "▲ 14% vs last year", "up") +
+  kpi("YTD Cases Shipped", fmt(ytdCases), "▲ 11% vs last year", "up") +
+  kpi("Avg Revenue / Case", "$" + Math.round(ytdRev / ytdCases), "blended, all brands") +
+  kpi("States with Distribution", "27", "+4 added this year", "up");
+
+/* Horizontal bar chart — YTD revenue by brand (single hue, direct labels) */
+(function revChart() {
+  const data = [...BRANDS].sort((a, b) => b.ytdRevenue - a.ytdRevenue);
+  const W = 640, rowH = 40, padL = 170, padR = 70, padT = 6;
+  const H = padT + data.length * rowH + 6;
+  const iw = W - padL - padR;
+  const maxV = Math.max(...data.map((d) => d.ytdRevenue));
+  let g = "";
+  data.forEach((d, i) => {
+    const yy = padT + i * rowH + 7;
+    const bw = Math.max(8, (d.ytdRevenue / maxV) * iw);
+    const bh = rowH - 16;
+    g += `<text x="${padL - 10}" y="${yy + bh / 2 + 4}" text-anchor="end" font-size="12" fill="var(--ink-2)">${d.name}</text>`;
+    g += `<path class="rev-bar" data-i="${i}" d="M${padL},${yy} h${bw - 4} a4,4 0 0 1 4,4 v${bh - 8} a4,4 0 0 1 -4,4 h-${bw - 4} z" fill="var(--series-1)"/>`;
+    g += `<text x="${padL + bw + 8}" y="${yy + bh / 2 + 4}" font-size="12" font-weight="600" fill="var(--ink)">${money(d.ytdRevenue)}</text>`;
+  });
+  g += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - 6}" stroke="var(--baseline)" stroke-width="1"/>`;
+  $("rev-chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Revenue by brand">${g}</svg>`;
+  $("rev-chart").querySelectorAll(".rev-bar").forEach((bar) => {
+    bar.addEventListener("mousemove", (e) => {
+      const d = data[+bar.dataset.i];
+      showTip(`<b>${d.name}</b><br>YTD Revenue: <b>${money(d.ytdRevenue)}</b><br>MTD Cases: <b>${fmt(d.mtdCases)}</b>`, e.clientX, e.clientY);
+      bar.setAttribute("opacity", "0.85");
+    });
+    bar.addEventListener("mouseleave", () => { hideTip(); bar.removeAttribute("opacity"); });
+  });
+})();
+
+/* Channel mix — single stacked horizontal bar with 2px gaps */
+(function channelChart() {
+  const total = CHANNELS.reduce((s, c) => s + c.cases, 0);
+  let bar = `<div style="display:flex;gap:2px;height:26px;border-radius:6px;overflow:hidden;margin:6px 0 16px">`;
+  CHANNELS.forEach((c, i) => {
+    bar += `<div class="ch-seg" data-i="${i}" style="flex:${c.cases};background:${SERIES_HEX[i]};cursor:default"></div>`;
+  });
+  bar += `</div>`;
+  const rows = CHANNELS.map((c, i) => {
+    const pct = ((c.cases / total) * 100).toFixed(1);
+    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--grid);font-size:13px">
+      <span style="width:10px;height:10px;border-radius:3px;background:${SERIES_HEX[i]};flex-shrink:0"></span>
+      <span style="color:var(--ink-2)">${c.name}</span>
+      <span style="margin-left:auto;font-variant-numeric:tabular-nums"><b>${fmt(c.cases)}</b> <span style="color:var(--ink-muted)">· ${pct}%</span></span>
+    </div>`;
+  }).join("");
+  $("channel-chart").innerHTML = bar + rows;
+  $("channel-chart").querySelectorAll(".ch-seg").forEach((seg) => {
+    seg.addEventListener("mousemove", (e) => {
+      const c = CHANNELS[+seg.dataset.i];
+      showTip(`<b>${c.name}</b><br>${fmt(c.cases)} cases · ${((c.cases / total) * 100).toFixed(1)}%`, e.clientX, e.clientY);
+    });
+    seg.addEventListener("mouseleave", hideTip);
+  });
+})();
+
+/* Total monthly cases — single-series line */
+lineChart("total-chart", TOTAL_MONTHLY.labels, [{ name: "All brands", values: TOTAL_MONTHLY.values }]);
+
+/* Top states table */
+$("states-table").innerHTML =
+  `<thead><tr><th>State</th><th class="num">YTD Cases</th><th class="num">vs Last Year</th></tr></thead><tbody>` +
+  TOP_STATES.map((s) => {
+    const up = s.pct.startsWith("+");
+    return `<tr><td><b>${s.state}</b></td><td class="num">${fmt(s.cases)}</td><td class="num" style="color:${up ? "var(--good)" : "var(--critical)"}">${s.pct}</td></tr>`;
+  }).join("") + `</tbody>`;
+
+/* ----- SETTINGS toggles ----- */
+document.querySelectorAll(".toggle").forEach((t) => {
+  t.addEventListener("click", () => t.classList.toggle("on"));
+});
+</script>
+</body>
+</html>
