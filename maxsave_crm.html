@@ -353,12 +353,12 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .kpi-card.accent-navy { border-left: 3.5px solid var(--navy-600); }
 .kpi-card.accent-amber { border-left: 3.5px solid var(--amber); }
 .kpi-card.accent-red { border-left: 3.5px solid var(--red); }
-.kpi-label { font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
-.kpi-value { font-family: var(--font-display); font-size: 28px; font-weight: 600; color: var(--navy-900); line-height: 1; letter-spacing: -0.5px; }
+.kpi-label { font-size: 13px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+.kpi-value { font-family: var(--font-display); font-size: 32px; font-weight: 700; color: #111827; line-height: 1; letter-spacing: -0.5px; }
 .kpi-value.green { color: var(--green-700); }
 .kpi-value.red { color: var(--red); }
 .kpi-value.amber { color: #B45309; }
-.kpi-sub { font-size: 13px; color: var(--gray-500); margin-top: 7px; display: flex; align-items: center; gap: 5px; }
+.kpi-sub { font-size: 13.5px; color: #4B5563; margin-top: 7px; display: flex; align-items: center; gap: 5px; }
 .trend { font-weight: 600; display: inline-flex; align-items: center; gap: 2px; }
 .trend.up { color: var(--green-700); }
 .trend.down { color: var(--red); }
@@ -468,10 +468,16 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .donut-stat { font-family: var(--font-display); font-size: 34px; font-weight: 800; color: var(--navy-900); }
 .donut-sub { font-size: 12px; color: var(--gray-500); margin-top: 3px; }
 
-.admin-layout { display: grid; grid-template-columns: 210px 1fr; gap: 16px; align-items: start; }
-.admin-nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: var(--radius-md); font-size: 12.5px; font-weight: 500; color: var(--gray-600); cursor: pointer; transition: all 0.15s; margin-bottom: 2px; }
+.admin-layout { display: grid; grid-template-columns: 252px 1fr; gap: 16px; align-items: start; }
+.admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 15px; border-radius: var(--radius-md); font-size: 15.5px; font-weight: 500; color: var(--gray-600); cursor: pointer; transition: all 0.15s; margin-bottom: 3px; }
 .admin-nav-item:hover { background: var(--gray-50); color: var(--navy-900); }
-.admin-nav-item.active { background: var(--navy-50); color: var(--navy-900); font-weight: 600; }
+.admin-nav-item.active { background: var(--navy-50); color: var(--navy-900); font-weight: 700; }
+.admin-page-wrap .form-label { font-size: 12px; letter-spacing: 0.3px; }
+.admin-page-wrap .form-control { font-size: 13.5px; padding: 9px 13px; }
+.admin-page-wrap select.form-control { padding: 9px 13px; }
+.admin-page-wrap .card-title { font-size: 17px; }
+.admin-page-wrap .data-table th { font-size: 12.5px; }
+.admin-page-wrap .data-table td { font-size: 14px; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
@@ -638,29 +644,32 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
     </div>
   </nav>
 
-  <!-- BOTTOM PINNED ITEMS -->
-  <div style="padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.07);">
-    <div class="nav-item" onclick="nav('agency',this)">
-      <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="6" width="14" height="9" rx="1.5"/><path d="M4 6V4.5a4 4 0 0 1 8 0V6" stroke-linecap="round"/><circle cx="8" cy="10.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-      My Agency
+  <div class="sidebar-footer" style="padding:0;position:relative">
+    <!-- User popup menu (appears above on click) -->
+    <div id="sidebarUserMenu" style="display:none;position:absolute;bottom:calc(100% + 4px);left:6px;right:6px;background:linear-gradient(170deg,#0B1929 0%,#142D4C 100%);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:6px;box-shadow:0 -6px 28px rgba(0,0,0,0.55);z-index:300">
+      <div class="nav-item" onclick="nav('agency',this);closeUserMenu()" style="flex-direction:row;justify-content:flex-start;gap:10px;padding:10px 14px;margin:0 0 2px;font-size:13px;border-radius:8px">
+        <svg class="nav-ic" style="width:15px;height:15px;flex-shrink:0" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5.5" cy="5" r="2.5"/><path d="M1 13c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"/><circle cx="12" cy="5" r="2" fill-opacity=".5"/><path d="M12 10c1.8 0 3 1 3 3" fill-opacity=".5" stroke-linecap="round"/></svg>
+        Teams &amp; Agents
+      </div>
+      <div class="nav-item" onclick="nav('admin',this);closeUserMenu()" style="flex-direction:row;justify-content:flex-start;gap:10px;padding:10px 14px;margin:0 0 2px;font-size:13px;border-radius:8px">
+        <svg class="nav-ic" style="width:15px;height:15px;flex-shrink:0" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.3 3.3l1.4 1.4M11.3 11.3l1.4 1.4M3.3 12.7l1.4-1.4M11.3 4.7l1.4-1.4" stroke-linecap="round"/></svg>
+        Settings
+      </div>
+      <div style="height:1px;background:rgba(255,255,255,0.09);margin:4px 2px"></div>
+      <div class="nav-item nav-logout" onclick="showLogout();closeUserMenu()" style="flex-direction:row;justify-content:flex-start;gap:10px;padding:10px 14px;margin:0;font-size:13px;border-radius:8px">
+        <svg class="nav-ic" style="width:15px;height:15px;flex-shrink:0" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" stroke-linecap="round"/><path d="M10.5 11L14 8l-3.5-3" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 8H6" stroke-linecap="round"/></svg>
+        Log Out
+      </div>
     </div>
-    <div class="nav-item" onclick="nav('admin',this)">
-      <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.3 3.3l1.4 1.4M11.3 11.3l1.4 1.4M3.3 12.7l1.4-1.4M11.3 4.7l1.4-1.4" stroke-linecap="round"/></svg>
-      Settings
-    </div>
-    <div class="nav-item nav-logout" onclick="showLogout()">
-      <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" stroke-linecap="round"/><path d="M10.5 11L14 8l-3.5-3" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 8H6" stroke-linecap="round"/></svg>
-      Log Out
-    </div>
-  </div>
 
-  <div class="sidebar-footer">
-    <div class="user-widget">
-      <div class="avatar av-green">TB</div>
-      <div>
+    <!-- Clickable user widget -->
+    <div class="user-widget" id="sidebarUserWidget" onclick="toggleUserMenu(event)" style="padding:12px 10px;border-top:1px solid rgba(255,255,255,0.07)">
+      <div class="avatar av-green" style="flex-shrink:0">TB</div>
+      <div style="flex:1;min-width:0">
         <div class="user-name">Tony Ballo</div>
         <div class="user-role">Admin</div>
       </div>
+      <svg id="userMenuChevron" width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;transition:transform 0.2s"><path d="M2 8L6 4l4 4"/></svg>
     </div>
   </div>
 </div>
@@ -847,7 +856,7 @@ function nav(page, el) {
     agents:'Agent Management', reports:'Reports & Analytics', goals:'Goals & Tiers',
     finance:'Finance & Broker Fees', tasks:'Tasks & Follow-Ups',
     esignatures:'E Signatures', payment:'Payment Terminal', reputation:'Reputation Manager',
-    agency:'My Agency', admin:'Settings', agentprofile:'Agent Profile'
+    agency:'Teams & Agents', admin:'Settings', agentprofile:'Agent Profile'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
   document.getElementById('content').innerHTML = '';
@@ -890,6 +899,33 @@ function handleClockOut() {
   const inBtn = document.getElementById('clockInBtn');
   if (inBtn) { inBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v3.5l2.5 1.5" stroke-linecap="round"/></svg>Clock In'; inBtn.style.background = '#1A6ED0'; inBtn.style.opacity = '1'; inBtn.style.cursor = 'pointer'; }
 }
+function toggleUserMenu(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('sidebarUserMenu');
+  const chevron = document.getElementById('userMenuChevron');
+  const isOpen = menu && menu.style.display !== 'none';
+  if (isOpen) {
+    menu.style.display = 'none';
+    if (chevron) chevron.style.transform = '';
+  } else {
+    if (menu) menu.style.display = 'block';
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+  }
+}
+function closeUserMenu() {
+  const menu = document.getElementById('sidebarUserMenu');
+  const chevron = document.getElementById('userMenuChevron');
+  if (menu) menu.style.display = 'none';
+  if (chevron) chevron.style.transform = '';
+}
+document.addEventListener('click', function(e) {
+  const widget = document.getElementById('sidebarUserWidget');
+  const menu   = document.getElementById('sidebarUserMenu');
+  if (menu && menu.style.display !== 'none' && widget && !widget.contains(e.target) && !menu.contains(e.target)) {
+    closeUserMenu();
+  }
+});
+
 function showLogout() {
   document.getElementById('logoutOverlay').style.display = 'flex';
 }
@@ -3382,31 +3418,31 @@ const _actLogHTML = (function(){
 
   <!-- TOP-LINE METRIC ROW -->
   <div class="kpi-grid kpi-grid-5" style="margin-bottom:18px">
-    <div class="kpi-card accent-navy">
+    <div class="kpi-card" style="border:1.5px solid #E5E7EB">
       <div class="kpi-label">Total Leads Today</div>
       <div class="kpi-value">${totalLeadsToday}</div>
       <div class="kpi-sub">${inboundsToday} inbound · ${totalLeadsToday-inboundsToday} new ingest</div>
     </div>
-    <div class="kpi-card accent">
+    <div class="kpi-card" style="border:1.5px solid #E5E7EB">
       <div class="kpi-label">Outbound Calls</div>
       <div class="kpi-value">${outboundCalls}</div>
       <div class="mini-progress"><div class="mini-progress-fill ${barColor(outboundCoveragePct)}" style="width:${Math.min(outboundCoveragePct,100)}%"></div></div>
-      <div class="kpi-sub"><span style="font-weight:700;color:${txtColor(outboundCoveragePct)}">${outboundCoveragePct}%</span> of today's leads called</div>
+      <div class="kpi-sub"><span style="font-weight:700">${outboundCoveragePct}%</span> of today's leads called</div>
     </div>
-    <div class="kpi-card accent">
+    <div class="kpi-card" style="border:1.5px solid #E5E7EB">
       <div class="kpi-label">Texts Sent</div>
       <div class="kpi-value">${textsSent}</div>
       <div class="mini-progress"><div class="mini-progress-fill ${barColor(textCoveragePct)}" style="width:${Math.min(textCoveragePct,100)}%"></div></div>
-      <div class="kpi-sub"><span style="font-weight:700;color:${txtColor(textCoveragePct)}">${textCoveragePct}%</span> of today's leads texted</div>
+      <div class="kpi-sub"><span style="font-weight:700">${textCoveragePct}%</span> of today's leads texted</div>
     </div>
-    <div class="kpi-card accent-amber">
+    <div class="kpi-card" style="border:1.5px solid #E5E7EB">
       <div class="kpi-label">Inbound Calls</div>
       <div class="kpi-value">${inboundsToday}</div>
       <div class="kpi-sub">${inboundsAnswered} answered · ${inboundsToday-inboundsAnswered} missed</div>
     </div>
-    <div class="kpi-card accent-amber">
+    <div class="kpi-card" style="border:1.5px solid #E5E7EB">
       <div class="kpi-label">Inbound Answer Rate</div>
-      <div class="kpi-value" style="color:${txtColor(inboundAnswerPct)}">${inboundAnswerPct}%</div>
+      <div class="kpi-value">${inboundAnswerPct}%</div>
       <div class="mini-progress"><div class="mini-progress-fill ${barColor(inboundAnswerPct)}" style="width:${Math.min(inboundAnswerPct,100)}%"></div></div>
       <div class="kpi-sub">${inboundsAnswered} of ${inboundsToday} inbounds answered</div>
     </div>
@@ -5447,7 +5483,408 @@ window.PAGE_INIT.inbox = function(){ refreshInbox(); };
 PAGES.esignatures= stubPage('✍️','E Signatures','Send, track & manage digital signature requests. Coming soon.');
 PAGES.payment    = stubPage('💳','Payment Terminal','Collect broker fees & process payments. Coming soon.');
 PAGES.reputation = stubPage('⭐','Reputation Manager','Reviews, ratings & online presence. Coming soon.');
-PAGES.agency     = stubPage('🏢','My Agency','Agency profile, branding & team overview. Coming soon.');
+PAGES.agency = '';
+window.PAGE_INIT = window.PAGE_INIT || {};
+window.PAGE_INIT.agency = function(){ renderAgencyPage(); };
+
+window.AGENCY_STATE = window.AGENCY_STATE || { teamFilter:'All', roleFilter:'All' };
+
+window.TEAM_MEMBERS = window.TEAM_MEMBERS || [
+  { name:'Sarah Kim',     first:'Sarah',  last:'Kim',    email:'sarah.k@maxsave.com',  phone:'(619) 555-1001', ext:'101', role:'Admin', tier:'Tier 1', team:'Alpha', status:'Active',   startDate:'2023-03-15', goalApps:25, goalFee:10000, goalPremium:45000, goalClose:40, goalContact:75, permViewAll:true,  permReports:true,  permPayments:true,  permManage:true,  permAddRemove:true  },
+  { name:'Marcus Rivera', first:'Marcus', last:'Rivera', email:'marcus.r@maxsave.com', phone:'(619) 555-1002', ext:'102', role:'Agent', tier:'Tier 2', team:'Alpha', status:'Active',   startDate:'2023-06-01', goalApps:20, goalFee:8500,  goalPremium:37000, goalClose:35, goalContact:70, permViewAll:false, permReports:true,  permPayments:false, permManage:false, permAddRemove:false },
+  { name:'Jordan Torres', first:'Jordan', last:'Torres', email:'jordan.t@maxsave.com', phone:'(619) 555-1003', ext:'103', role:'Agent', tier:'Tier 3', team:'Beta',  status:'Active',   startDate:'2024-01-10', goalApps:20, goalFee:8000,  goalPremium:30000, goalClose:30, goalContact:65, permViewAll:false, permReports:true,  permPayments:false, permManage:false, permAddRemove:false },
+  { name:'Ashley Lee',    first:'Ashley', last:'Lee',    email:'ashley.l@maxsave.com', phone:'(619) 555-1004', ext:'104', role:'Agent', tier:'Tier 3', team:'Beta',  status:'Active',   startDate:'2024-02-20', goalApps:20, goalFee:8000,  goalPremium:30000, goalClose:30, goalContact:65, permViewAll:false, permReports:true,  permPayments:false, permManage:false, permAddRemove:false },
+  { name:'Chris Park',    first:'Chris',  last:'Park',   email:'chris.p@maxsave.com',  phone:'(619) 555-1005', ext:'105', role:'Agent', tier:'Tier 4', team:'Alpha', status:'Active',   startDate:'2024-08-05', goalApps:15, goalFee:6000,  goalPremium:20000, goalClose:25, goalContact:55, permViewAll:false, permReports:false, permPayments:false, permManage:false, permAddRemove:false },
+  { name:'Nina Reyes',    first:'Nina',   last:'Reyes',  email:'nina.r@maxsave.com',   phone:'(619) 555-1006', ext:'106', role:'Agent', tier:'Tier 4', team:'Beta',  status:'Active',   startDate:'2024-09-12', goalApps:15, goalFee:6000,  goalPremium:20000, goalClose:25, goalContact:55, permViewAll:false, permReports:false, permPayments:false, permManage:false, permAddRemove:false },
+  { name:'Brian Walsh',   first:'Brian',  last:'Walsh',  email:'brian.w@maxsave.com',  phone:'(619) 555-1007', ext:'107', role:'Agent', tier:'Tier 4', team:'Beta',  status:'Inactive', startDate:'2025-01-08', goalApps:15, goalFee:6000,  goalPremium:20000, goalClose:25, goalContact:55, permViewAll:false, permReports:false, permPayments:false, permManage:false, permAddRemove:false },
+];
+
+function renderAgencyPage() {
+  const s   = window.AGENCY_STATE;
+  const all = window.TEAM_MEMBERS;
+  let members = all.slice();
+  if (s.teamFilter !== 'All') members = members.filter(m => m.team === s.teamFilter);
+  if (s.roleFilter !== 'All') members = members.filter(m => m.role === s.roleFilter);
+
+  const admins = all.filter(m => m.role === 'Admin').length;
+  const active = all.filter(m => m.status === 'Active').length;
+  const inact  = all.filter(m => m.status !== 'Active').length;
+
+  const avBg  = ['#1C2B4B','#1A6ED0','#16A34A','#7C3AED','#B45309','#0E7490','#DB2777','#D97706'];
+  const inits = m => ((m.first||'')[0]||'').toUpperCase() + ((m.last||'')[0]||'').toUpperCase();
+
+  const roleBadge = r => r==='Admin'
+    ? '<span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:700">Admin</span>'
+    : '<span style="background:#F9FAFB;color:#374151;border:1px solid #E5E7EB;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:700">Agent</span>';
+
+  const tierBadge = t => {
+    const st={'Tier 1':'background:#1C2B4B;color:#fff','Tier 2':'background:#F5F3FF;color:#5B21B6','Tier 3':'background:#FFFBEB;color:#92400E','Tier 4':'background:#F8FAFC;color:#475569'};
+    return `<span style="${st[t]||st['Tier 4']};padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:700">${t}</span>`;
+  };
+
+  const statusBadge = st => {
+    if (st==='Active')   return '<span style="background:#DCFCE7;color:#16A34A;border:1px solid #86EFAC;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:700">● Active</span>';
+    if (st==='Inactive') return '<span style="background:#F3F4F6;color:#6B7280;border:1px solid #D1D5DB;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:700">○ Inactive</span>';
+    return '<span style="background:#FEF2F2;color:#DC2626;border:1px solid #FCA5A5;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:700">⊗ Suspended</span>';
+  };
+
+  const rows = members.map(m => {
+    const a   = AGENTS.find(x => x.name === m.name);
+    const ext = AGENT_EXTENDED_DATA[m.name] || {};
+    const bg  = avBg[all.indexOf(m) % avBg.length];
+    const hitGoal = a && a.apps >= m.goalApps;
+    const esc = m.name.replace(/'/g,"\\'");
+    const pct = a ? Math.min(100, Math.round(a.apps / m.goalApps * 100)) : 0;
+    const started = m.startDate ? new Date(m.startDate).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '—';
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:38px;height:38px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0;font-family:var(--font-display)">${inits(m)}</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--navy-900)">${m.name}</div>
+            <div style="font-size:11px;color:var(--gray-400)">${m.email}</div>
+            <div style="font-size:11px;color:var(--gray-400)">${m.phone}${m.ext?' · Ext '+m.ext:''}</div>
+          </div>
+        </div>
+      </td>
+      <td>${roleBadge(m.role)}</td>
+      <td>${tierBadge(m.tier)}</td>
+      <td style="color:var(--gray-600);font-weight:600">${m.team||'—'}</td>
+      <td>${statusBadge(m.status)}</td>
+      <td>
+        <div style="font-weight:700;color:var(--navy-900)">${m.goalApps} apps</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:1px">${fmt$(m.goalFee)} fee goal</div>
+      </td>
+      <td>
+        ${a ? `<div style="font-weight:700;color:${hitGoal?'var(--green-700)':'var(--navy-900)'}">${a.apps}<span style="font-size:10.5px;color:var(--gray-400);font-weight:500"> / ${m.goalApps}</span></div>
+        <div style="width:72px;height:5px;border-radius:3px;background:var(--gray-100);overflow:hidden;margin-top:4px"><div style="width:${pct}%;height:100%;background:${hitGoal?'var(--green-500)':'#1A6ED0'}"></div></div>` : '<span style="color:var(--gray-400)">—</span>'}
+      </td>
+      <td>
+        ${a ? `<div style="color:var(--green-700);font-weight:700">${fmt$(a.fee)}</div><div style="font-size:11px;color:#B45309">Ext: ${fmt$(ext.feeExtended||0)}</div>` : '<span style="color:var(--gray-400)">—</span>'}
+      </td>
+      <td style="font-weight:600;color:var(--gray-600)">${a?a.close:'—'}</td>
+      <td style="font-size:12px;color:var(--gray-500)">${started}</td>
+      <td>
+        <div style="display:flex;gap:5px">
+          <button onclick="openAgentModal('${esc}');" style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:6px;padding:5px 12px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:var(--font-body)">✏ Edit</button>
+          <button onclick="confirmRemoveAgent('${esc}');" style="background:#FEF2F2;color:#DC2626;border:1px solid #FCA5A5;border-radius:6px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:var(--font-body)">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const html = `
+  <div class="page-header" style="margin-bottom:0">
+    <div class="page-header-left">
+      <h1 style="font-family:var(--font-display)">Teams &amp; Agents</h1>
+      <p style="color:var(--gray-500);margin-top:4px">Manage your agent roster, goals, and access permissions</p>
+    </div>
+    <button class="btn btn-primary" onclick="openAgentModal(null);" style="font-size:13.5px">＋ Add Agent</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0 20px">
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;box-shadow:var(--shadow-sm)">
+      <div style="font-size:28px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${all.length}</div>
+      <div style="font-size:12px;font-weight:600;color:var(--gray-500);margin-top:3px">Total Members</div>
+    </div>
+    <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--radius-lg);padding:14px 16px;text-align:center">
+      <div style="font-size:28px;font-weight:800;color:#1D4ED8;font-family:var(--font-display)">${admins}</div>
+      <div style="font-size:12px;font-weight:600;color:#1D4ED8;margin-top:3px">Admins</div>
+    </div>
+    <div style="background:#F9FAFB;border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center">
+      <div style="font-size:28px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${all.length - admins}</div>
+      <div style="font-size:12px;font-weight:600;color:var(--gray-500);margin-top:3px">Agents</div>
+    </div>
+    <div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:var(--radius-lg);padding:14px 16px;text-align:center">
+      <div style="font-size:28px;font-weight:800;color:#16A34A;font-family:var(--font-display)">${active}</div>
+      <div style="font-size:12px;font-weight:600;color:#16A34A;margin-top:3px">Active</div>
+    </div>
+    <div style="background:#FFF5F5;border:1px solid #FCA5A5;border-radius:var(--radius-lg);padding:14px 16px;text-align:center">
+      <div style="font-size:28px;font-weight:800;color:#DC2626;font-family:var(--font-display)">${inact}</div>
+      <div style="font-size:12px;font-weight:600;color:#DC2626;margin-top:3px">Inactive / Suspended</div>
+    </div>
+  </div>
+
+  <div class="card" style="overflow:hidden">
+    <div class="card-header">
+      <div class="card-title">Agent Roster</div>
+      <div style="display:flex;gap:8px">
+        <select class="filter-select" style="font-size:12.5px" onchange="window.AGENCY_STATE.teamFilter=this.value;renderAgencyPage()">
+          <option value="All"   ${s.teamFilter==='All'?'selected':''}>All Teams</option>
+          <option value="Alpha" ${s.teamFilter==='Alpha'?'selected':''}>Alpha</option>
+          <option value="Beta"  ${s.teamFilter==='Beta'?'selected':''}>Beta</option>
+        </select>
+        <select class="filter-select" style="font-size:12.5px" onchange="window.AGENCY_STATE.roleFilter=this.value;renderAgencyPage()">
+          <option value="All"   ${s.roleFilter==='All'?'selected':''}>All Roles</option>
+          <option value="Admin" ${s.roleFilter==='Admin'?'selected':''}>Admin</option>
+          <option value="Agent" ${s.roleFilter==='Agent'?'selected':''}>Agent</option>
+        </select>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr>
+          <th style="min-width:210px">Agent</th><th>Role</th><th>Tier</th><th>Team</th><th>Status</th>
+          <th>Goals</th><th>Apps (PP)</th><th>Fee Collected</th><th>Close Rate</th><th>Since</th>
+          <th style="min-width:110px">Actions</th>
+        </tr></thead>
+        <tbody>${rows || '<tr><td colspan="11" style="text-align:center;color:var(--gray-400);padding:28px">No agents match this filter.</td></tr>'}</tbody>
+      </table>
+    </div>
+  </div>`;
+
+  const c = document.getElementById('content');
+  if (!c) return;
+  c.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'page-content';
+  div.innerHTML = html;
+  c.appendChild(div);
+}
+
+function openAgentModal(name) {
+  const isNew = !name;
+  const m = isNew
+    ? { first:'', last:'', email:'', phone:'', ext:'', role:'Agent', tier:'Tier 4', team:'Alpha', status:'Active', startDate:'', goalApps:15, goalFee:6000, goalPremium:20000, goalClose:25, goalContact:55, permViewAll:false, permReports:false, permPayments:false, permManage:false, permAddRemove:false }
+    : (window.TEAM_MEMBERS.find(x => x.name === name) || {});
+
+  window._editingAgent = name || null;
+  const a   = AGENTS.find(x => x.name === name);
+  const ext = AGENT_EXTENDED_DATA[name] || {};
+
+  let overlay = document.getElementById('agentModalOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'agentModalOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    overlay.onclick = e => { if(e.target===overlay) closeAgentModal(); };
+    document.body.appendChild(overlay);
+  }
+
+  const fld = (lbl, id, val, type) => `
+    <div class="form-group">
+      <div class="form-label">${lbl}</div>
+      <input type="${type||'text'}" id="${id}" class="form-control" value="${escAttr(String(val||''))}" style="font-family:var(--font-body)">
+    </div>`;
+
+  const numFld = (lbl, id, val, unit, min) => `
+    <div class="form-group">
+      <div class="form-label">${lbl}</div>
+      <div style="display:flex;align-items:center;gap:7px">
+        ${unit==='$'?'<span style="color:var(--gray-500)">$</span>':''}
+        <input type="number" id="${id}" class="form-control" value="${val||0}" min="${min||0}" style="font-family:var(--font-body)">
+        ${unit&&unit!=='$'?`<span style="color:var(--gray-500);font-size:13px">${unit}</span>`:''}
+      </div>
+    </div>`;
+
+  const perm = (id, checked, lbl) => `
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 13px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--gray-50);margin-bottom:7px">
+      <input type="checkbox" id="${id}" ${checked?'checked':''} style="width:15px;height:15px;cursor:pointer;accent-color:#1A6ED0">
+      <span style="font-size:13px;color:var(--navy-900);font-weight:500">${lbl}</span>
+    </label>`;
+
+  const secHd = t => `<div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.8px;padding-bottom:8px;border-bottom:2px solid var(--border);margin:22px 0 14px">${t}</div>`;
+
+  const sel = (lbl, id, opts, cur) => `
+    <div class="form-group">
+      <div class="form-label">${lbl}</div>
+      <select id="${id}" class="form-control" style="font-family:var(--font-body)">
+        ${opts.map(([v,l])=>`<option value="${v}" ${cur===v?'selected':''}>${l}</option>`).join('')}
+      </select>
+    </div>`;
+
+  const metricsSection = (!isNew && a) ? `
+    ${secHd('Current Performance — Pay Period (Read Only)')}
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Apps</div>
+        <div style="font-size:24px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${a.apps}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:2px">Goal: ${a.goal}</div>
+      </div>
+      <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Fee Collected</div>
+        <div style="font-size:22px;font-weight:800;color:var(--green-700);font-family:var(--font-display)">${fmt$(a.fee)}</div>
+        <div style="font-size:11px;color:#B45309;margin-top:2px">Ext: ${fmt$(ext.feeExtended||0)}</div>
+      </div>
+      <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Premium Written</div>
+        <div style="font-size:22px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${fmtK(a.premium)}</div>
+      </div>
+      <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Close Rate</div>
+        <div style="font-size:22px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${a.close}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:2px">Contact: ${a.contact}</div>
+      </div>
+      <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Calls (PP)</div>
+        <div style="font-size:22px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${ext.totalCalls||'—'}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:2px">Missed: ${ext.missedCalls||0}</div>
+      </div>
+      <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Texts Sent</div>
+        <div style="font-size:22px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${ext.textsSent||'—'}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:2px">Recv: ${ext.textsRecv||0}</div>
+      </div>
+    </div>` : '';
+
+  const escName = (name||'').replace(/'/g,"\\'");
+
+  overlay.innerHTML = `
+<div style="background:#fff;border-radius:var(--radius-xl);width:660px;max-width:96vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3)" onclick="event.stopPropagation()">
+  <div style="background:linear-gradient(135deg,#0E2340 0%,#1A6ED0 100%);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    <div>
+      <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:#fff">${isNew?'Add New Agent':'Edit Agent — '+name}</div>
+      <div style="font-size:11.5px;color:rgba(255,255,255,0.6);margin-top:3px">${isNew?'Fill in details to create a new team member':'Update profile, goals &amp; access settings'}</div>
+    </div>
+    <div style="cursor:pointer;font-size:20px;color:rgba(255,255,255,0.65);padding:4px 8px;line-height:1" onclick="closeAgentModal()">✕</div>
+  </div>
+
+  <div style="overflow-y:auto;flex:1;padding:20px 22px">
+
+    ${secHd('Agent Information')}
+    <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px">
+      ${fld('First Name','am_first',m.first)}
+      ${fld('Last Name','am_last',m.last)}
+      ${fld('Email','am_email',m.email,'email')}
+      ${fld('Phone','am_phone',m.phone)}
+      ${fld('Extension','am_ext',m.ext)}
+      ${fld('Start Date','am_startDate',m.startDate,'date')}
+    </div>
+    <div class="form-group" style="margin-top:12px">
+      <div class="form-label">Status</div>
+      <select id="am_status" class="form-control" style="font-family:var(--font-body)">
+        <option value="Active"    ${(m.status||'Active')==='Active'?'selected':''}>Active</option>
+        <option value="Inactive"  ${m.status==='Inactive'?'selected':''}>Inactive</option>
+        <option value="Suspended" ${m.status==='Suspended'?'selected':''}>Suspended</option>
+      </select>
+    </div>
+
+    ${secHd('Access &amp; Role')}
+    <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+      <div class="form-group">
+        <div class="form-label">Role</div>
+        <select id="am_role" class="form-control" style="font-family:var(--font-body)">
+          <option value="Admin" ${m.role==='Admin'?'selected':''}>Admin</option>
+          <option value="Agent" ${(!m.role||m.role==='Agent')?'selected':''}>Agent</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Tier</div>
+        <select id="am_tier" class="form-control" style="font-family:var(--font-body)">
+          <option value="Tier 1" ${m.tier==='Tier 1'?'selected':''}>Tier 1 — Top</option>
+          <option value="Tier 2" ${m.tier==='Tier 2'?'selected':''}>Tier 2</option>
+          <option value="Tier 3" ${m.tier==='Tier 3'?'selected':''}>Tier 3</option>
+          <option value="Tier 4" ${(!m.tier||m.tier==='Tier 4')?'selected':''}>Tier 4 — Entry</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Team</div>
+        <select id="am_team" class="form-control" style="font-family:var(--font-body)">
+          <option value="Alpha" ${m.team==='Alpha'?'selected':''}>Alpha</option>
+          <option value="Beta"  ${m.team==='Beta'?'selected':''}>Beta</option>
+          <option value="None"  ${(!m.team||m.team==='None')?'selected':''}>None</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-label" style="margin-bottom:9px">Permissions</div>
+    ${perm('am_pViewAll',   m.permViewAll,   'View all agents’ leads and data')}
+    ${perm('am_pReports',   m.permReports,   'Access reports &amp; analytics')}
+    ${perm('am_pPayments',  m.permPayments,  'Process payments &amp; view billing')}
+    ${perm('am_pManage',    m.permManage,    'Manage team settings &amp; pay periods')}
+    ${perm('am_pAddRemove', m.permAddRemove, 'Add or remove agents (Admin recommended)')}
+
+    ${secHd('Goals — Per Pay Period')}
+    <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px">
+      ${numFld('Apps Goal','am_goalApps',m.goalApps,'apps / period')}
+      ${numFld('Fee Collected Goal','am_goalFee',m.goalFee,'$')}
+      ${numFld('Premium Written Goal','am_goalPremium',m.goalPremium,'$')}
+      ${numFld('Close Rate Target','am_goalClose',m.goalClose,'%')}
+      ${numFld('Contact Rate Target','am_goalContact',m.goalContact,'%')}
+    </div>
+
+    ${metricsSection}
+  </div>
+
+  <div style="padding:14px 22px;border-top:1px solid var(--border);background:var(--gray-50);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    ${!isNew ? `<button onclick="confirmRemoveAgent('${escName}');closeAgentModal();" style="background:#FEF2F2;color:#DC2626;border:1px solid #FCA5A5;border-radius:var(--radius-md);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">🗑 Remove Agent</button>` : '<div></div>'}
+    <div style="display:flex;gap:8px">
+      <button onclick="closeAgentModal()" class="btn btn-ghost" style="font-size:13px">Cancel</button>
+      <button onclick="saveAgent()" class="btn btn-primary" style="font-size:13px;padding:9px 24px">💾 Save Changes</button>
+    </div>
+  </div>
+</div>`;
+
+  overlay.style.display = 'flex';
+}
+
+function closeAgentModal() {
+  const el = document.getElementById('agentModalOverlay');
+  if (el) el.style.display = 'none';
+}
+
+function saveAgent() {
+  const g   = id => document.getElementById(id);
+  const v   = id => (g(id) && g(id).value.trim()) || '';
+  const num = id => parseInt(g(id) && g(id).value) || 0;
+  const chk = id => !!(g(id) && g(id).checked);
+
+  const first = v('am_first');
+  const last  = v('am_last');
+  if (!first || !last) { alert('Please enter both a first and last name.'); return; }
+  const newName = first + ' ' + last;
+  const oldName = window._editingAgent;
+  const isNew   = !oldName;
+
+  const member = {
+    name: newName, first, last,
+    email:     v('am_email'),
+    phone:     v('am_phone'),
+    ext:       v('am_ext'),
+    role:      v('am_role'),
+    tier:      v('am_tier'),
+    team:      v('am_team'),
+    status:    v('am_status'),
+    startDate: v('am_startDate'),
+    goalApps:    num('am_goalApps')    || 15,
+    goalFee:     num('am_goalFee')     || 6000,
+    goalPremium: num('am_goalPremium') || 20000,
+    goalClose:   num('am_goalClose')   || 25,
+    goalContact: num('am_goalContact') || 55,
+    permViewAll:   chk('am_pViewAll'),
+    permReports:   chk('am_pReports'),
+    permPayments:  chk('am_pPayments'),
+    permManage:    chk('am_pManage'),
+    permAddRemove: chk('am_pAddRemove'),
+  };
+
+  if (isNew) {
+    window.TEAM_MEMBERS.push(member);
+    AGENTS.push({ name:newName, apps:0, goal:member.goalApps, fee:0, feeGoal:member.goalFee, premium:0, tier:member.tier, close:'0%', contact:'0%', leads:0, rank:AGENTS.length+1 });
+  } else {
+    const ti = window.TEAM_MEMBERS.findIndex(m => m.name === oldName);
+    if (ti >= 0) window.TEAM_MEMBERS[ti] = member;
+    const ai = AGENTS.findIndex(a => a.name === oldName);
+    if (ai >= 0) {
+      AGENTS[ai].name    = newName;
+      AGENTS[ai].goal    = member.goalApps;
+      AGENTS[ai].feeGoal = member.goalFee;
+      AGENTS[ai].tier    = member.tier;
+    }
+    if (oldName !== newName && AGENT_EXTENDED_DATA[oldName]) {
+      AGENT_EXTENDED_DATA[newName] = AGENT_EXTENDED_DATA[oldName];
+      delete AGENT_EXTENDED_DATA[oldName];
+    }
+  }
+
+  closeAgentModal();
+  renderAgencyPage();
+}
+
+function confirmRemoveAgent(name) {
+  if (!confirm('Remove ' + name + ' from the team? This cannot be undone.')) return;
+  window.TEAM_MEMBERS = window.TEAM_MEMBERS.filter(m => m.name !== name);
+  renderAgencyPage();
+}
 
 // ==================== REPORTS ====================
 
@@ -5508,6 +5945,45 @@ const FEE_AGING_DATA = [
   { bucket:'61–90 days', amount:2600, count:5  },
   { bucket:'90+ days',   amount:1150, count:3  },
 ];
+
+const FEE_AGING_ACCOUNTS = {
+  '0–30 days': [
+    { name:'Maria Gonzalez',   agent:'Sarah Kim',     carrier:'Progressive',     days:8,  amount:685 },
+    { name:'James Torres',     agent:'Marcus Rivera', carrier:'National General', days:14, amount:683 },
+    { name:'Linda Park',       agent:'Sarah Kim',     carrier:'Bristol West',    days:22, amount:690 },
+    { name:'Robert Chen',      agent:'Kira Patel',    carrier:'Mercury',         days:5,  amount:675 },
+    { name:'Sofia Martinez',   agent:'Marcus Rivera', carrier:'Kemper',          days:18, amount:695 },
+    { name:'David Williams',   agent:'Sarah Kim',     carrier:'Progressive',     days:27, amount:680 },
+    { name:'Anna Rodriguez',   agent:'Kira Patel',    carrier:'InsureMax',       days:11, amount:678 },
+    { name:'Carlos Reyes',     agent:'Marcus Rivera', carrier:'National General', days:29, amount:682 },
+    { name:'Patricia Nguyen',  agent:'Sarah Kim',     carrier:'Bristol West',    days:3,  amount:677 },
+    { name:'Michael Torres',   agent:'Kira Patel',    carrier:'Progressive',     days:17, amount:686 },
+    { name:'Jennifer Lee',     agent:'Sarah Kim',     carrier:'Mercury',         days:25, amount:679 },
+    { name:'Antonio Vega',     agent:'Marcus Rivera', carrier:'Kemper',          days:9,  amount:690 },
+  ],
+  '31–60 days': [
+    { name:'Brenda Castillo',  agent:'Marcus Rivera', carrier:'Progressive',     days:35, amount:675 },
+    { name:'Kevin Ortega',     agent:'Sarah Kim',     carrier:'National General', days:42, amount:675 },
+    { name:'Diana Flores',     agent:'Kira Patel',    carrier:'Bristol West',    days:51, amount:675 },
+    { name:'Oscar Mendez',     agent:'Marcus Rivera', carrier:'Mercury',         days:38, amount:675 },
+    { name:'Tamara Jackson',   agent:'Sarah Kim',     carrier:'Kemper',          days:44, amount:675 },
+    { name:'Frank Jimenez',    agent:'Kira Patel',    carrier:'InsureMax',       days:56, amount:675 },
+    { name:'Melissa Torres',   agent:'Sarah Kim',     carrier:'Progressive',     days:33, amount:675 },
+    { name:'Samuel Wright',    agent:'Marcus Rivera', carrier:'National General', days:48, amount:675 },
+  ],
+  '61–90 days': [
+    { name:'Gloria Perez',     agent:'Sarah Kim',     carrier:'Progressive',     days:65, amount:520 },
+    { name:'Timothy Clark',    agent:'Marcus Rivera', carrier:'Bristol West',    days:72, amount:520 },
+    { name:'Rachel Adams',     agent:'Kira Patel',    carrier:'National General', days:88, amount:520 },
+    { name:'Diego Morales',    agent:'Sarah Kim',     carrier:'Mercury',         days:77, amount:520 },
+    { name:'Natalie Kim',      agent:'Marcus Rivera', carrier:'Kemper',          days:61, amount:520 },
+  ],
+  '90+ days': [
+    { name:'Eugene Brown',     agent:'Marcus Rivera', carrier:'Progressive',     days:95,  amount:384 },
+    { name:'Sandra Lopez',     agent:'Sarah Kim',     carrier:'National General', days:112, amount:383 },
+    { name:'Harold Young',     agent:'Kira Patel',    carrier:'Bristol West',    days:134, amount:383 },
+  ],
+};
 
 const COMMISSION_RATES = { 'Tier 1':0.40, 'Tier 2':0.35, 'Tier 3':0.30, 'Tier 4':0.25 };
 
@@ -6507,20 +6983,63 @@ function renderRptNewBusiness(sc) {
 }
 
 function renderRptFees(sc, totalFeeCollected, totalFeeExtended) {
-  const totalBooked   = totalFeeCollected + totalFeeExtended;
-  const collectRate   = totalBooked ? Math.round(totalFeeCollected/totalBooked*100) : 0;
-  const totalApps     = AGENTS.reduce((s,a)=>s+rptVal(a.apps,sc),0);
-  const avgFeeApp     = totalApps ? Math.round(totalFeeCollected/totalApps) : 0;
-  const outstanding   = FEE_AGING_DATA.reduce((s,r)=>s+r.amount,0);
+  // PP = current pay period (Jul 16–31), MTD = full month (Jul 1–31)
+  const scPP  = 1.0;
+  const scMTD = 1.94;
+
+  const ppCollected  = AGENTS.reduce((s,a)=>s+rptFee(a.fee,scPP),0);
+  const ppExtended   = AGENTS.reduce((s,a)=>s+rptFee((AGENT_EXTENDED_DATA[a.name]||{}).feeExtended||0,scPP),0);
+  const ppBooked     = ppCollected + ppExtended;
+  const ppRate       = ppBooked ? Math.round(ppCollected/ppBooked*100) : 0;
+
+  const mtdCollected = AGENTS.reduce((s,a)=>s+rptFee(a.fee,scMTD),0);
+  const mtdExtended  = AGENTS.reduce((s,a)=>s+rptFee((AGENT_EXTENDED_DATA[a.name]||{}).feeExtended||0,scMTD),0);
+  const mtdBooked    = mtdCollected + mtdExtended;
+  const mtdRate      = mtdBooked ? Math.round(mtdCollected/mtdBooked*100) : 0;
+
+  const outstanding      = FEE_AGING_DATA.reduce((s,r)=>s+r.amount,0);
+  const outstandingCount = FEE_AGING_DATA.reduce((s,r)=>s+r.count,0);
+
+  const ppTag  = `<div style="font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px">Pay Period · Jul 16–31</div>`;
+  const mtdRow = (val, color) => `<div style="margin-top:8px;padding-top:7px;border-top:1px solid rgba(0,0,0,0.07)"><div style="font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:2px">MTD · Jul</div><div style="font-size:15px;font-weight:800;color:${color}">${val}</div></div>`;
+
   return `
-  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(6,1fr)">
-    <div class="kpi-card accent"><div class="kpi-label">Fee Collected</div><div class="kpi-value green">${fmt$(totalFeeCollected)}</div><div class="kpi-sub">Cash received</div></div>
-    <div class="kpi-card accent-amber" style="border-left:4px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB,#FEF3C7)"><div class="kpi-label">Fee Extended</div><div class="kpi-value" style="color:#B45309">${fmt$(totalFeeExtended)}</div><div class="kpi-sub">Pending collection</div></div>
-    <div class="kpi-card accent-navy"><div class="kpi-label">Total Booked</div><div class="kpi-value">${fmt$(totalBooked)}</div><div class="kpi-sub">Collected + Extended</div></div>
-    <div class="kpi-card accent"><div class="kpi-label">Collection Rate</div><div class="kpi-value green">${collectRate}%</div><div class="kpi-sub">Of total booked</div></div>
-    <div class="kpi-card accent-navy"><div class="kpi-label">Avg Fee/App</div><div class="kpi-value">${fmt$(avgFeeApp)}</div><div class="kpi-sub">Per application</div></div>
-    <div class="kpi-card accent-red" style="border-left:4px solid var(--red);background:linear-gradient(135deg,#FFF5F5,#FEE2E2)"><div class="kpi-label">Outstanding</div><div class="kpi-value red">${fmt$(outstanding)}</div><div class="kpi-sub">${FEE_AGING_DATA.reduce((s,r)=>s+r.count,0)} accounts</div></div>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px">
+    <div class="kpi-card accent" style="padding:14px 16px">
+      <div class="kpi-label">Fee Collected</div>
+      ${ppTag}
+      <div class="kpi-value green">${fmt$(ppCollected)}</div>
+      ${mtdRow(fmt$(mtdCollected),'var(--green-700)')}
+    </div>
+    <div class="kpi-card" style="border-left:4px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB,#FEF3C7);padding:14px 16px">
+      <div class="kpi-label">Fee Extended</div>
+      ${ppTag}
+      <div class="kpi-value" style="color:#B45309">${fmt$(ppExtended)}</div>
+      ${mtdRow(fmt$(mtdExtended),'#B45309')}
+    </div>
+    <div class="kpi-card accent-navy" style="padding:14px 16px">
+      <div class="kpi-label">Total Booked</div>
+      ${ppTag}
+      <div class="kpi-value">${fmt$(ppBooked)}</div>
+      ${mtdRow(fmt$(mtdBooked),'var(--navy-600)')}
+    </div>
+    <div class="kpi-card accent" style="padding:14px 16px">
+      <div class="kpi-label">Collection Rate</div>
+      ${ppTag}
+      <div class="kpi-value green">${ppRate}%</div>
+      ${mtdRow(mtdRate+'%','var(--green-700)')}
+    </div>
+    <div class="kpi-card" style="border-left:4px solid var(--red);background:linear-gradient(135deg,#FFF5F5,#FEE2E2);padding:14px 16px">
+      <div class="kpi-label">Outstanding</div>
+      <div style="font-size:9px;font-weight:700;color:#DC2626;opacity:0.65;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px">Extended · Unpaid</div>
+      <div class="kpi-value red">${fmt$(outstanding)}</div>
+      <div style="margin-top:8px;padding-top:7px;border-top:1px solid rgba(220,38,38,0.12)">
+        <div style="font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:2px">${outstandingCount} Accounts</div>
+        <div style="font-size:12px;font-weight:700;color:#DC2626">Click buckets below ↓</div>
+      </div>
+    </div>
   </div>
+
   <div style="display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:14px">
     <div class="card">
       <div class="card-header"><div class="card-title">Fee Collection by Agent</div></div>
@@ -6554,15 +7073,18 @@ function renderRptFees(sc, totalFeeCollected, totalFeeExtended) {
       </table>
     </div>
     <div class="card">
-      <div class="card-header"><div class="card-title">Fee Aging Report</div></div>
+      <div class="card-header">
+        <div class="card-title">Fee Aging Report</div>
+        <span style="font-size:11px;color:#1A6ED0;font-weight:600">Click a bucket to see accounts ↗</span>
+      </div>
       <table class="data-table">
         <thead><tr><th>Bucket</th><th>Amount</th><th>Count</th><th>% of Outstanding</th></tr></thead>
         <tbody>
           ${FEE_AGING_DATA.map((r,i) => {
             const pct2   = outstanding ? Math.round(r.amount/outstanding*100) : 0;
             const colors = ['var(--green-500)','#F59E0B','#F97316','var(--red)'];
-            return `<tr>
-              <td style="font-weight:700">${r.bucket}</td>
+            return `<tr style="cursor:pointer" onclick="openFeeAgingModal('${r.bucket}')" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background=''">
+              <td style="font-weight:700;color:#1A6ED0">${r.bucket} <span style="font-size:10px;font-weight:600">↗</span></td>
               <td style="font-weight:700;color:var(--navy-900)">${fmt$(r.amount)}</td>
               <td style="color:var(--gray-600)">${r.count}</td>
               <td>
@@ -6578,23 +7100,27 @@ function renderRptFees(sc, totalFeeCollected, totalFeeExtended) {
           <tr style="background:var(--gray-50)">
             <td style="font-weight:800">Total Outstanding</td>
             <td style="font-weight:800;color:var(--red)">${fmt$(outstanding)}</td>
-            <td style="font-weight:800">${FEE_AGING_DATA.reduce((s,r)=>s+r.count,0)}</td>
+            <td style="font-weight:800">${outstandingCount}</td>
             <td style="font-weight:700;color:var(--gray-500)">100%</td>
           </tr>
         </tfoot>
       </table>
     </div>
   </div>
+
   <div class="card">
-    <div class="card-header"><div class="card-title">Monthly Fee Trend</div></div>
+    <div class="card-header">
+      <div class="card-title">Monthly Fee Trend</div>
+      <span style="font-size:11px;color:#1A6ED0;font-weight:600">Click a month for full breakdown ↗</span>
+    </div>
     <table class="data-table">
       <thead><tr><th>Month</th><th>Fee Collected</th><th>Fee Extended</th><th>Total Booked</th><th>Collection Rate</th></tr></thead>
       <tbody>
         ${MONTHLY_REVENUE.map(r => {
-          const total  = r.collected + r.extended;
-          const rate   = total ? Math.round(r.collected/total*100) : 0;
-          return `<tr>
-            <td style="font-weight:700">${r.month} 2026</td>
+          const total = r.collected + r.extended;
+          const rate  = total ? Math.round(r.collected/total*100) : 0;
+          return `<tr style="cursor:pointer" onclick="openMonthFeeBreakdown('${r.month}')" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background=''">
+            <td style="font-weight:700;color:#1A6ED0">${r.month} 2026 <span style="font-size:10px;font-weight:600">↗</span></td>
             <td style="color:var(--green-700);font-weight:700">${fmt$(r.collected)}</td>
             <td style="color:#B45309;font-weight:600">${fmt$(r.extended)}</td>
             <td style="font-weight:700;color:var(--navy-900)">${fmt$(total)}</td>
@@ -6609,6 +7135,203 @@ function renderRptFees(sc, totalFeeCollected, totalFeeExtended) {
       </tbody>
     </table>
   </div>`;
+}
+
+function openFeeAgingModal(bucket) {
+  const accounts = FEE_AGING_ACCOUNTS[bucket] || [];
+  const total    = accounts.reduce((s,a)=>s+a.amount,0);
+  const colorMap = {'0–30 days':'var(--green-500)','31–60 days':'#F59E0B','61–90 days':'#F97316','90+ days':'var(--red)'};
+  const tfColorMap = {'0–30 days':'#BBF7D0','31–60 days':'#FDE68A','61–90 days':'#FED7AA','90+ days':'#FCA5A5'};
+  const color   = colorMap[bucket]   || '#1A6ED0';
+  const tfColor = tfColorMap[bucket] || '#fff';
+
+  let overlay = document.getElementById('feeAgingModalOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'feeAgingModalOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    overlay.onclick = function(e){ if(e.target===this) closeFeeAgingModal(); };
+    document.body.appendChild(overlay);
+  }
+
+  overlay.innerHTML = `
+<div style="background:#fff;border-radius:var(--radius-xl);width:720px;max-width:96vw;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3)" onclick="event.stopPropagation()">
+  <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--navy-900)">${bucket} — Extended Fee Accounts</div>
+      <div style="font-size:12px;color:var(--gray-500);margin-top:3px">${accounts.length} accounts with unpaid extended fees · Total: <strong style="color:${color}">${fmt$(total)}</strong></div>
+    </div>
+    <div style="cursor:pointer;font-size:20px;color:var(--gray-400);padding:4px 8px;line-height:1" onclick="closeFeeAgingModal()">✕</div>
+  </div>
+  <div style="overflow-y:auto;flex:1">
+    <table class="data-table" style="margin:0">
+      <thead style="position:sticky;top:0;z-index:1;background:#F8FAFC">
+        <tr><th>Customer</th><th>Agent</th><th>Carrier</th><th>Days Overdue</th><th>Amount</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        ${accounts.map(a => {
+          const dayColor = a.days>90?'#DC2626':a.days>60?'#EA580C':a.days>30?'#D97706':'#16A34A';
+          const dayBg    = a.days>90?'#FEE2E2':a.days>60?'#FFEDD5':a.days>30?'#FEF3C7':'#DCFCE7';
+          return `<tr>
+            <td style="font-weight:700;color:var(--navy-900)">${a.name}</td>
+            <td style="color:var(--gray-600)">${a.agent}</td>
+            <td style="color:var(--gray-600)">${a.carrier}</td>
+            <td><span style="background:${dayBg};color:${dayColor};padding:2px 10px;border-radius:var(--radius-full);font-size:11.5px;font-weight:700">${a.days} days</span></td>
+            <td style="font-weight:800;color:${color}">${fmt$(a.amount)}</td>
+            <td>
+              <div style="display:flex;gap:5px">
+                <button onclick="alert('Calling ${a.name}…')" style="background:#2563EB;color:#fff;border:none;border-radius:6px;padding:4px 11px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📞 Call</button>
+                <button onclick="alert('Texting ${a.name}…')" style="background:var(--gray-100);color:var(--navy-900);border:1px solid var(--border);border-radius:6px;padding:4px 11px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font-body)">💬 Text</button>
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+      <tfoot>
+        <tr style="background:var(--navy-900)">
+          <td colspan="4" style="font-weight:800;color:#fff;padding:12px 14px">Total — ${bucket}</td>
+          <td style="font-weight:800;color:${tfColor};padding:12px 14px">${fmt$(total)}</td>
+          <td style="padding:12px 14px"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>`;
+
+  overlay.style.display = 'flex';
+}
+
+function closeFeeAgingModal() {
+  const el = document.getElementById('feeAgingModalOverlay');
+  if (el) el.style.display = 'none';
+}
+
+function openMonthFeeBreakdown(month) {
+  const r = MONTHLY_REVENUE.find(m => m.month === month);
+  if (!r) return;
+
+  const total = r.collected + r.extended;
+  const rate  = total ? Math.round(r.collected/total*100) : 0;
+
+  const agentShares  = [
+    { name:'Sarah Kim',           cS:0.38, eS:0.37 },
+    { name:'Marcus Rivera',       cS:0.32, eS:0.33 },
+    { name:'Kira Patel',          cS:0.30, eS:0.30 },
+  ];
+  const sourceShares = [
+    { source:'EverQuote',         cS:0.30, eS:0.31 },
+    { source:'MediaAlpha',        cS:0.25, eS:0.26 },
+    { source:'Referral',          cS:0.22, eS:0.21 },
+    { source:'Direct',            cS:0.23, eS:0.22 },
+  ];
+  const carrierShares= [
+    { carrier:'Progressive',      cS:0.35, eS:0.36 },
+    { carrier:'National General', cS:0.28, eS:0.27 },
+    { carrier:'Bristol West',     cS:0.22, eS:0.22 },
+    { carrier:'Mercury',          cS:0.15, eS:0.15 },
+  ];
+
+  const agentRows = agentShares.map(x => {
+    const c=Math.round(r.collected*x.cS), e=Math.round(r.extended*x.eS), t=c+e;
+    return { name:x.name, c, e, t, rt:t?Math.round(c/t*100):0 };
+  });
+  const sourceRows = sourceShares.map(x => {
+    const c=Math.round(r.collected*x.cS), e=Math.round(r.extended*x.eS);
+    return { source:x.source, c, e, t:c+e };
+  });
+  const carrierRows= carrierShares.map(x => {
+    const c=Math.round(r.collected*x.cS), e=Math.round(r.extended*x.eS);
+    return { carrier:x.carrier, c, e, t:c+e };
+  });
+
+  let overlay = document.getElementById('monthFeeBreakdownOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'monthFeeBreakdownOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    overlay.onclick = function(e){ if(e.target===this) closeMonthFeeBreakdown(); };
+    document.body.appendChild(overlay);
+  }
+
+  const secHead = t => `<div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.8px;padding-bottom:8px;border-bottom:2px solid var(--border);margin:20px 0 10px">▸ ${t}</div>`;
+
+  overlay.innerHTML = `
+<div style="background:#fff;border-radius:var(--radius-xl);width:840px;max-width:96vw;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3)" onclick="event.stopPropagation()">
+  <div style="background:linear-gradient(135deg,#0E2340 0%,#1A6ED0 100%);padding:20px 24px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#fff">${month} 2026 — Full Fee Breakdown</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px">Collected · Extended · By Agent · By Lead Source · By Carrier</div>
+    </div>
+    <div style="cursor:pointer;font-size:20px;color:rgba(255,255,255,0.65);padding:4px 8px;line-height:1" onclick="closeMonthFeeBreakdown()">✕</div>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding:20px 24px">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px">
+      <div style="background:linear-gradient(135deg,#F0FDF4,#DCFCE7);border:1px solid #86EFAC;border-radius:var(--radius-md);padding:14px 16px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:#16A34A;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Fee Collected</div>
+        <div style="font-size:22px;font-weight:800;color:#15803D;font-family:var(--font-display)">${fmt$(r.collected)}</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border:1px solid #FCD34D;border-radius:var(--radius-md);padding:14px 16px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:#B45309;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Fee Extended</div>
+        <div style="font-size:22px;font-weight:800;color:#B45309;font-family:var(--font-display)">${fmt$(r.extended)}</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border:1px solid #93C5FD;border-radius:var(--radius-md);padding:14px 16px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:#1D4ED8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Total Booked</div>
+        <div style="font-size:22px;font-weight:800;color:#1E40AF;font-family:var(--font-display)">${fmt$(total)}</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border:1px solid #C4B5FD;border-radius:var(--radius-md);padding:14px 16px;text-align:center">
+        <div style="font-size:10px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Collection Rate</div>
+        <div style="font-size:22px;font-weight:800;color:#6D28D9;font-family:var(--font-display)">${rate}%</div>
+      </div>
+    </div>
+
+    ${secHead('By Agent')}
+    <table class="data-table" style="margin-bottom:0">
+      <thead><tr><th>Agent</th><th>Fee Collected</th><th>Fee Extended</th><th>Total Booked</th><th>Collection Rate</th></tr></thead>
+      <tbody>
+        ${agentRows.map(a=>`<tr>
+          <td style="font-weight:700;color:var(--navy-900)">${a.name}</td>
+          <td style="color:var(--green-700);font-weight:700">${fmt$(a.c)}</td>
+          <td style="color:#B45309;font-weight:600">${fmt$(a.e)}</td>
+          <td style="font-weight:700">${fmt$(a.t)}</td>
+          <td><div style="display:flex;align-items:center;gap:6px"><div style="width:60px;height:6px;border-radius:3px;background:var(--gray-100);overflow:hidden"><div style="width:${a.rt}%;height:100%;background:${a.rt>=80?'var(--green-500)':a.rt>=60?'#1A6ED0':'#F59E0B'}"></div></div><span style="font-weight:700;font-size:12.5px">${a.rt}%</span></div></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+
+    ${secHead('By Lead Source')}
+    <table class="data-table" style="margin-bottom:0">
+      <thead><tr><th>Lead Source</th><th>Fee Collected</th><th>Fee Extended</th><th>Total Booked</th></tr></thead>
+      <tbody>
+        ${sourceRows.map(s=>`<tr>
+          <td style="font-weight:700;color:#1A6ED0">${s.source}</td>
+          <td style="color:var(--green-700);font-weight:700">${fmt$(s.c)}</td>
+          <td style="color:#B45309;font-weight:600">${fmt$(s.e)}</td>
+          <td style="font-weight:700">${fmt$(s.t)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+
+    ${secHead('By Carrier')}
+    <table class="data-table" style="margin-bottom:0">
+      <thead><tr><th>Carrier</th><th>Fee Collected</th><th>Fee Extended</th><th>Total Booked</th></tr></thead>
+      <tbody>
+        ${carrierRows.map(c=>`<tr>
+          <td style="font-weight:700;color:var(--navy-900)">${c.carrier}</td>
+          <td style="color:var(--green-700);font-weight:700">${fmt$(c.c)}</td>
+          <td style="color:#B45309;font-weight:600">${fmt$(c.e)}</td>
+          <td style="font-weight:700">${fmt$(c.t)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+</div>`;
+
+  overlay.style.display = 'flex';
+}
+
+function closeMonthFeeBreakdown() {
+  const el = document.getElementById('monthFeeBreakdownOverlay');
+  if (el) el.style.display = 'none';
 }
 
 function showAgentProfile(name, sc) {
@@ -6959,30 +7682,30 @@ ${stubPage('💰','Finance Detail','Detailed fee records and collection tracking
 
 // ==================== ADMIN ====================
 PAGES.admin = '';
-window.ADMIN_STATE = { panel: 'agents', addingAgent: false, agentError: '', viewingAgent: null };
+window.ADMIN_STATE = { panel: 'agents', addingAgent: false, agentError: '', viewingAgent: null, editingAgent: null };
 
 function renderAdminPage() {
   const s = window.ADMIN_STATE;
   const panels = [
-    { key:'agents',       label:'Teams & Agents',      icon:'👥' },
-    { key:'statuses',     label:'Lead Statuses',        icon:'🏷' },
-    { key:'policytypes',  label:'Policy Types',         icon:'📄' },
-    { key:'leadsources',  label:'Lead Sources',         icon:'📡' },
-    { key:'goals',        label:'Goal Templates',       icon:'🎯' },
-    { key:'tiers',        label:'Tier Thresholds',      icon:'⭐' },
-    { key:'roles',        label:'Roles & Permissions',  icon:'🔒' },
-    { key:'notifs',       label:'Notification Rules',   icon:'🔔' },
-    { key:'branding',     label:'Branding',             icon:'🎨' },
-    { key:'integrations', label:'Integrations',         icon:'🔗' },
-    { key:'auditlog',     label:'Audit Log',            icon:'📋' },
+    { key:'agents',       label:'Teams & Agents'       },
+    { key:'statuses',     label:'Leads'                },
+    { key:'lifecycle',    label:'Lifecycle Automation' },
+    { key:'goals',        label:'Goal Templates'       },
+    { key:'tiers',        label:'Tier Thresholds'      },
+    { key:'payperiods',   label:'Pay Periods'          },
+    { key:'carriers',     label:'Carrier Management'   },
+    { key:'callsettings', label:'Call & Text Settings' },
+    { key:'pipelines',    label:'Pipeline Stages'      },
+    { key:'integrations', label:'Integrations'         },
+    { key:'dataexport',   label:'Data & Export'        },
   ];
 
   const sidebar = `
-  <div class="card" style="padding:10px">
-    <div style="font-size:9.5px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:1.2px;padding:4px 10px 8px">Configuration</div>
+  <div class="card" style="padding:12px">
+    <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:1px;padding:4px 12px 10px">Configuration</div>
     ${panels.map(p=>`
     <div class="admin-nav-item${s.panel===p.key?' active':''}" onclick="window.ADMIN_STATE.panel='${p.key}';window.ADMIN_STATE.addingAgent=false;refreshAdminPage()">
-      <span style="font-size:13px">${p.icon}</span> ${p.label}
+      ${p.label}
     </div>`).join('')}
   </div>`;
 
@@ -6991,38 +7714,47 @@ function renderAdminPage() {
   if (s.panel === 'agents') {
     if (s.addingAgent) {
       main = renderAddAgentForm();
+    } else if (s.editingAgent !== null && s.editingAgent !== undefined) {
+      main = renderEditAgentForm(s.editingAgent);
     } else if (s.viewingAgent !== null && s.viewingAgent !== undefined) {
       main = renderAgentProfile(s.viewingAgent);
     } else {
       main = renderAgentList();
     }
+  } else if (s.panel === 'statuses' || s.panel === 'leadsources') {
+    main = renderLeadsPanel();
+  } else if (s.panel === 'lifecycle') {
+    main = renderLifecyclePanel();
   } else if (s.panel === 'goals') {
-    main = `<div class="card">
-      <div class="card-header"><div class="card-title">Goal Templates</div><button class="btn btn-primary" style="font-size:11.5px">+ New Template</button></div>
-      <div class="card-body">
-        <div class="form-grid">
-          <div class="form-group"><div class="form-label">App Count Target</div><input class="form-control" type="number" value="20"></div>
-          <div class="form-group"><div class="form-label">Broker Fee Target</div><input class="form-control" value="$8,500"></div>
-          <div class="form-group"><div class="form-label">Goal Period</div><select class="form-control"><option>Monthly</option><option>Bi-weekly</option><option>Quarterly</option></select></div>
-          <div class="form-group"><div class="form-label">Applies To</div><select class="form-control"><option>All Agents</option><option>Team Alpha</option></select></div>
-        </div>
-        <button class="btn btn-primary" style="font-size:12.5px">Save Template</button>
-      </div>
-    </div>`;
+    main = renderGoalsPanel();
+  } else if (s.panel === 'tiers') {
+    main = renderTiersPanel();
+  } else if (s.panel === 'payperiods') {
+    main = renderPayPeriodsPanel();
+  } else if (s.panel === 'carriers') {
+    main = renderCarriersPanel();
+  } else if (s.panel === 'callsettings') {
+    main = renderCallSettingsPanel();
+  } else if (s.panel === 'pipelines') {
+    main = renderPipelinesPanel();
+  } else if (s.panel === 'dataexport') {
+    main = renderDataExportPanel();
   } else {
-    const labels = { statuses:'Lead Statuses', policytypes:'Policy Types', leadsources:'Lead Sources', tiers:'Tier Thresholds', roles:'Roles & Permissions', notifs:'Notification Rules', branding:'Branding', integrations:'Integrations', auditlog:'Audit Log' };
+    const label = (panels.find(p=>p.key===s.panel)||{}).label||'Coming Soon';
     main = `<div class="card"><div class="card-body" style="text-align:center;padding:60px 24px">
-      <div style="font-size:36px;margin-bottom:12px">${(panels.find(p=>p.key===s.panel)||{}).icon||'🧱'}</div>
-      <div class="empty-title">${labels[s.panel]||'Coming Soon'}</div>
+      <div style="font-size:40px;margin-bottom:12px">⚙️</div>
+      <div class="empty-title">${label}</div>
       <div class="empty-sub">This configuration panel is coming soon.</div>
     </div></div>`;
   }
 
   return `
+  <div class="admin-page-wrap">
   <div class="page-header">
     <div class="page-header-left"><h1>Settings</h1><p>Admin configuration — manage agents, goals, statuses, and more</p></div>
   </div>
-  <div class="admin-layout">${sidebar}${main}</div>`;
+  <div class="admin-layout">${sidebar}${main}</div>
+  </div>`;
 }
 
 function renderAgentList() {
@@ -7122,7 +7854,7 @@ function renderAgentProfile(idx) {
           <div style="font-size:12px;color:var(--gray-500);margin-top:2px">${role} · ${email} · Rank #${a.rank}</div>
         </div>
       </div>
-      <button class="btn btn-ghost" style="font-size:12px">✏️ Edit Profile</button>
+      <button class="btn btn-ghost" style="font-size:12px" onclick="window.ADMIN_STATE.editingAgent=${idx};window.ADMIN_STATE.viewingAgent=null;refreshAdminPage()">✏️ Edit Profile</button>
     </div>
 
     <div class="card-body" style="padding:22px 24px">
@@ -7163,10 +7895,16 @@ function renderAgentProfile(idx) {
       <div style="font-size:10px;font-weight:700;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Platform Access</div>
       <div style="margin-bottom:20px">
         ${field('Login Email', email)}
-        ${field('Role', role)}
+        ${field('Role', a._role || 'Agent')}
+        ${field('Agent Type', a._agentType || 'Licensed Producer')}
         ${field('Team', 'Team Alpha')}
         ${field('Last Login', 'Today at 8:42 AM')}
-        ${field('2FA Enabled', 'Yes')}
+        ${field('Two-Factor Auth (2FA)', a._2fa
+          ? '<span style="color:#16A34A;font-weight:700">● Enabled</span>'
+          : '<span style="color:#6B7280">○ Disabled</span>')}
+        ${field('Inbound Calls', a._inboundDisabled
+          ? '<span style="color:#DC2626;font-weight:700">⊘ Disabled</span>'
+          : '<span style="color:#16A34A;font-weight:700">● Enabled</span>')}
       </div>
 
       <!-- GOALS -->
@@ -7177,6 +7915,33 @@ function renderAgentProfile(idx) {
         ${field('Goal Period', 'Bi-weekly')}
         ${field('Commission Tier', a.tier+' — '+({'Tier 1':'40%','Tier 2':'35%','Tier 3':'30%','Tier 4':'25%'}[a.tier]||'25%'))}
         ${field('Total Fees Collected', '$'+a.fee.toLocaleString())}
+      </div>
+
+      <!-- DOCUMENTS & FILES -->
+      <div style="font-size:10px;font-weight:700;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Documents &amp; Files</div>
+      <div id="agentFilesArea_${idx}" style="margin-bottom:24px">
+        <div id="agentFileList_${idx}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--gray-50)">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span style="font-size:18px">📄</span>
+              <div><div style="font-weight:600;font-size:13px;color:var(--navy-900)">License Certificate.pdf</div><div style="font-size:11px;color:var(--gray-400)">284 KB · Uploaded Dec 2024</div></div>
+            </div>
+            <button style="background:transparent;border:none;color:var(--gray-400);cursor:pointer;font-size:16px;padding:2px 6px" title="Remove" onclick="this.closest('div[style*=flex-direction]').remove()">✕</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--gray-50)">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span style="font-size:18px">📋</span>
+              <div><div style="font-weight:600;font-size:13px;color:var(--navy-900)">E&amp;O Certificate 2027.pdf</div><div style="font-size:11px;color:var(--gray-400)">512 KB · Uploaded Jun 2024</div></div>
+            </div>
+            <button style="background:transparent;border:none;color:var(--gray-400);cursor:pointer;font-size:16px;padding:2px 6px" title="Remove" onclick="this.closest('div[style*=flex-direction]').remove()">✕</button>
+          </div>
+        </div>
+        <div style="border:2px dashed var(--border);border-radius:var(--radius-md);padding:20px;text-align:center;cursor:pointer;background:var(--gray-50)" onclick="document.getElementById('agentFileInput_${idx}').click()">
+          <div style="font-size:22px;margin-bottom:6px">📁</div>
+          <div style="font-weight:600;color:var(--navy-900);font-size:13px">Click to upload a file</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:3px">PDF, JPG, PNG · Max 10 MB</div>
+          <input id="agentFileInput_${idx}" type="file" style="display:none" multiple accept=".pdf,.jpg,.jpeg,.png" onchange="handleAgentFileUpload(this,${idx})">
+        </div>
       </div>
 
       <!-- DANGER ZONE -->
@@ -7275,6 +8040,1284 @@ function deleteAgent(idx) {
   AGENTS.splice(idx, 1);
   window.ADMIN_STATE.viewingAgent = null;
   window.ADMIN_STATE.successMsg = name + ' has been permanently deleted.';
+  refreshAdminPage();
+}
+
+function handleAgentFileUpload(input, idx) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const list = document.getElementById('agentFileList_' + idx);
+  if (!list) return;
+  files.forEach(f => {
+    const kb = Math.round(f.size / 1024);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--gray-50)';
+    const ext = f.name.split('.').pop().toLowerCase();
+    const icon = (ext === 'pdf') ? '📄' : (ext === 'jpg' || ext === 'jpeg' || ext === 'png') ? '🖼' : '📎';
+    row.innerHTML = '<div style="display:flex;align-items:center;gap:9px"><span style="font-size:18px">' + icon + '</span><div><div style="font-weight:600;font-size:13px;color:var(--navy-900)">' + f.name + '</div><div style="font-size:11px;color:var(--gray-400)">' + kb + ' KB · Just uploaded</div></div></div><button style="background:transparent;border:none;color:var(--gray-400);cursor:pointer;font-size:16px;padding:2px 6px" title="Remove" onclick="this.parentElement.remove()">✕</button>';
+    list.appendChild(row);
+  });
+  input.value = '';
+}
+
+function renderEditAgentForm(idx) {
+  const a = AGENTS[idx];
+  if (!a) return '<div class="card"><div class="card-body">Agent not found.</div></div>';
+  const tm = (window.TEAM_MEMBERS || []).find(m => m.name === a.name) || {};
+  const email = tm.email || (a.name.split(' ')[0].toLowerCase() + '.' + a.name.split(' ')[1].toLowerCase() + '@maxsave.com');
+  const phone = tm.phone || ('(619) 555-0' + (100 + idx));
+  const licNum = 'CA-' + (3840000 + idx * 11437);
+  const npn = 'NPN' + (19200000 + idx * 8321);
+  const nameParts = a.name.split(' ');
+  const first = nameParts[0] || '';
+  const last = nameParts.slice(1).join(' ') || '';
+
+  const sec = t => `<div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">${t}</div>`;
+  const perm = (id, checked, lbl) => `<label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 13px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--gray-50);margin-bottom:7px"><input type="checkbox" id="${id}" ${checked ? 'checked' : ''} style="width:15px;height:15px;cursor:pointer;accent-color:#1A6ED0"><span style="font-size:13px;color:var(--navy-900);font-weight:500">${lbl}</span></label>`;
+
+  return `
+  <div class="card">
+    <div class="card-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="window.ADMIN_STATE.editingAgent=null;window.ADMIN_STATE.viewingAgent=${idx};refreshAdminPage()">← Back to Profile</button>
+        <div>
+          <div class="card-title">Edit Agent — ${escAttr(a.name)}</div>
+          <div style="font-size:11.5px;color:var(--gray-500);margin-top:1px">Update profile, goals, access &amp; compliance</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="font-size:13px;padding:9px 22px" onclick="saveEditedAgent(${idx})">💾 Save Changes</button>
+    </div>
+    <div class="card-body" style="padding:20px 24px">
+
+      ${sec('Personal Information')}
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="form-group"><div class="form-label">First Name</div><input id="ef_first" class="form-control" value="${escAttr(first)}"></div>
+        <div class="form-group"><div class="form-label">Last Name</div><input id="ef_last" class="form-control" value="${escAttr(last)}"></div>
+        <div class="form-group"><div class="form-label">Email Address</div><input id="ef_email" class="form-control" type="email" value="${escAttr(email)}"></div>
+        <div class="form-group"><div class="form-label">Phone Number</div><input id="ef_phone" class="form-control" type="tel" value="${escAttr(phone)}"></div>
+        <div class="form-group"><div class="form-label">Extension</div><input id="ef_ext" class="form-control" value="${escAttr(tm.ext || '')}"></div>
+        <div class="form-group"><div class="form-label">Start Date</div><input id="ef_startDate" class="form-control" type="date" value="${escAttr(tm.startDate || '')}"></div>
+        <div class="form-group">
+          <div class="form-label">Language(s)</div>
+          <select id="ef_lang" class="form-control"><option>English</option><option>English &amp; Spanish</option><option>Spanish</option><option>Other</option></select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Status</div>
+          <select id="ef_status" class="form-control">
+            <option ${(tm.status || 'Active') === 'Active' ? 'selected' : ''}>Active</option>
+            <option ${tm.status === 'Inactive' ? 'selected' : ''}>Inactive</option>
+            <option ${tm.status === 'Suspended' ? 'selected' : ''}>Suspended</option>
+          </select>
+        </div>
+      </div>
+
+      ${sec('License &amp; Compliance')}
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="form-group"><div class="form-label">NPN</div><input id="ef_npn" class="form-control" value="${escAttr(npn)}"></div>
+        <div class="form-group"><div class="form-label">License Number</div><input id="ef_lic" class="form-control" value="${escAttr(licNum)}"></div>
+        <div class="form-group"><div class="form-label">License State(s)</div><input id="ef_licstate" class="form-control" value="CA, NV"></div>
+        <div class="form-group"><div class="form-label">License Expiration</div><input id="ef_licexp" class="form-control" type="date" value="2026-12-31"></div>
+        <div class="form-group"><div class="form-label">E&amp;O Carrier</div><input id="ef_eo" class="form-control" value="Swiss Re"></div>
+        <div class="form-group"><div class="form-label">E&amp;O Expiration</div><input id="ef_eoexp" class="form-control" type="date" value="2027-06-30"></div>
+      </div>
+
+      ${sec('Platform Access')}
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="form-group">
+          <div class="form-label">Role</div>
+          <select id="ef_role" class="form-control">
+            <option ${(a._role || 'Agent') === 'Agent' ? 'selected' : ''}>Agent</option>
+            <option ${a._role === 'HR' ? 'selected' : ''}>HR</option>
+            <option ${a._role === 'Admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Agent Type</div>
+          <select id="ef_agentType" class="form-control">
+            <option ${(!a._agentType||a._agentType==='Licensed Producer')?'selected':''}>Licensed Producer</option>
+            <option ${a._agentType==='Pre-License / Trainee'?'selected':''}>Pre-License / Trainee</option>
+            <option ${a._agentType==='Account Manager'?'selected':''}>Account Manager</option>
+            <option ${a._agentType==='Customer Service Rep'?'selected':''}>Customer Service Rep</option>
+            <option ${a._agentType==='Team Lead'?'selected':''}>Team Lead</option>
+            <option ${a._agentType==='Manager'?'selected':''}>Manager</option>
+            <option ${a._agentType==='Agency Owner / Principal'?'selected':''}>Agency Owner / Principal</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Team</div>
+          <select id="ef_team" class="form-control">
+            <option ${(tm.team || '') === 'Alpha' ? 'selected' : ''}>Alpha</option>
+            <option ${tm.team === 'Beta' ? 'selected' : ''}>Beta</option>
+            <option ${!tm.team || tm.team === 'None' ? 'selected' : ''}>None</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div class="form-label" style="margin-bottom:9px">Security & Access Controls</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <label style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--gray-50);cursor:pointer">
+            <input type="checkbox" id="ef_2fa" ${a._2fa ? 'checked' : ''} style="width:16px;height:16px;margin-top:2px;cursor:pointer;accent-color:#1A6ED0;flex-shrink:0">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--navy-900)">Two-Factor Authentication (2FA)</div>
+              <div style="font-size:11.5px;color:var(--gray-500);margin-top:2px;line-height:1.4">Require a verification code on every login for this agent</div>
+            </div>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--gray-50);cursor:pointer">
+            <input type="checkbox" id="ef_inboundDisabled" ${a._inboundDisabled ? 'checked' : ''} style="width:16px;height:16px;margin-top:2px;cursor:pointer;accent-color:#DC2626;flex-shrink:0">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--navy-900)">Disable Inbound Calls</div>
+              <div style="font-size:11.5px;color:var(--gray-500);margin-top:2px;line-height:1.4">Block inbound calls from routing to this agent's extension</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div class="form-label" style="margin-bottom:9px">Permissions</div>
+        ${perm('ef_pViewAll',   tm.permViewAll,   "View all agents' leads and data")}
+        ${perm('ef_pReports',   tm.permReports,   'Access reports &amp; analytics')}
+        ${perm('ef_pPayments',  tm.permPayments,  'Process payments &amp; view billing')}
+        ${perm('ef_pManage',    tm.permManage,    'Manage team settings &amp; pay periods')}
+        ${perm('ef_pAddRemove', tm.permAddRemove, 'Add or remove agents')}
+      </div>
+
+      ${sec('Goals &amp; Commission')}
+      <div class="form-grid" style="margin-bottom:24px">
+        <div class="form-group"><div class="form-label">Policy Goal (per period)</div><input id="ef_pgoal" class="form-control" type="number" value="${a.goal || 0}"></div>
+        <div class="form-group"><div class="form-label">Broker Fee Goal ($)</div><input id="ef_fgoal" class="form-control" type="number" value="${a.feeGoal || 0}"></div>
+        <div class="form-group"><div class="form-label">Premium Goal ($)</div><input id="ef_premgoal" class="form-control" type="number" value="${tm.goalPremium || 0}"></div>
+        <div class="form-group"><div class="form-label">Close Rate Target (%)</div><input id="ef_closegoal" class="form-control" type="number" value="${tm.goalClose || 25}"></div>
+        <div class="form-group"><div class="form-label">Contact Rate Target (%)</div><input id="ef_contactgoal" class="form-control" type="number" value="${tm.goalContact || 55}"></div>
+        <div class="form-group">
+          <div class="form-label">Commission Tier</div>
+          <select id="ef_tier" class="form-control">
+            <option ${a.tier === 'Tier 1' ? 'selected' : ''}>Tier 1 — 40%</option>
+            <option ${a.tier === 'Tier 2' ? 'selected' : ''}>Tier 2 — 35%</option>
+            <option ${a.tier === 'Tier 3' ? 'selected' : ''}>Tier 3 — 30%</option>
+            <option ${!a.tier || a.tier === 'Tier 4' ? 'selected' : ''}>Tier 4 — 25%</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;padding-top:16px;border-top:1px solid var(--border)">
+        <button class="btn btn-primary" style="padding:9px 24px;font-size:13px" onclick="saveEditedAgent(${idx})">💾 Save Changes</button>
+        <button class="btn btn-ghost" onclick="window.ADMIN_STATE.editingAgent=null;window.ADMIN_STATE.viewingAgent=${idx};refreshAdminPage()">Cancel</button>
+      </div>
+
+    </div>
+  </div>`;
+}
+
+function saveEditedAgent(idx) {
+  const g   = id => document.getElementById(id);
+  const v   = id => g(id) ? g(id).value.trim() : '';
+  const num = id => parseInt(g(id) && g(id).value) || 0;
+  const chk = id => !!(g(id) && g(id).checked);
+
+  const first = v('ef_first');
+  const last  = v('ef_last');
+  if (!first || !last) { alert('First name and last name are required.'); return; }
+  const newName = first + ' ' + last;
+  const oldName = AGENTS[idx].name;
+  const tierRaw = v('ef_tier').split(' — ')[0];
+
+  AGENTS[idx].name              = newName;
+  AGENTS[idx].goal              = num('ef_pgoal') || AGENTS[idx].goal;
+  AGENTS[idx].feeGoal           = num('ef_fgoal') || AGENTS[idx].feeGoal;
+  AGENTS[idx].tier              = tierRaw;
+  AGENTS[idx]._role             = v('ef_role');
+  AGENTS[idx]._agentType        = v('ef_agentType');
+  AGENTS[idx]._2fa              = chk('ef_2fa');
+  AGENTS[idx]._inboundDisabled  = chk('ef_inboundDisabled');
+
+  if (!window.TEAM_MEMBERS) window.TEAM_MEMBERS = [];
+  const tmIdx = window.TEAM_MEMBERS.findIndex(m => m.name === oldName);
+  const memberData = {
+    name: newName, first, last: last,
+    email:     v('ef_email'),
+    phone:     v('ef_phone'),
+    ext:       v('ef_ext'),
+    role:      v('ef_role') === 'Admin' ? 'Admin' : 'Agent',
+    tier:      tierRaw,
+    team:      v('ef_team'),
+    status:    v('ef_status'),
+    startDate: v('ef_startDate'),
+    goalApps:     num('ef_pgoal')      || 15,
+    goalFee:      num('ef_fgoal')      || 6000,
+    goalPremium:  num('ef_premgoal')   || 20000,
+    goalClose:    num('ef_closegoal')  || 25,
+    goalContact:  num('ef_contactgoal')|| 55,
+    permViewAll:   chk('ef_pViewAll'),
+    permReports:   chk('ef_pReports'),
+    permPayments:  chk('ef_pPayments'),
+    permManage:    chk('ef_pManage'),
+    permAddRemove: chk('ef_pAddRemove'),
+  };
+  if (tmIdx >= 0) {
+    window.TEAM_MEMBERS[tmIdx] = memberData;
+  } else {
+    window.TEAM_MEMBERS.push(memberData);
+  }
+  if (oldName !== newName && AGENT_EXTENDED_DATA[oldName]) {
+    AGENT_EXTENDED_DATA[newName] = AGENT_EXTENDED_DATA[oldName];
+    delete AGENT_EXTENDED_DATA[oldName];
+  }
+  window.ADMIN_STATE.editingAgent = null;
+  window.ADMIN_STATE.viewingAgent = idx;
+  window.ADMIN_STATE.successMsg   = newName;
+  refreshAdminPage();
+}
+
+// ===== NEW SETTINGS PANELS =====
+
+function renderPayPeriodsPanel() {
+  return `<div class="card">
+    <div class="card-header">
+      <div><div class="card-title">Pay Periods</div><div style="font-size:13px;color:var(--gray-500);margin-top:2px">Define commission periods and reset dates</div></div>
+      <button class="btn btn-primary" style="font-size:13px">+ New Period</button>
+    </div>
+    <div class="card-body">
+      <div class="form-grid" style="margin-bottom:20px">
+        <div class="form-group"><div class="form-label">Period Type</div><select class="form-control"><option>Bi-weekly</option><option>Weekly</option><option>Monthly</option><option>Semi-monthly</option></select></div>
+        <div class="form-group"><div class="form-label">Current Period Start</div><input class="form-control" type="date" value="2026-07-28"></div>
+        <div class="form-group"><div class="form-label">Current Period End</div><input class="form-control" type="date" value="2026-08-10"></div>
+        <div class="form-group"><div class="form-label">Auto-Reset Goals On</div><select class="form-control"><option>Period Start</option><option>Monday</option><option>1st of Month</option></select></div>
+        <div class="form-group"><div class="form-label">Broker Fee Cutoff Time</div><input class="form-control" type="time" value="17:00"></div>
+        <div class="form-group"><div class="form-label">Timezone</div><select class="form-control"><option>Pacific (PST/PDT)</option><option>Mountain (MST/MDT)</option><option>Central (CST/CDT)</option><option>Eastern (EST/EDT)</option></select></div>
+      </div>
+      <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px">Recent Pay Periods</div>
+        ${[['Jul 28 – Aug 10, 2026','Current','#16A34A','#DCFCE7'],['Jul 14 – Jul 27, 2026','Closed','#6B7280','#F3F4F6'],['Jun 30 – Jul 13, 2026','Closed','#6B7280','#F3F4F6']].map(([period,status,color,bg])=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)">
+          <div style="font-size:13.5px;font-weight:600;color:var(--navy-900)">${period}</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="background:${bg};color:${color};padding:2px 11px;border-radius:var(--radius-full);font-size:12px;font-weight:700">${status}</span>
+            <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px">View Report</button>
+          </div>
+        </div>`).join('')}
+      </div>
+      <button class="btn btn-primary" style="font-size:13px">Save Settings</button>
+    </div>
+  </div>`;
+}
+
+// ===== GOAL TEMPLATES PANEL =====
+window.AGENT_GOALS = window.AGENT_GOALS || {};
+
+function renderGoalsPanel() {
+  const period = window.GOAL_PERIOD || 'Bi-weekly';
+  const agents = (typeof AGENTS !== 'undefined' ? AGENTS : []).filter(a => !a._archived);
+  const sec = t => `<div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">${t}</div>`;
+
+  const agentRows = agents.map((a, i) => {
+    const g = window.AGENT_GOALS[a.name] || {};
+    const appGoal     = g.apps     !== undefined ? g.apps     : (a.goal    || 15);
+    const feeGoal     = g.fee      !== undefined ? g.fee      : (a.feeGoal || 6000);
+    const premGoal    = g.premium  !== undefined ? g.premium  : 20000;
+    const closeGoal   = g.close    !== undefined ? g.close    : 25;
+    const contactGoal = g.contact  !== undefined ? g.contact  : 55;
+    const avatarColors = ['av-green','av-navy','av-amber','av-teal','av-purple','av-red'];
+    const av = avatarColors[i % avatarColors.length];
+    const ini = a.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+    return `
+    <div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:12px;background:#fff">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div class="avatar ${av}" style="font-size:13px">${ini}</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:var(--navy-900)">${a.name}</div>
+          <div style="font-size:12px;color:var(--gray-500)">${a._role||'Agent'} · ${a._agentType||'Licensed Producer'}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">App Count</div>
+          <input id="goal_apps_${i}" type="number" class="form-control" value="${appGoal}" style="font-size:13px;text-align:center">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Broker Fee ($)</div>
+          <input id="goal_fee_${i}" type="number" class="form-control" value="${feeGoal}" style="font-size:13px;text-align:center">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Premium ($)</div>
+          <input id="goal_prem_${i}" type="number" class="form-control" value="${premGoal}" style="font-size:13px;text-align:center">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Close Rate (%)</div>
+          <input id="goal_close_${i}" type="number" class="form-control" value="${closeGoal}" min="0" max="100" style="font-size:13px;text-align:center">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Contact Rate (%)</div>
+          <input id="goal_contact_${i}" type="number" class="form-control" value="${contactGoal}" min="0" max="100" style="font-size:13px;text-align:center">
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Goal Templates — Per Agent</div>
+          <div style="font-size:13px;color:var(--gray-500);margin-top:2px">Set individual targets for each agent. Goals reset at the start of each pay period.</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:13px;font-weight:600;color:var(--gray-600)">Period:</div>
+          <select id="goalPeriodSelect" class="form-control" style="font-size:13px;width:auto" onchange="window.GOAL_PERIOD=this.value">
+            <option ${period==='Bi-weekly'?'selected':''}>Bi-weekly</option>
+            <option ${period==='Weekly'?'selected':''}>Weekly</option>
+            <option ${period==='Monthly'?'selected':''}>Monthly</option>
+          </select>
+          <button class="btn btn-primary" style="font-size:13px;padding:9px 22px" onclick="saveAgentGoals()">Save All Goals</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--radius-md);padding:10px 16px;font-size:13px;color:#1D4ED8;margin-bottom:14px">
+      <strong>Tip:</strong> These goals are used for leaderboards, progress bars, and goal-vs-actual reporting. All fields are per pay period.
+    </div>
+
+    ${agentRows || '<div style="text-align:center;padding:40px;color:var(--gray-400)">No active agents found.</div>'}
+
+    <button class="btn btn-primary" style="font-size:13px;padding:10px 26px;margin-top:4px" onclick="saveAgentGoals()">Save All Goals</button>
+  </div>`;
+}
+
+function saveAgentGoals() {
+  const agents = (typeof AGENTS !== 'undefined' ? AGENTS : []).filter(a => !a._archived);
+  agents.forEach((a, i) => {
+    const n = id => { const el = document.getElementById(id); return el ? (parseInt(el.value)||0) : 0; };
+    window.AGENT_GOALS[a.name] = {
+      apps:    n('goal_apps_'    + i),
+      fee:     n('goal_fee_'     + i),
+      premium: n('goal_prem_'    + i),
+      close:   n('goal_close_'   + i),
+      contact: n('goal_contact_' + i),
+    };
+    AGENTS[i].goal    = window.AGENT_GOALS[a.name].apps;
+    AGENTS[i].feeGoal = window.AGENT_GOALS[a.name].fee;
+  });
+  const ps = document.getElementById('goalPeriodSelect');
+  if (ps) window.GOAL_PERIOD = ps.value;
+  window.ADMIN_STATE.successMsg = 'Agent goals saved.';
+  refreshAdminPage();
+}
+
+// ===== TIER THRESHOLDS PANEL =====
+window.TIER_DATA = window.TIER_DATA || [
+  { name:'Tier 1', minApps:20, minFee:8500,  minPremium:35000, commission:40, description:'Top performers — full commission rate' },
+  { name:'Tier 2', minApps:15, minFee:6500,  minPremium:25000, commission:35, description:'Consistent performers'                 },
+  { name:'Tier 3', minApps:10, minFee:4500,  minPremium:18000, commission:30, description:'Developing agents'                     },
+  { name:'Tier 4', minApps:0,  minFee:0,     minPremium:0,     commission:25, description:'New or part-time agents'               },
+];
+
+function renderTiersPanel() {
+  const tiers = window.TIER_DATA;
+  const tierColors = ['#16A34A','#1D4ED8','#B45309','#6B7280'];
+
+  const cards = tiers.map((t, i) => `
+  <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:12px">
+    <div style="background:var(--gray-50);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;gap:12px">
+      <div style="width:4px;height:36px;border-radius:4px;background:${tierColors[i]||'#1A6ED0'};flex-shrink:0"></div>
+      <div style="flex:1">
+        <input id="tier_name_${i}" class="form-control" value="${escAttr(t.name)}" style="font-size:14px;font-weight:700;border:none;background:transparent;padding:4px 0;color:var(--navy-900);box-shadow:none;border-bottom:1px dashed var(--border)">
+      </div>
+      <div style="background:${tierColors[i]||'#1A6ED0'}18;border:1px solid ${tierColors[i]||'#1A6ED0'}40;border-radius:var(--radius-full);padding:4px 16px">
+        <input id="tier_comm_${i}" type="number" min="0" max="100" value="${t.commission}" style="width:36px;text-align:center;border:none;background:transparent;font-size:15px;font-weight:800;color:${tierColors[i]||'#1A6ED0'};font-family:var(--font-display)">
+        <span style="font-size:13px;font-weight:700;color:${tierColors[i]||'#1A6ED0'}">% Comm.</span>
+      </div>
+    </div>
+    <div style="padding:16px 20px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px">Min App Count</div>
+          <input id="tier_apps_${i}" type="number" class="form-control" value="${t.minApps}" min="0" style="font-size:14px;font-weight:600">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px">Min Broker Fee ($)</div>
+          <input id="tier_fee_${i}" type="number" class="form-control" value="${t.minFee}" min="0" style="font-size:14px;font-weight:600">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px">Min Premium ($)</div>
+          <input id="tier_prem_${i}" type="number" class="form-control" value="${t.minPremium}" min="0" style="font-size:14px;font-weight:600">
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px">Description</div>
+        <input id="tier_desc_${i}" class="form-control" value="${escAttr(t.description||'')}" placeholder="Short description of this tier..." style="font-size:13px">
+      </div>
+    </div>
+  </div>`).join('');
+
+  return `
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Tier Thresholds</div>
+          <div style="font-size:13px;color:var(--gray-500);margin-top:2px">Define what an agent must hit per period to qualify for each commission tier</div>
+        </div>
+        <button class="btn btn-primary" style="font-size:13px;padding:9px 22px" onclick="saveTierData()">Save Tiers</button>
+      </div>
+    </div>
+
+    <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius-md);padding:10px 16px;font-size:13px;color:#92400E;margin-bottom:14px">
+      <strong>How it works:</strong> An agent's tier is determined at the end of each pay period. They must meet ALL three thresholds (apps, fee, and premium) to qualify for that tier. Tier 1 is the highest.
+    </div>
+
+    ${cards}
+
+    <button class="btn btn-primary" style="font-size:13px;padding:10px 26px;margin-top:4px" onclick="saveTierData()">Save Tiers</button>
+  </div>`;
+}
+
+function saveTierData() {
+  const n = id => { const el = document.getElementById(id); return el ? (parseInt(el.value)||0) : 0; };
+  const s = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  window.TIER_DATA = (window.TIER_DATA||[]).map((t, i) => ({
+    name:        s('tier_name_' + i) || t.name,
+    minApps:     n('tier_apps_' + i),
+    minFee:      n('tier_fee_'  + i),
+    minPremium:  n('tier_prem_' + i),
+    commission:  n('tier_comm_' + i),
+    description: s('tier_desc_' + i),
+  }));
+  window.ADMIN_STATE.successMsg = 'Tier thresholds saved.';
+  refreshAdminPage();
+}
+
+// ===== CARRIER MANAGEMENT PANEL =====
+window.CARRIER_DATA = window.CARRIER_DATA || [
+  { name:'National General', active:true,  lines:'Auto, Non-Standard, SR-22', commNew:12, commRenewal:10, apptType:'Appointed', contactName:'', contactPhone:'1-800-462-2123', contactEmail:'', uwPhone:'1-800-462-2123', uwEmail:'uw@nationalgeneral.com',  payTerms:'Monthly', notes:'' },
+  { name:'Aspire',           active:true,  lines:'Auto, SR-22',               commNew:11, commRenewal:9,  apptType:'Appointed', contactName:'', contactPhone:'',               contactEmail:'', uwPhone:'',               uwEmail:'',                         payTerms:'Monthly', notes:'' },
+  { name:'Bristol West',     active:true,  lines:'Auto, Non-Standard',        commNew:10, commRenewal:8,  apptType:'Appointed', contactName:'', contactPhone:'1-888-888-0080', contactEmail:'', uwPhone:'1-888-888-0080', uwEmail:'bw_uw@bristolwest.com',    payTerms:'Net 30',  notes:'' },
+  { name:'Mapfre',           active:true,  lines:'Auto, Home',                commNew:11, commRenewal:9,  apptType:'Appointed', contactName:'', contactPhone:'1-800-922-8693', contactEmail:'', uwPhone:'1-800-922-8693', uwEmail:'',                         payTerms:'Monthly', notes:'' },
+  { name:'Kemper',           active:true,  lines:'Auto, Home, MC',            commNew:11, commRenewal:10, apptType:'Appointed', contactName:'', contactPhone:'1-800-416-3720', contactEmail:'', uwPhone:'1-800-416-3720', uwEmail:'',                         payTerms:'Monthly', notes:'' },
+  { name:'Bridger',          active:false, lines:'Auto, SR-22',               commNew:10, commRenewal:8,  apptType:'Appointed', contactName:'', contactPhone:'',               contactEmail:'', uwPhone:'',               uwEmail:'',                         payTerms:'Net 30',  notes:'' },
+  { name:'Anchor',           active:false, lines:'Auto',                      commNew:10, commRenewal:8,  apptType:'Appointed', contactName:'', contactPhone:'',               contactEmail:'', uwPhone:'',               uwEmail:'',                         payTerms:'Net 30',  notes:'' },
+];
+window._editingCarrier = window._editingCarrier !== undefined ? window._editingCarrier : null;
+
+function renderCarriersPanel() {
+  const carriers = window.CARRIER_DATA || [];
+  if (window._editingCarrier !== null && window._editingCarrier !== undefined) {
+    return renderCarrierEditForm(window._editingCarrier);
+  }
+
+  const rows = carriers.map((c, i) => {
+    const statusBg    = c.active ? '#DCFCE7' : '#F3F4F6';
+    const statusColor = c.active ? '#16A34A'  : '#6B7280';
+    const statusLabel = c.active ? 'Active'   : 'Inactive';
+    return `
+    <tr>
+      <td style="font-weight:700;color:var(--navy-900);font-size:13.5px">${c.name}</td>
+      <td style="font-size:12.5px">${c.lines}</td>
+      <td><span style="background:${statusBg};color:${statusColor};padding:2px 11px;border-radius:var(--radius-full);font-size:12px;font-weight:700">${statusLabel}</span></td>
+      <td style="font-weight:600;color:var(--green-700)">${c.commNew}%</td>
+      <td style="color:var(--gray-600)">${c.commRenewal}%</td>
+      <td style="font-size:12.5px;color:var(--gray-500)">${c.apptType}</td>
+      <td style="font-size:12.5px">${c.contactPhone||'—'}</td>
+      <td>
+        <button class="btn btn-ghost" style="font-size:12px;padding:5px 14px" onclick="window._editingCarrier=${i};refreshAdminPage()">Edit</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Carrier Management</div>
+        <div style="font-size:13px;color:var(--gray-500);margin-top:2px">Appointed carriers — comp rates, contacts &amp; underwriting info</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data-table" style="min-width:760px">
+        <thead><tr><th>Carrier</th><th>Lines</th><th>Status</th><th>New Comm.</th><th>Renewal</th><th>Appointment</th><th>Contact Phone</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderCarrierEditForm(idx) {
+  const c = (window.CARRIER_DATA || [])[idx];
+  if (!c) return '<div class="card"><div class="card-body">Carrier not found.</div></div>';
+  const v = (id, val) => `id="${id}" value="${escAttr(String(val||''))}"`;
+  const fld = (label, inp) => `<div class="form-group"><div class="form-label">${label}</div>${inp}</div>`;
+  const sel = (id, opts, cur) => `<select id="${id}" class="form-control">${opts.map(o=>`<option ${o===cur?'selected':''}>${o}</option>`).join('')}</select>`;
+
+  return `<div class="card">
+    <div class="card-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px" onclick="window._editingCarrier=null;refreshAdminPage()">← Back to Carriers</button>
+        <div>
+          <div class="card-title">Edit Carrier — ${escAttr(c.name)}</div>
+          <div style="font-size:12px;color:var(--gray-500);margin-top:1px">Update comp rates, contacts, and underwriting details</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="font-size:13px;padding:9px 22px" onclick="saveCarrier(${idx})">Save Carrier</button>
+    </div>
+    <div class="card-body" style="padding:20px 24px">
+
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">General</div>
+      <div class="form-grid" style="margin-bottom:18px">
+        ${fld('Carrier Name', `<input ${v('ced_name', c.name)} class="form-control" style="font-size:13.5px;font-weight:600">`)}
+        ${fld('Status', sel('ced_status', ['Active','Inactive'], c.active?'Active':'Inactive'))}
+        ${fld('Appointment Type', sel('ced_appt', ['Appointed','Non-Appointed','Pending','Terminated'], c.apptType||'Appointed'))}
+        ${fld('Lines of Business', `<input ${v('ced_lines', c.lines)} class="form-control" placeholder="e.g. Auto, SR-22, Home">`)}
+        ${fld('Payment Terms', sel('ced_payterms', ['Monthly','Net 15','Net 30','Net 45','Prepaid'], c.payTerms||'Monthly'))}
+        ${fld('Contracted Since', `<input id="ced_since" type="date" class="form-control" value="${escAttr(c.since||'')}">`)}
+      </div>
+
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Commission &amp; Comp</div>
+      <div class="form-grid" style="margin-bottom:18px">
+        ${fld('New Business Commission (%)', `<input ${v('ced_commNew', c.commNew)} id="ced_commNew" type="number" min="0" max="100" class="form-control" style="font-size:14px;font-weight:700">`)}
+        ${fld('Renewal Commission (%)', `<input ${v('ced_commRenewal', c.commRenewal)} id="ced_commRenewal" type="number" min="0" max="100" class="form-control" style="font-size:14px;font-weight:700">`)}
+        ${fld('Bonus / Override (%)', `<input ${v('ced_bonus', c.bonus||'')} id="ced_bonus" type="number" min="0" max="100" class="form-control" placeholder="0">`)}
+        ${fld('Comp Paid By', sel('ced_compBy', ['Carrier Direct','MGA / Wholesaler','Aggregator'], c.compBy||'Carrier Direct'))}
+        ${fld('Min Premium Threshold ($)', `<input ${v('ced_minPrem', c.minPrem||'')} id="ced_minPrem" type="number" class="form-control" placeholder="0">`)}
+        ${fld('Chargeback Period (months)', `<input ${v('ced_chargeback', c.chargeback||'')} id="ced_chargeback" type="number" class="form-control" placeholder="0">`)}
+      </div>
+
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Sales &amp; Agency Contact</div>
+      <div class="form-grid" style="margin-bottom:18px">
+        ${fld('Contact Name', `<input ${v('ced_contactName', c.contactName)} id="ced_contactName" class="form-control">`)}
+        ${fld('Contact Phone', `<input ${v('ced_contactPhone', c.contactPhone)} id="ced_contactPhone" class="form-control" type="tel">`)}
+        ${fld('Contact Email', `<input ${v('ced_contactEmail', c.contactEmail)} id="ced_contactEmail" class="form-control" type="email">`)}
+        ${fld('Agent Login URL', `<input ${v('ced_portalUrl', c.portalUrl||'')} id="ced_portalUrl" class="form-control" placeholder="https://">`)}
+      </div>
+
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Underwriting</div>
+      <div class="form-grid" style="margin-bottom:18px">
+        ${fld('UW Phone', `<input ${v('ced_uwPhone', c.uwPhone)} id="ced_uwPhone" class="form-control" type="tel">`)}
+        ${fld('UW Email', `<input ${v('ced_uwEmail', c.uwEmail)} id="ced_uwEmail" class="form-control" type="email">`)}
+        ${fld('UW Turnaround Time', `<input ${v('ced_uwTat', c.uwTat||'')} id="ced_uwTat" class="form-control" placeholder="e.g. Same day, 24 hrs">`)}
+        ${fld('Bind Authority', sel('ced_bind', ['Online Bind','UW Approval Required','Both'], c.bindAuth||'Online Bind'))}
+      </div>
+
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Notes</div>
+      <textarea id="ced_notes" class="form-control" rows="3" style="margin-bottom:20px;font-size:13px;resize:vertical">${escAttr(c.notes||'')}</textarea>
+
+      <div style="display:flex;gap:10px;padding-top:16px;border-top:1px solid var(--border)">
+        <button class="btn btn-primary" style="padding:9px 26px;font-size:13px" onclick="saveCarrier(${idx})">Save Carrier</button>
+        <button class="btn btn-ghost" onclick="window._editingCarrier=null;refreshAdminPage()">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function saveCarrier(idx) {
+  const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const n = id => { const el = document.getElementById(id); return el ? (parseFloat(el.value)||0) : 0; };
+  if (!window.CARRIER_DATA) window.CARRIER_DATA = [];
+  window.CARRIER_DATA[idx] = Object.assign({}, window.CARRIER_DATA[idx], {
+    name:         g('ced_name'),
+    active:       g('ced_status') === 'Active',
+    apptType:     g('ced_appt'),
+    lines:        g('ced_lines'),
+    payTerms:     g('ced_payterms'),
+    since:        g('ced_since'),
+    commNew:      n('ced_commNew'),
+    commRenewal:  n('ced_commRenewal'),
+    bonus:        n('ced_bonus'),
+    compBy:       g('ced_compBy'),
+    minPrem:      n('ced_minPrem'),
+    chargeback:   n('ced_chargeback'),
+    contactName:  g('ced_contactName'),
+    contactPhone: g('ced_contactPhone'),
+    contactEmail: g('ced_contactEmail'),
+    portalUrl:    g('ced_portalUrl'),
+    uwPhone:      g('ced_uwPhone'),
+    uwEmail:      g('ced_uwEmail'),
+    uwTat:        g('ced_uwTat'),
+    bindAuth:     g('ced_bind'),
+    notes:        g('ced_notes'),
+  });
+  window._editingCarrier = null;
+  window.ADMIN_STATE.successMsg = (window.CARRIER_DATA[idx].name || 'Carrier') + ' saved.';
+  refreshAdminPage();
+}
+
+function renderCallSettingsPanel() {
+  return `<div class="card">
+    <div class="card-header"><div class="card-title">Call &amp; Text Settings</div></div>
+    <div class="card-body">
+
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Business Hours (for Automation)</div>
+      <div class="form-grid" style="margin-bottom:20px">
+        <div class="form-group"><div class="form-label">Days Active</div><select class="form-control"><option>Mon – Fri</option><option>Mon – Sat</option><option>Every Day</option></select></div>
+        <div class="form-group"><div class="form-label">Start Time</div><input class="form-control" type="time" value="08:00"></div>
+        <div class="form-group"><div class="form-label">End Time</div><input class="form-control" type="time" value="19:00"></div>
+        <div class="form-group"><div class="form-label">Timezone</div><select class="form-control"><option>Pacific (PST/PDT)</option><option>Mountain</option><option>Central</option><option>Eastern</option></select></div>
+      </div>
+
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Outbound Caller ID</div>
+      <div class="form-grid" style="margin-bottom:20px">
+        <div class="form-group"><div class="form-label">Caller ID Number</div><input class="form-control" placeholder="(619) 555-0100"></div>
+        <div class="form-group"><div class="form-label">Caller ID Name</div><input class="form-control" placeholder="MaxSave Insurance"></div>
+        <div class="form-group"><div class="form-label">Text Sender Number</div><input class="form-control" placeholder="(619) 555-0101"></div>
+        <div class="form-group"><div class="form-label">Voicemail Drop Audio</div><input class="form-control" type="file" accept="audio/*" style="padding:6px 12px"></div>
+      </div>
+
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">DNC / Compliance</div>
+      <div class="form-grid" style="margin-bottom:20px">
+        <div class="form-group"><div class="form-label">Auto-Scrub Against NDNC</div><select class="form-control"><option>Yes — scrub before each call</option><option>No</option></select></div>
+        <div class="form-group"><div class="form-label">Internal DNC List</div><select class="form-control"><option>Enabled — enforce on all contacts</option><option>Disabled</option></select></div>
+        <div class="form-group"><div class="form-label">Opt-Out Keyword</div><input class="form-control" value="STOP"></div>
+        <div class="form-group"><div class="form-label">Opt-Out Reply Message</div><input class="form-control" value="You have been unsubscribed. Reply START to re-subscribe."></div>
+      </div>
+
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Power Dialer Settings</div>
+      <div class="form-grid" style="margin-bottom:20px">
+        <div class="form-group"><div class="form-label">Lines Per Agent</div><select class="form-control"><option>1 Line</option><option>2 Lines</option><option>3 Lines</option></select></div>
+        <div class="form-group"><div class="form-label">Redial Attempts</div><select class="form-control"><option>3</option><option>5</option><option>7</option></select></div>
+        <div class="form-group"><div class="form-label">Ring Timeout (seconds)</div><input class="form-control" type="number" value="30"></div>
+        <div class="form-group"><div class="form-label">Pause Between Dials (sec)</div><input class="form-control" type="number" value="5"></div>
+      </div>
+
+      <button class="btn btn-primary" style="font-size:13px">Save Settings</button>
+    </div>
+  </div>`;
+}
+
+function renderPipelinesPanel() {
+  const stages = [
+    { name:'New Lead',        color:'#3B82F6', count:84,  desc:'Just entered the system'        },
+    { name:'Contacted',       color:'#8B5CF6', count:61,  desc:'Made at least one contact'       },
+    { name:'Quoted',          color:'#F59E0B', count:29,  desc:'Quote has been delivered'        },
+    { name:'Appointment Set', color:'#10B981', count:12,  desc:'Call or meeting scheduled'       },
+    { name:'Sold',            color:'#16A34A', count:37,  desc:'Policy bound and confirmed'      },
+    { name:'Bad Lead',        color:'#6B7280', count:18,  desc:'Invalid, DNC, or unreachable'    },
+  ];
+  return `<div class="card">
+    <div class="card-header">
+      <div><div class="card-title">Pipeline Stages</div><div style="font-size:13px;color:var(--gray-500);margin-top:2px">Customize your lead funnel stages and colors</div></div>
+      <button class="btn btn-primary" style="font-size:13px">+ Add Stage</button>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
+        ${stages.map((st,i)=>`
+        <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--gray-50)">
+          <div style="width:4px;height:40px;border-radius:4px;background:${st.color};flex-shrink:0"></div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:700;color:var(--navy-900)">${st.name}</div>
+            <div style="font-size:12px;color:var(--gray-500);margin-top:2px">${st.desc}</div>
+          </div>
+          <div style="text-align:center;min-width:48px">
+            <div style="font-size:18px;font-weight:700;color:var(--navy-900)">${st.count}</div>
+            <div style="font-size:11px;color:var(--gray-400)">leads</div>
+          </div>
+          <input type="color" value="${st.color}" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;padding:2px" title="Change color">
+          <input class="form-control" value="${st.name}" style="width:140px;font-size:13px">
+          <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;color:var(--gray-400)">✕</button>
+        </div>`).join('')}
+      </div>
+      <button class="btn btn-primary" style="font-size:13px">Save Stages</button>
+    </div>
+  </div>`;
+}
+
+function renderDataExportPanel() {
+  return `<div class="card">
+    <div class="card-header"><div class="card-title">Data &amp; Export</div></div>
+    <div class="card-body">
+
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Export Data</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">
+        ${[['Leads','All leads with status, source, and contact info'],['Customers','Active customers with policy and billing info'],['Activity Log','Agent activity — calls, texts, contacts by date'],['Commission Report','Broker fees collected by agent and pay period']].map(([title,desc])=>`
+        <div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px">
+          <div>
+            <div style="font-size:13.5px;font-weight:700;color:var(--navy-900);margin-bottom:3px">${title}</div>
+            <div style="font-size:12px;color:var(--gray-500)">${desc}</div>
+          </div>
+          <button class="btn btn-ghost" style="font-size:12.5px;white-space:nowrap;flex-shrink:0">Export CSV</button>
+        </div>`).join('')}
+      </div>
+
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Date Range</div>
+      <div class="form-grid" style="margin-bottom:20px">
+        <div class="form-group"><div class="form-label">From</div><input class="form-control" type="date"></div>
+        <div class="form-group"><div class="form-label">To</div><input class="form-control" type="date"></div>
+        <div class="form-group"><div class="form-label">Filter By Agent</div><select class="form-control"><option>All Agents</option>${(window.TEAM_MEMBERS||[]).map(m=>`<option>${m.name||''}</option>`).join('')}</select></div>
+        <div class="form-group"><div class="form-label">Format</div><select class="form-control"><option>CSV</option><option>Excel (.xlsx)</option><option>PDF</option></select></div>
+      </div>
+
+      <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Data Retention</div>
+      <div class="form-grid" style="margin-bottom:20px">
+        <div class="form-group"><div class="form-label">Archive Closed Leads After</div><select class="form-control"><option>90 days</option><option>180 days</option><option>1 year</option><option>Never</option></select></div>
+        <div class="form-group"><div class="form-label">Auto-Delete Archived Records After</div><select class="form-control"><option>Never</option><option>2 years</option><option>5 years</option><option>7 years</option></select></div>
+      </div>
+
+      <button class="btn btn-primary" style="font-size:13px">Save Settings</button>
+    </div>
+  </div>`;
+}
+
+window.LEAD_VENDORS = window.LEAD_VENDORS || [
+  { name:'EverQuote',  type:'Live Transfers',  ppl:45, hours:'7am–7pm PST · Mon–Fri',    closeGoal:15, dailyCap:20, weeklyBudget:2000, active:true,  notes:'',                         acctMgr:'EverQuote Support', acctEmail:'support@everquote.com', payTerms:'Net 30'  },
+  { name:'MediaAlpha', type:'Data Leads',       ppl:18, hours:'Continuous delivery',       closeGoal:8,  dailyCap:50, weeklyBudget:2500, active:true,  notes:'Filter: auto only · CA',   acctMgr:'MediaAlpha Rep',    acctEmail:'',                      payTerms:'Prepaid' },
+  { name:'UMG',        type:'Inbound Calls',    ppl:65, hours:'8am–6pm PST · Mon–Sat',    closeGoal:25, dailyCap:15, weeklyBudget:3000, active:true,  notes:'Min 3-min call length',    acctMgr:'UMG Account Team',  acctEmail:'',                      payTerms:'Net 15'  },
+];
+
+function renderLeadsPanel() {
+  if (!window.LEAD_VENDORS) window.LEAD_VENDORS = [];
+  const vendors = window.LEAD_VENDORS;
+  const totalWkBudget = vendors.filter(v => v.active).reduce((s, v) => s + (v.weeklyBudget || 0), 0);
+  const avgPPL = vendors.length ? Math.round(vendors.reduce((s, v) => s + (v.ppl || 0), 0) / vendors.length) : 0;
+  const activeCount = vendors.filter(v => v.active).length;
+
+  const typeBadge = t => {
+    if (t === 'Live Transfers') return '<span style="background:#F0FDF4;color:#16A34A;border:1px solid #86EFAC;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:700">⚡ Live Transfers</span>';
+    if (t === 'Data Leads')     return '<span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:700">📋 Data Leads</span>';
+    return '<span style="background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:700">📞 Inbound Calls</span>';
+  };
+
+  const rows = vendors.map((v, i) => `
+  <tr>
+    <td>
+      <div style="font-weight:700;font-size:14px;color:var(--navy-900)">${escAttr(v.name)}</div>
+      <div style="font-size:11px;color:var(--gray-400);margin-top:1px">${escAttr(v.acctMgr||'')}${v.acctEmail ? ' · ' + escAttr(v.acctEmail) : ''}</div>
+    </td>
+    <td>${typeBadge(v.type)}</td>
+    <td style="font-weight:700;color:var(--navy-900)">$${v.ppl || 0}<span style="font-size:10.5px;color:var(--gray-400);font-weight:400"> /lead</span></td>
+    <td style="color:var(--gray-600);font-size:12.5px">${escAttr(v.hours || '—')}</td>
+    <td><div style="font-weight:600;color:var(--navy-900)">${v.closeGoal || 0}%</div><div style="font-size:10.5px;color:var(--gray-400)">target</div></td>
+    <td><div style="font-weight:600;color:var(--navy-900)">${v.dailyCap || 0}/day</div><div style="font-size:10.5px;color:var(--gray-400)">$${(v.weeklyBudget||0).toLocaleString()}/wk</div></td>
+    <td style="font-size:12px;color:var(--gray-600)">${escAttr(v.payTerms || '—')}</td>
+    <td>${v.active ? '<span style="background:#DCFCE7;color:#16A34A;border:1px solid #86EFAC;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:700">● Active</span>' : '<span style="background:#F3F4F6;color:#6B7280;border:1px solid #D1D5DB;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:700">○ Paused</span>'}</td>
+    <td>
+      <div style="display:flex;gap:5px">
+        <button onclick="openVendorModal(${i})" style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:6px;padding:5px 12px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:var(--font-body)">✏ Edit</button>
+        <button onclick="removeVendor(${i})" style="background:#FEF2F2;color:#DC2626;border:1px solid #FCA5A5;border-radius:6px;padding:5px 9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:var(--font-body)">✕</button>
+      </div>
+    </td>
+  </tr>`).join('');
+
+  return `
+  <div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;box-shadow:var(--shadow-sm)">
+        <div style="font-size:28px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${vendors.length}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--gray-500);margin-top:3px">Total Vendors</div>
+      </div>
+      <div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:var(--radius-lg);padding:14px 16px;text-align:center">
+        <div style="font-size:28px;font-weight:800;color:#16A34A;font-family:var(--font-display)">${activeCount}</div>
+        <div style="font-size:12px;font-weight:600;color:#16A34A;margin-top:3px">Active Vendors</div>
+      </div>
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--radius-lg);padding:14px 16px;text-align:center">
+        <div style="font-size:28px;font-weight:800;color:#1D4ED8;font-family:var(--font-display)">$${avgPPL}</div>
+        <div style="font-size:12px;font-weight:600;color:#1D4ED8;margin-top:3px">Avg Price / Lead</div>
+      </div>
+      <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius-lg);padding:14px 16px;text-align:center">
+        <div style="font-size:28px;font-weight:800;color:#B45309;font-family:var(--font-display)">$${totalWkBudget.toLocaleString()}</div>
+        <div style="font-size:12px;font-weight:600;color:#B45309;margin-top:3px">Weekly Budget</div>
+      </div>
+    </div>
+
+    <div class="card" style="overflow:hidden;margin-bottom:16px">
+      <div class="card-header">
+        <div class="card-title">Lead Vendors</div>
+        <button class="btn btn-primary" onclick="openVendorModal(null)" style="font-size:13px">＋ Add Vendor</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr>
+            <th style="min-width:180px">Vendor</th><th>Type</th><th>Price/Lead</th>
+            <th style="min-width:150px">Hours</th><th>Close Goal</th>
+            <th>Cap / Budget</th><th>Payment</th><th>Status</th>
+            <th style="min-width:110px">Actions</th>
+          </tr></thead>
+          <tbody>${rows || '<tr><td colspan="9" style="text-align:center;color:var(--gray-400);padding:28px">No vendors yet. Click ＋ Add Vendor to get started.</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:0">
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Lead Status Labels</div>
+          <button class="btn btn-ghost" style="font-size:12px" onclick="alert('Lead status label editor coming soon.')">+ Add Status</button>
+        </div>
+        <div style="padding:14px 18px;display:flex;flex-wrap:wrap;gap:9px">
+          ${[
+            {label:'New Lead',         color:'#1A6ED0', bg:'#EFF6FF'},
+            {label:'Contacted',        color:'#7C3AED', bg:'#F5F3FF'},
+            {label:'Quoted',           color:'#B45309', bg:'#FFFBEB'},
+            {label:'Appointment Set',  color:'#0E7490', bg:'#ECFEFF'},
+            {label:'Sold',             color:'#16A34A', bg:'#F0FDF4'},
+            {label:'Bad Lead',         color:'#DC2626', bg:'#FEF2F2'},
+            {label:'Do Not Call',      color:'#6B7280', bg:'#F3F4F6'},
+            {label:'Follow Up',        color:'#D97706', bg:'#FFFBEB'},
+          ].map(s => `<span style="background:${s.bg};color:${s.color};border:1.5px solid ${s.color}40;padding:5px 14px;border-radius:var(--radius-full);font-size:13px;font-weight:700;cursor:pointer" onclick="alert('Edit status: ${s.label} — coming soon.')">${s.label}</span>`).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Lead Sources</div>
+          <button class="btn btn-primary" style="font-size:12.5px" onclick="addLeadSource()">＋ Add Source</button>
+        </div>
+        <div style="padding:10px 14px">
+          ${(window.LEAD_SOURCES || []).map((src, i) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:10px;height:10px;border-radius:50%;background:${src.color};flex-shrink:0"></div>
+              <span style="font-size:13.5px;font-weight:600;color:${src.active ? 'var(--navy-900)' : 'var(--gray-400)'}">${escAttr(src.name)}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12.5px;color:var(--gray-500)">
+                <input type="checkbox" ${src.active ? 'checked' : ''} onchange="toggleLeadSource(${i})" style="cursor:pointer;accent-color:#1A6ED0;width:15px;height:15px">
+                ${src.active ? 'Active' : 'Paused'}
+              </label>
+              <button onclick="removeLeadSource(${i})" style="background:transparent;border:none;color:var(--gray-400);cursor:pointer;font-size:15px;padding:2px 5px;line-height:1">✕</button>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>
+
+    </div>
+  </div>`;
+}
+
+function openVendorModal(idx) {
+  const isNew = idx === null || idx === undefined;
+  const vd = isNew
+    ? { name:'', type:'Data Leads', ppl:0, hours:'', closeGoal:0, dailyCap:0, weeklyBudget:0, active:true, notes:'', acctMgr:'', acctEmail:'', payTerms:'Net 30' }
+    : (window.LEAD_VENDORS[idx] || {});
+  window._editingVendorIdx = isNew ? null : idx;
+
+  let overlay = document.getElementById('vendorModalOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'vendorModalOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:none;align-items:center;justify-content:center;padding:16px';
+    overlay.onclick = e => { if (e.target === overlay) closeVendorModal(); };
+    document.body.appendChild(overlay);
+  }
+
+  overlay.innerHTML = `
+<div style="background:#fff;border-radius:var(--radius-xl);width:580px;max-width:96vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3)" onclick="event.stopPropagation()">
+  <div style="background:linear-gradient(135deg,#0E2340 0%,#1A6ED0 100%);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    <div>
+      <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:#fff">${isNew ? 'Add Lead Vendor' : 'Edit — ' + escAttr(vd.name)}</div>
+      <div style="font-size:11.5px;color:rgba(255,255,255,0.6);margin-top:3px">Configure lead source pricing, schedule &amp; caps</div>
+    </div>
+    <div style="cursor:pointer;font-size:20px;color:rgba(255,255,255,0.65);padding:4px 8px;line-height:1" onclick="closeVendorModal()">✕</div>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding:20px 22px">
+
+    <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.8px;padding-bottom:8px;border-bottom:2px solid var(--border);margin-bottom:14px">Vendor Details</div>
+    <div class="form-grid" style="gap:12px;margin-bottom:14px">
+      <div class="form-group"><div class="form-label">Vendor Name</div><input id="vm_name" class="form-control" value="${escAttr(vd.name || '')}" placeholder="e.g. EverQuote"></div>
+      <div class="form-group">
+        <div class="form-label">Lead Type</div>
+        <select id="vm_type" class="form-control">
+          <option ${vd.type === 'Data Leads'     ? 'selected' : ''}>Data Leads</option>
+          <option ${vd.type === 'Live Transfers'  ? 'selected' : ''}>Live Transfers</option>
+          <option ${vd.type === 'Inbound Calls'   ? 'selected' : ''}>Inbound Calls</option>
+        </select>
+      </div>
+      <div class="form-group"><div class="form-label">Price Per Lead ($)</div><input id="vm_ppl" class="form-control" type="number" value="${vd.ppl || 0}" min="0"></div>
+      <div class="form-group"><div class="form-label">Close Rate Goal (%)</div><input id="vm_closeGoal" class="form-control" type="number" value="${vd.closeGoal || 0}" min="0" max="100"></div>
+    </div>
+
+    <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.8px;padding-bottom:8px;border-bottom:2px solid var(--border);margin-bottom:14px">Schedule &amp; Caps</div>
+    <div class="form-grid" style="gap:12px;margin-bottom:14px">
+      <div class="form-group" style="grid-column:1/-1"><div class="form-label">Operating Hours</div><input id="vm_hours" class="form-control" value="${escAttr(vd.hours || '')}" placeholder="e.g. 7am–7pm PST · Mon–Fri"></div>
+      <div class="form-group"><div class="form-label">Daily Lead Cap</div><input id="vm_dailyCap" class="form-control" type="number" value="${vd.dailyCap || 0}" min="0"></div>
+      <div class="form-group"><div class="form-label">Weekly Budget ($)</div><input id="vm_weeklyBudget" class="form-control" type="number" value="${vd.weeklyBudget || 0}" min="0"></div>
+    </div>
+
+    <div style="font-size:11px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.8px;padding-bottom:8px;border-bottom:2px solid var(--border);margin-bottom:14px">Account &amp; Billing</div>
+    <div class="form-grid" style="gap:12px;margin-bottom:14px">
+      <div class="form-group"><div class="form-label">Account Manager</div><input id="vm_acctMgr" class="form-control" value="${escAttr(vd.acctMgr || '')}" placeholder="Rep name or team"></div>
+      <div class="form-group"><div class="form-label">Account Manager Email</div><input id="vm_acctEmail" class="form-control" type="email" value="${escAttr(vd.acctEmail || '')}"></div>
+      <div class="form-group">
+        <div class="form-label">Payment Terms</div>
+        <select id="vm_payTerms" class="form-control">
+          <option ${(vd.payTerms || 'Net 30') === 'Net 30' ? 'selected' : ''}>Net 30</option>
+          <option ${vd.payTerms === 'Net 15'  ? 'selected' : ''}>Net 15</option>
+          <option ${vd.payTerms === 'Net 7'   ? 'selected' : ''}>Net 7</option>
+          <option ${vd.payTerms === 'Prepaid' ? 'selected' : ''}>Prepaid</option>
+          <option ${vd.payTerms === 'Weekly'  ? 'selected' : ''}>Weekly</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Status</div>
+        <select id="vm_active" class="form-control">
+          <option value="1" ${vd.active !== false ? 'selected' : ''}>Active</option>
+          <option value="0" ${vd.active === false  ? 'selected' : ''}>Paused</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Notes</div>
+      <textarea id="vm_notes" class="form-control" rows="3" style="resize:vertical">${escAttr(vd.notes || '')}</textarea>
+    </div>
+  </div>
+  <div style="padding:14px 22px;border-top:1px solid var(--border);background:var(--gray-50);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    ${!isNew ? `<button onclick="removeVendor(${idx});closeVendorModal();" style="background:#FEF2F2;color:#DC2626;border:1px solid #FCA5A5;border-radius:var(--radius-md);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">🗑 Remove</button>` : '<div></div>'}
+    <div style="display:flex;gap:8px">
+      <button onclick="closeVendorModal()" class="btn btn-ghost" style="font-size:13px">Cancel</button>
+      <button onclick="saveVendor()" class="btn btn-primary" style="font-size:13px;padding:9px 24px">💾 Save Vendor</button>
+    </div>
+  </div>
+</div>`;
+
+  overlay.style.display = 'flex';
+}
+
+function closeVendorModal() {
+  const el = document.getElementById('vendorModalOverlay');
+  if (el) el.style.display = 'none';
+}
+
+function saveVendor() {
+  const g   = id => document.getElementById(id);
+  const v   = id => g(id) ? g(id).value.trim() : '';
+  const num = id => parseFloat(g(id) && g(id).value) || 0;
+  const name = v('vm_name');
+  if (!name) { alert('Vendor name is required.'); return; }
+  const vendor = {
+    name,
+    type:          v('vm_type'),
+    ppl:           num('vm_ppl'),
+    hours:         v('vm_hours'),
+    closeGoal:     num('vm_closeGoal'),
+    dailyCap:      num('vm_dailyCap'),
+    weeklyBudget:  num('vm_weeklyBudget'),
+    acctMgr:       v('vm_acctMgr'),
+    acctEmail:     v('vm_acctEmail'),
+    payTerms:      v('vm_payTerms'),
+    active:        g('vm_active') ? g('vm_active').value === '1' : true,
+    notes:         v('vm_notes'),
+  };
+  if (!window.LEAD_VENDORS) window.LEAD_VENDORS = [];
+  const idx = window._editingVendorIdx;
+  if (idx !== null && idx !== undefined) {
+    window.LEAD_VENDORS[idx] = vendor;
+  } else {
+    window.LEAD_VENDORS.push(vendor);
+  }
+  closeVendorModal();
+  refreshAdminPage();
+}
+
+function removeVendor(idx) {
+  if (!confirm('Remove ' + (window.LEAD_VENDORS[idx] || {}).name + '? This cannot be undone.')) return;
+  window.LEAD_VENDORS.splice(idx, 1);
+  refreshAdminPage();
+}
+
+// ── LEAD SOURCES (merged into Leads panel) ──────────────────────────────────
+window.LEAD_SOURCES = window.LEAD_SOURCES || [
+  { name:'EverQuote',    active:true,  color:'#1A6ED0' },
+  { name:'MediaAlpha',   active:true,  color:'#7C3AED' },
+  { name:'UMG',          active:true,  color:'#16A34A' },
+  { name:'Facebook Ads', active:false, color:'#1877F2' },
+  { name:'Google Ads',   active:false, color:'#DB4437' },
+  { name:'Referral',     active:true,  color:'#B45309' },
+  { name:'Direct Call',  active:true,  color:'#0E7490' },
+  { name:'Cold Call',    active:false, color:'#6B7280' },
+];
+
+function toggleLeadSource(idx) {
+  if (window.LEAD_SOURCES[idx]) window.LEAD_SOURCES[idx].active = !window.LEAD_SOURCES[idx].active;
+  refreshAdminPage();
+}
+
+function addLeadSource() {
+  const name = prompt('Enter new lead source name:');
+  if (!name || !name.trim()) return;
+  window.LEAD_SOURCES.push({ name: name.trim(), active: true, color: '#1C2B4B' });
+  refreshAdminPage();
+}
+
+function removeLeadSource(idx) {
+  if (!confirm('Remove lead source "' + window.LEAD_SOURCES[idx].name + '"?')) return;
+  window.LEAD_SOURCES.splice(idx, 1);
+  refreshAdminPage();
+}
+
+// ── LIFECYCLE AUTOMATION ────────────────────────────────────────────────────
+window.LIFECYCLE_RULES = window.LIFECYCLE_RULES || [
+  { id:1, name:'New Lead Follow-Up Sequence', triggerLabel:'Lead is created', active:true, steps:[
+    { day:1, time:'9:00 AM',  action:'Send Text',  subject:'',                                  message:'Hi {{name}}, this is {{agent}} from MaxSave Insurance! I\'d love to help you find the best auto rate. Available for a quick call?' },
+    { day:2, time:'10:00 AM', action:'Send Text',  subject:'',                                  message:'Hi {{name}}, just checking in. We still have great rates available — let me know when\'s a good time!' },
+    { day:3, time:'9:00 AM',  action:'Send Email', subject:'Your Auto Insurance Quote — MaxSave',message:'Hi {{name}},\n\nI wanted to follow up on your auto insurance inquiry. We work with top carriers to find you the best rate.\n\nGive me a call or just reply to this email — happy to help!\n\n{{agent}}\nMaxSave Insurance' },
+    { day:5, time:'2:00 PM',  action:'Send Text',  subject:'',                                  message:'Hi {{name}}, last follow-up from MaxSave! We still have great rates waiting for you. Call or text anytime.' },
+  ]},
+  { id:2, name:'Quote Follow-Up Sequence', triggerLabel:'Lead is marked Quoted', active:true, steps:[
+    { day:1, time:'10:00 AM', action:'Send Text',  subject:'',                            message:'Hi {{name}}, just following up on your auto quote. Any questions I can help with?' },
+    { day:3, time:'9:00 AM',  action:'Send Text',  subject:'',                            message:'Hi {{name}}, the rate I quoted you is still available! Give me a call anytime.' },
+    { day:5, time:'11:00 AM', action:'Send Email', subject:'Still Interested? — MaxSave', message:'Hi {{name}},\n\nJust wanted to check in on your auto insurance quote. Rates can change, and I want to make sure you get the best deal.\n\nCall or email anytime!\n\n{{agent}}\nMaxSave Insurance' },
+  ]},
+  { id:3, name:'Renewal Reminder Sequence', triggerLabel:'Policy expires in', active:true, steps:[
+    { day:30, time:'9:00 AM',  action:'Send Text',  subject:'',                                   message:'Hi {{name}}, your auto policy renews in 30 days. Let us shop the best rate — no cost, no obligation!' },
+    { day:14, time:'9:00 AM',  action:'Send Email', subject:'Policy Renewal in 14 Days — MaxSave', message:'Hi {{name}},\n\nYour policy renews in 14 days. We want to make sure you have the best coverage at the best price.\n\nCall or reply to get started!\n\n{{agent}}\nMaxSave Insurance' },
+    { day:7,  time:'10:00 AM', action:'Send Text',  subject:'',                                   message:'Hi {{name}}, your policy renews in 7 days! Call us now to lock in the best rate.' },
+    { day:1,  time:'9:00 AM',  action:'Send Text',  subject:'',                                   message:'Hi {{name}}, your policy renews TOMORROW. Please call us ASAP to keep your coverage active!' },
+  ]},
+  { id:4, name:'Extended Fee Reminder', triggerLabel:'Extended fee unpaid for', active:true, steps:[
+    { day:7,  time:'10:00 AM', action:'Send Text',  subject:'', message:'Hi {{name}}, your extended payment of {{amount}} is due. Please call or pay online to keep your coverage active.' },
+    { day:14, time:'9:00 AM',  action:'Send Email', subject:'Payment Due — MaxSave Insurance', message:'Hi {{name}},\n\nThis is a reminder that your balance of {{amount}} is past due. Your coverage may be affected.\n\nPlease call us or pay online immediately.\n\n{{agent}}\nMaxSave Insurance' },
+  ]},
+  { id:5, name:'Birthday Greeting', triggerLabel:'On customer birthday', active:false, steps:[
+    { day:1, time:'9:00 AM', action:'Send Text', subject:'', message:'Happy Birthday {{name}}! 🎉 Wishing you a wonderful day from all of us at MaxSave Insurance!' },
+  ]},
+];
+
+window._lcSteps = window._lcSteps || [];
+
+function syncLCStepsFromDOM() {
+  (window._lcSteps || []).forEach((step, i) => {
+    const d = document.getElementById('lc_day_'  + i);
+    const t = document.getElementById('lc_time_' + i);
+    const a = document.getElementById('lc_act_'  + i);
+    const s = document.getElementById('lc_sub_'  + i);
+    const m = document.getElementById('lc_msg_'  + i);
+    if (d) step.day     = parseInt(d.value) || 1;
+    if (t) step.time    = t.value;
+    if (a) step.action  = a.value;
+    if (s) step.subject = s.value;
+    if (m) step.message = m.value;
+  });
+}
+
+function renderLCStepsEditor() {
+  const steps = window._lcSteps || [];
+  const times = ['6:00 AM','7:00 AM','8:00 AM','9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM','8:00 PM'];
+  const html = steps.map((step, i) => `
+<div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+    <div style="background:#1C2B4B;color:#fff;border-radius:var(--radius-full);padding:3px 12px;font-size:12px;font-weight:700;white-space:nowrap">Step ${i+1}</div>
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <span style="font-size:12px;color:var(--gray-500);font-weight:600">Day</span>
+      <input id="lc_day_${i}" type="number" value="${step.day}" min="1" max="365" style="width:60px;padding:5px 8px;border:1px solid var(--border-strong);border-radius:6px;font-size:13px;font-family:var(--font-body);text-align:center" title="Day number from trigger">
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <span style="font-size:12px;color:var(--gray-500);font-weight:600">at</span>
+      <select id="lc_time_${i}" style="padding:5px 8px;border:1px solid var(--border-strong);border-radius:6px;font-size:12.5px;font-family:var(--font-body)">
+        ${times.map(t=>`<option ${step.time===t?'selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <span style="font-size:12px;color:var(--gray-500);font-weight:600">→</span>
+      <select id="lc_act_${i}" style="padding:5px 10px;border:1px solid var(--border-strong);border-radius:6px;font-size:12.5px;font-family:var(--font-body)" onchange="document.getElementById('lc_sub_row_${i}').style.display=this.value==='Send Email'?'block':'none'">
+        <option ${step.action==='Send Text' ?'selected':''}>Send Text</option>
+        <option ${step.action==='Send Email'?'selected':''}>Send Email</option>
+        <option ${step.action==='Create Task'?'selected':''}>Create Task</option>
+      </select>
+    </div>
+    <button onclick="syncLCStepsFromDOM();window._lcSteps.splice(${i},1);renderLCStepsEditor()" style="margin-left:auto;background:transparent;border:none;color:#DC2626;cursor:pointer;font-size:17px;padding:2px 6px;line-height:1" title="Remove step">✕</button>
+  </div>
+  <div id="lc_sub_row_${i}" style="display:${step.action==='Send Email'?'block':'none'};margin-bottom:8px">
+    <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Email Subject</div>
+    <input id="lc_sub_${i}" class="form-control" value="${escAttr(step.subject||'')}" placeholder="Email subject line..." style="font-size:13px;margin-bottom:0">
+  </div>
+  <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">${step.action==='Send Email'?'Email Body':'Message'}</div>
+  <textarea id="lc_msg_${i}" class="form-control" rows="${step.action==='Send Email'?5:3}" style="font-size:13px;resize:vertical">${escAttr(step.message||'')}</textarea>
+</div>`).join('');
+  const el = document.getElementById('lcStepsList');
+  if (el) el.innerHTML = html || '<div style="text-align:center;color:var(--gray-400);padding:20px;font-size:13px">No steps yet. Click + Add Step to build your sequence.</div>';
+}
+
+function addLCStep() {
+  syncLCStepsFromDOM();
+  const maxDay = window._lcSteps.length ? Math.max(...window._lcSteps.map(s=>s.day)) : 0;
+  window._lcSteps.push({ day: maxDay + 1, time:'9:00 AM', action:'Send Text', subject:'', message:'' });
+  renderLCStepsEditor();
+}
+
+function toggleLifecycleRule(id) {
+  const r = (window.LIFECYCLE_RULES || []).find(x => x.id === id);
+  if (r) r.active = !r.active;
+  refreshAdminPage();
+}
+
+function renderLifecyclePanel() {
+  const rules = window.LIFECYCLE_RULES || [];
+  const active = rules.filter(r => r.active).length;
+  const totalSteps = rules.reduce((s,r)=>s+(r.steps||[]).length,0);
+  const emailSteps = rules.reduce((s,r)=>s+(r.steps||[]).filter(x=>x.action==='Send Email').length,0);
+
+  const tcMap = tl => {
+    if (tl.includes('created'))   return { bg:'#EFF6FF',color:'#1D4ED8',border:'#BFDBFE' };
+    if (tl.includes('Quoted'))    return { bg:'#FFFBEB',color:'#B45309',border:'#FDE68A' };
+    if (tl.includes('expires'))   return { bg:'#FEF2F2',color:'#DC2626',border:'#FCA5A5' };
+    if (tl.includes('unpaid'))    return { bg:'#FFF7ED',color:'#C2410C',border:'#FED7AA' };
+    if (tl.includes('birthday'))  return { bg:'#F0FDF4',color:'#16A34A',border:'#86EFAC' };
+    if (tl.includes('Bad Lead'))  return { bg:'#F3F4F6',color:'#374151',border:'#D1D5DB' };
+    return { bg:'#F9FAFB',color:'#374151',border:'#E5E7EB' };
+  };
+  const aIcon = a => ({'Send Text':'💬','Send Email':'📧','Create Task':'✅'})[a]||'⚙️';
+
+  const cards = rules.map(r => {
+    const tc = tcMap(r.triggerLabel);
+    const steps = r.steps || [];
+    const stepPills = steps.slice(0,6).map(s=>`<span style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-full);padding:2px 10px;font-size:11.5px;font-weight:600;color:var(--gray-700);white-space:nowrap">${aIcon(s.action)} Day ${s.day}</span>`).join('');
+    const more = steps.length > 6 ? `<span style="font-size:11.5px;color:var(--gray-400)">+${steps.length-6} more</span>` : '';
+    return `<div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:10px;box-shadow:var(--shadow-sm);${r.active?'':'opacity:0.6'}">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <label style="display:flex;align-items:center;cursor:pointer;flex-shrink:0">
+          <input type="checkbox" ${r.active?'checked':''} onchange="toggleLifecycleRule(${r.id})" style="width:17px;height:17px;cursor:pointer;accent-color:#1A6ED0">
+        </label>
+        <div style="font-weight:700;font-size:15px;color:var(--navy-900);flex:1">${r.name}</div>
+        <span style="background:${r.active?'#DCFCE7':'#F3F4F6'};color:${r.active?'#16A34A':'#6B7280'};border:1px solid ${r.active?'#86EFAC':'#D1D5DB'};padding:2px 10px;border-radius:var(--radius-full);font-size:11.5px;font-weight:700;white-space:nowrap">${r.active?'● Active':'○ Paused'}</span>
+        <button onclick="openLifecycleEditor(${r.id})" style="background:#F9FAFB;border:1px solid var(--border);border-radius:var(--radius-md);padding:6px 14px;font-size:12.5px;font-weight:600;color:var(--navy-900);cursor:pointer;font-family:var(--font-body);flex-shrink:0">✏ Edit</button>
+      </div>
+      <div style="margin-bottom:10px">
+        <span style="background:${tc.bg};color:${tc.color};border:1px solid ${tc.border};padding:3px 12px;border-radius:var(--radius-full);font-size:12px;font-weight:600">⚡ ${r.triggerLabel}</span>
+      </div>
+      <div style="font-size:11.5px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px">${steps.length} Step${steps.length!==1?'s':''} — Sequence</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${stepPills}${more}</div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px">
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;text-align:center;box-shadow:var(--shadow-sm)">
+        <div style="font-size:30px;font-weight:800;color:var(--navy-900);font-family:var(--font-display)">${rules.length}</div>
+        <div style="font-size:13px;font-weight:600;color:var(--gray-500);margin-top:3px">Sequences</div>
+      </div>
+      <div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:var(--radius-lg);padding:14px 18px;text-align:center">
+        <div style="font-size:30px;font-weight:800;color:#16A34A;font-family:var(--font-display)">${active}</div>
+        <div style="font-size:13px;font-weight:600;color:#16A34A;margin-top:3px">Active</div>
+      </div>
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--radius-lg);padding:14px 18px;text-align:center">
+        <div style="font-size:30px;font-weight:800;color:#1D4ED8;font-family:var(--font-display)">${totalSteps}</div>
+        <div style="font-size:13px;font-weight:600;color:#1D4ED8;margin-top:3px">Total Steps</div>
+      </div>
+      <div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:var(--radius-lg);padding:14px 18px;text-align:center">
+        <div style="font-size:30px;font-weight:800;color:#6D28D9;font-family:var(--font-display)">${emailSteps}</div>
+        <div style="font-size:13px;font-weight:600;color:#6D28D9;margin-top:3px">Email Steps</div>
+      </div>
+    </div>
+    <div class="card" style="overflow:visible">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Drip Sequences</div>
+          <div style="font-size:13px;color:var(--gray-500);margin-top:3px">Each sequence fires on its trigger and runs step-by-step — texts &amp; emails on the days you choose</div>
+        </div>
+        <button class="btn btn-primary" onclick="openLifecycleEditor(null)" style="font-size:13.5px">⚡ New Sequence</button>
+      </div>
+      <div style="padding:16px 20px">
+        ${cards || '<div style="text-align:center;color:var(--gray-400);padding:40px">No sequences yet. Click ⚡ New Sequence to create one.</div>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+function openLifecycleEditor(id) {
+  const isNew = id === null || id === undefined;
+  const r = isNew
+    ? { name:'', triggerLabel:'Lead is created', active:true, steps:[] }
+    : ((window.LIFECYCLE_RULES || []).find(x => x.id === id) || { name:'', triggerLabel:'Lead is created', active:true, steps:[] });
+  window._editingLifecycleId = isNew ? null : id;
+  window._lcSteps = JSON.parse(JSON.stringify(r.steps || []));
+
+  let overlay = document.getElementById('lifecycleModalOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'lifecycleModalOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:none;align-items:center;justify-content:center;padding:16px';
+    overlay.onclick = e => { if (e.target === overlay) closeLifecycleEditor(); };
+    document.body.appendChild(overlay);
+  }
+
+  const triggers = ['Lead is created','Lead is marked Quoted','Lead is marked Appointment Set','Lead has no contact in','Lead is marked Bad Lead','Policy expires in','Extended fee unpaid for','On customer birthday'];
+
+  overlay.innerHTML = `
+<div style="background:#fff;border-radius:var(--radius-xl);width:680px;max-width:96vw;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3)" onclick="event.stopPropagation()">
+  <div style="background:linear-gradient(135deg,#0E2340 0%,#1A6ED0 100%);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    <div>
+      <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:#fff">${isNew?'⚡ New Drip Sequence':'✏ Edit Sequence'}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.65);margin-top:3px">Choose your trigger, then add steps for each day</div>
+    </div>
+    <div style="cursor:pointer;font-size:20px;color:rgba(255,255,255,0.65);padding:4px 8px;line-height:1" onclick="closeLifecycleEditor()">✕</div>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding:20px 22px">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+      <div class="form-group">
+        <div class="form-label">Sequence Name</div>
+        <input id="lc_name" class="form-control" value="${escAttr(r.name||'')}" placeholder="e.g. New Lead Follow-Up" style="font-size:14px">
+      </div>
+      <div class="form-group">
+        <div class="form-label">Trigger — when does this start?</div>
+        <select id="lc_trigger" class="form-control" style="font-size:13.5px">
+          ${triggers.map(t=>`<option ${r.triggerLabel===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius-md);padding:10px 14px;font-size:12.5px;color:#92400E;margin-bottom:18px">
+      <strong>Tip:</strong> Day 1 = the day the trigger fires. Day 2 = next day. Texts go at the send time you choose. Emails can include a subject line and a longer body.
+      Available tokens: <strong>{{name}}</strong> · <strong>{{agent}}</strong> · <strong>{{amount}}</strong> · <strong>{{policy}}</strong>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:var(--navy-900)">Steps</div>
+      <button onclick="addLCStep()" style="background:#1A6ED0;color:#fff;border:none;border-radius:var(--radius-md);padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">+ Add Step</button>
+    </div>
+
+    <div id="lcStepsList"></div>
+
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="lc_active" ${(r.active!==false)?'checked':''} style="width:16px;height:16px;cursor:pointer;accent-color:#1A6ED0">
+        <span style="font-size:14px;font-weight:600;color:var(--navy-900)">Sequence is active</span>
+      </label>
+    </div>
+  </div>
+  <div style="padding:14px 22px;border-top:1px solid var(--border);background:var(--gray-50);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    ${!isNew ? `<button onclick="deleteLifecycleRule(${id})" style="background:#FEF2F2;color:#DC2626;border:1px solid #FCA5A5;border-radius:var(--radius-md);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">🗑 Delete</button>` : '<div></div>'}
+    <div style="display:flex;gap:8px">
+      <button onclick="closeLifecycleEditor()" class="btn btn-ghost" style="font-size:13px">Cancel</button>
+      <button onclick="saveLifecycleRule()" class="btn btn-primary" style="font-size:13px;padding:9px 24px">💾 Save Sequence</button>
+    </div>
+  </div>
+</div>`;
+
+  overlay.style.display = 'flex';
+  renderLCStepsEditor();
+}
+
+function closeLifecycleEditor() {
+  const el = document.getElementById('lifecycleModalOverlay');
+  if (el) el.style.display = 'none';
+}
+
+function saveLifecycleRule() {
+  syncLCStepsFromDOM();
+  const g = id => document.getElementById(id);
+  const name = g('lc_name') ? g('lc_name').value.trim() : '';
+  if (!name) { alert('Sequence name is required.'); return; }
+  if (!window.LIFECYCLE_RULES) window.LIFECYCLE_RULES = [];
+  const newId = window._editingLifecycleId !== null && window._editingLifecycleId !== undefined
+    ? window._editingLifecycleId
+    : (window.LIFECYCLE_RULES.length ? Math.max(...window.LIFECYCLE_RULES.map(r=>r.id))+1 : 1);
+  const rule = {
+    id:           newId,
+    name,
+    triggerLabel: g('lc_trigger') ? g('lc_trigger').value : 'Lead is created',
+    active:       !!(g('lc_active') && g('lc_active').checked),
+    steps:        JSON.parse(JSON.stringify(window._lcSteps || [])),
+  };
+  const idx = window.LIFECYCLE_RULES.findIndex(r => r.id === newId);
+  if (idx >= 0) { window.LIFECYCLE_RULES[idx] = rule; } else { window.LIFECYCLE_RULES.push(rule); }
+  closeLifecycleEditor();
+  refreshAdminPage();
+}
+
+function deleteLifecycleRule(id) {
+  if (!confirm('Delete this sequence? This cannot be undone.')) return;
+  window.LIFECYCLE_RULES = (window.LIFECYCLE_RULES || []).filter(r => r.id !== id);
+  closeLifecycleEditor();
   refreshAdminPage();
 }
 
