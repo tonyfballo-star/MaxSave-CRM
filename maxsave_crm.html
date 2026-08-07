@@ -870,32 +870,63 @@ function nav(page, el) {
 }
 
 // ===== LOGOUT =====
-window.CLOCK_STATE = { clocked: false, clockInTime: null };
+window.CLOCK_STATE   = { clocked: false, clockInTime: null, clockInTimestamp: null };
+window.TIME_CLOCK    = window.TIME_CLOCK || [];   // persisted time card records
+window._TC_EDIT_ID   = null;                       // record being edited
+
+function _tcToday() { return new Date().toISOString().slice(0,10); }
+function _tcFmtTime(d) { return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
+function _tcMinutes(timeStr) {
+  if (!timeStr) return 0;
+  const [t, ampm] = timeStr.split(' ');
+  let [h, m]      = t.split(':').map(Number);
+  if (ampm === 'PM' && h !== 12) h += 12;
+  if (ampm === 'AM' && h === 12) h = 0;
+  return h * 60 + m;
+}
+function _tcHoursWorked(inStr, outStr) {
+  const mins = _tcMinutes(outStr) - _tcMinutes(inStr);
+  if (mins <= 0) return '—';
+  const h = Math.floor(mins / 60), m = mins % 60;
+  return h + 'h ' + (m ? m + 'm' : '');
+}
+
 function handleClockIn() {
   if (window.CLOCK_STATE.clocked) { alert('Already clocked in at ' + window.CLOCK_STATE.clockInTime); return; }
-  const now = new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
-  window.CLOCK_STATE.clocked = true;
-  window.CLOCK_STATE.clockInTime = now;
+  const now  = new Date();
+  const time = _tcFmtTime(now);
+  window.CLOCK_STATE.clocked           = true;
+  window.CLOCK_STATE.clockInTime       = time;
+  window.CLOCK_STATE.clockInTimestamp  = now;
+  const agentName = (window.CURRENT_USER || {}).name || 'Unknown';
+  window._TC_PENDING = { id: Date.now(), agentName, date: _tcToday(), clockIn: time, clockOut: null, notes: '' };
   const btn = document.getElementById('clockInBtn');
   if (btn) { btn.innerHTML = '✓ Clocked in'; btn.style.background = '#0E4D20'; btn.style.opacity = '0.75'; btn.style.cursor = 'default'; }
   const status = document.getElementById('dashClockStatus');
-  const time = document.getElementById('dashClockTime');
+  const timeEl = document.getElementById('dashClockTime');
   if (status) status.innerHTML = '<span style="color:rgba(255,255,255,0.90)">Clocked In</span>';
-  if (time) time.textContent = now;
+  if (timeEl) timeEl.textContent = time;
   const out = document.getElementById('clockOutBtn');
   if (out) { out.style.borderColor = 'rgba(255,255,255,0.40)'; out.style.color = 'rgba(255,255,255,0.90)'; }
 }
 function handleClockOut() {
   if (!window.CLOCK_STATE.clocked) { alert('You are not clocked in.'); return; }
-  const now = new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
-  window.CLOCK_STATE.clocked = false;
-  window.CLOCK_STATE.clockInTime = null;
+  const now  = new Date();
+  const time = _tcFmtTime(now);
+  if (window._TC_PENDING) {
+    window._TC_PENDING.clockOut = time;
+    window.TIME_CLOCK.push(window._TC_PENDING);
+    window._TC_PENDING = null;
+  }
+  window.CLOCK_STATE.clocked           = false;
+  window.CLOCK_STATE.clockInTime       = null;
+  window.CLOCK_STATE.clockInTimestamp  = null;
   const out = document.getElementById('clockOutBtn');
   if (out) { out.innerHTML = '✓ Clocked out'; out.style.background = 'rgba(22,61,107,0.30)'; out.style.borderColor = 'rgba(22,61,107,0.60)'; out.style.color = 'rgba(255,255,255,0.55)'; out.style.cursor = 'default'; }
   const status = document.getElementById('dashClockStatus');
-  const time = document.getElementById('dashClockTime');
+  const timeEl = document.getElementById('dashClockTime');
   if (status) status.innerHTML = 'Not clocked in';
-  if (time) time.textContent = 'Out at ' + now;
+  if (timeEl) timeEl.textContent = 'Out at ' + time;
   const inBtn = document.getElementById('clockInBtn');
   if (inBtn) { inBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v3.5l2.5 1.5" stroke-linecap="round"/></svg>Clock In'; inBtn.style.background = '#1A6ED0'; inBtn.style.opacity = '1'; inBtn.style.cursor = 'pointer'; }
 }
@@ -1399,10 +1430,117 @@ function closeNewSale() {
   document.getElementById('newSaleOverlay').style.display = 'none';
 }
 function submitNewSale() {
-  const extra = window.ADDITIONAL_POLICIES.length;
+  const g  = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const $  = raw => parseFloat((raw||'').replace(/[$,]/g,'')) || 0;
+
+  const agentName    = g('nsProd');
+  const carrier      = g('nsCarrier');
+  const policyType   = g('nsPolicyType');
+  const policyNum    = g('nsPolicyNum');
+  const feeTotal     = $(g('nsFeeTotal'));
+  const feeCollected = $(g('nsFeeCollected'));
+  const feeExtended  = $(g('nsFeeExtended'));
+  const premium      = $(g('nsPremium'));
+  const towingPrem   = $(g('nsTowingPrem'));
+  const effDate      = g('newSaleEffDate');
+  const addlPols     = JSON.parse(JSON.stringify(window.ADDITIONAL_POLICIES || []));
+  const today        = new Date().toISOString().slice(0,10);
+
+  if (!window.SALES) window.SALES = [];
+  const saleId = Date.now();
+  const sale = {
+    id:                saleId,
+    date:              today,
+    timestamp:         new Date().toISOString(),
+    agentName,
+    carrier,
+    policyType,
+    policyNum,
+    feeTotal,
+    feeCollected,
+    feeExtended,
+    premium,
+    towingPremium:     towingPrem,
+    effDate,
+    additionalPolicies: addlPols,
+    totalPolicies:     1 + addlPols.length,
+    leadName:          (window._currentLeadName || ''),
+  };
+  window.SALES.push(sale);
+
+  // Update the agent's running totals in AGENTS
+  const agentIdx = (typeof AGENTS !== 'undefined' ? AGENTS : []).findIndex(a => a.name === agentName);
+  if (agentIdx >= 0) {
+    AGENTS[agentIdx].apps    = (AGENTS[agentIdx].apps    || 0) + sale.totalPolicies;
+    AGENTS[agentIdx].fee     = (AGENTS[agentIdx].fee     || 0) + feeCollected;
+    AGENTS[agentIdx].premium = (AGENTS[agentIdx].premium || 0) + premium + towingPrem;
+  }
+
+  // Create or update a CUSTOMERS record so this shows up in the customer profile
+  const _leadRef   = (typeof LEADS !== 'undefined' ? LEADS : []).find(l => l.name === (window._currentLeadName||''));
+  const _policyEntry = {
+    line:          policyType || 'Auto',
+    carrier,
+    number:        policyNum,
+    soldBy:        agentName,
+    effective:     effDate || today,
+    expires:       effDate ? new Date(new Date(effDate).setFullYear(new Date(effDate).getFullYear()+1)).toISOString().slice(0,10) : '',
+    premium,
+    feeTotal,
+    feeCollected,
+    feeExtended,
+    hccCollected:  false,
+    status:        'Active',
+    saleId:        saleId,
+    saleTimestamp: sale.timestamp,
+  };
+  const _custName  = window._currentLeadName || '';
+  const _custIdx   = (typeof CUSTOMERS !== 'undefined' ? CUSTOMERS : []).findIndex(cu => (cu.first+' '+cu.last).trim() === _custName.trim());
+  if (_custIdx >= 0) {
+    CUSTOMERS[_custIdx].policies.unshift(_policyEntry);
+    window._currentCustomerId = CUSTOMERS[_custIdx].id;
+  } else if (_custName) {
+    const _parts = _custName.split(' ');
+    const _newCust = {
+      id: 'C-'+saleId, first: _parts[0]||'New', last: _parts.slice(1).join(' ')||'Customer',
+      phone: _leadRef ? _leadRef.phone : '', email: '',
+      dob: '', age: 0, gender: '', marital: '', license: '',
+      address: '', city: '', state: 'CA', zip: '',
+      status: 'Active', carrier, policyNumber: policyNum,
+      agent: agentName, soldBy: agentName, customerSince: today,
+      language: _leadRef ? (_leadRef.language||'English') : 'English',
+      commPref: '', preferredContactTime: '', paymentMethod: '',
+      autopay: false, paperless: false,
+      riskScore: _leadRef ? (_leadRef.leadScore||70) : 70,
+      sr22: _leadRef ? !!_leadRef.sr22 : false,
+      claimsLast5yr: 0, ticketsLast3yr: 0,
+      referredBy: _leadRef ? (_leadRef.source||'') : '', referralsGiven: 0,
+      crossSell: [], birthday: '', anniversary: today,
+      vehicles: [], drivers: [], files: [], claims: [],
+      policies: [_policyEntry],
+    };
+    CUSTOMERS.push(_newCust);
+    window._currentCustomerId = _newCust.id;
+  }
+
+  // Store sale context for payment terminal → e-sign flow
+  window.PENDING_PAYMENT = { sale, leadName: window._currentLeadName || '' };
+  window.PAYMENT_STATE   = { step: 'entry', last4: '', cardBrand: '' };
+  window.ESIGN_STATE     = { step: 'prepare' };
+
   closeNewSale();
-  launchConfetti(2200);
-  setTimeout(() => alert('🎉 Sale recorded! Lead has been moved to Customers.' + (extra ? '\n\n' + extra + ' additional policy line' + (extra===1?'':'s') + ' bundled with this sale.' : '')), 100);
+
+  // Reset form fields
+  ['nsProd','nsCarrier','nsPolicyType','nsPolicyNum','nsFeeTotal','nsFeeCollected',
+   'nsFeeExtended','nsPremium','nsTowingPrem'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  window.ADDITIONAL_POLICIES = [];
+
+  // Navigate to payment terminal
+  const payNavEl = document.querySelector('.nav-item[onclick*="payment"]');
+  nav('payment', payNavEl || null);
 }
 
 // Additional Policies handlers
@@ -1639,15 +1777,7 @@ const initials = name => name.split(' ').map(w => w[0]).join('').substring(0,2).
 const sourceAbbrev = s => ({'Everquote':'EQ','EverQuote':'EQ','MediaAlpha':'MA','Media Alpha':'MA','Facebook Ads':'FB','Facebook':'FB','Google Ads':'GGL','Google':'GGL','Direct Call':'Direct','Referral':'Ref','Referrals':'Ref','LinkedIn':'LI','TikTok':'TT','Instagram':'IG','Twitter':'TW','Yahoo':'YH','NetQuote':'NQ','SmartFinancial':'SF','Other':'Other'})[s] || (s||'').substring(0,3).toUpperCase();
 
 // ===== DATA =====
-const AGENTS = [
-  { name:'Sarah Kim', apps:28, goal:25, fee:12400, feeGoal:10000, premium:48200, tier:'Tier 1', close:'42.8%', contact:'78.3%', leads:34, rank:1 },
-  { name:'Marcus Rivera', apps:22, goal:20, fee:9800, feeGoal:8500, premium:39100, tier:'Tier 2', close:'38.2%', contact:'71.4%', leads:41, rank:2 },
-  { name:'Jordan Torres', apps:17, goal:20, fee:7650, feeGoal:8000, premium:30200, tier:'Tier 3', close:'33.1%', contact:'65.8%', leads:52, rank:3 },
-  { name:'Ashley Lee', apps:14, goal:20, fee:6200, feeGoal:8000, premium:24400, tier:'Tier 3', close:'28.4%', contact:'61.2%', leads:49, rank:4 },
-  { name:'Chris Park', apps:8, goal:15, fee:3500, feeGoal:6000, premium:14000, tier:'Tier 4', close:'22.6%', contact:'54.3%', leads:35, rank:5 },
-  { name:'Nina Reyes', apps:7, goal:15, fee:3050, feeGoal:6000, premium:12200, tier:'Tier 4', close:'19.8%', contact:'52.1%', leads:36, rank:6 },
-  { name:'Brian Walsh', apps:4, goal:15, fee:1750, feeGoal:6000, premium:7200, tier:'Tier 4', close:'15.2%', contact:'44.6%', leads:26, rank:7 },
-];
+const AGENTS = [];
 
 // Allowed lead-list statuses: Quoted, Appointment Set, New Lead, Bad Lead
 // Each lead also tracks: temperature (Hot/Warm/Cold), attempts, lastAttempt,
@@ -1673,46 +1803,28 @@ function tempChip(t){
 }
 const LEADS = (function(){
   const now = new Date();
-  const d = (offsetDays) => {
-    const x = new Date(now); x.setDate(x.getDate() + offsetDays);
-    return x.toISOString().slice(0,10);
-  };
+  const d = (offset) => { const x = new Date(now); x.setDate(x.getDate()+offset); return x.toISOString().slice(0,10); };
   return [
-    { name:'Maria Gonzalez', phone:'(619) 555-0124', status:'Quoted',          policy:'Auto', source:'Everquote',  agent:'Sarah Kim',     received:d(-2), fee:350, attempts:{calls:3,texts:4}, sr22:false, language:'Spanish', priorCoverage:'State Farm — lapse 18d', bestTime:'Evenings', leadScore:78 },
-    { name:'Robert Chen',    phone:'(858) 555-0198', status:'New Lead',        policy:'Auto', source:'Everquote',  agent:'Marcus Rivera', received:d(-1), fee:0,   attempts:{calls:1,texts:1}, sr22:false, language:'English', priorCoverage:'Mercury — current',  bestTime:'Mornings', leadScore:85 },
-    { name:'Amanda Foster',  phone:'(760) 555-0311', status:'New Lead',        policy:'Auto', source:'Referral',   agent:'Jordan Torres', received:d(0),  fee:0,   attempts:{calls:0,texts:0}, sr22:false, language:'English', priorCoverage:'Geico — current',    bestTime:'Afternoons', leadScore:91 },
-    { name:'David Park',     phone:'(619) 555-0477', status:'Appointment Set', policy:'Auto', source:'Direct Call',agent:'Sarah Kim',     received:d(-3), fee:310, attempts:{calls:2,texts:3}, sr22:false, language:'English', priorCoverage:'No prior',           bestTime:'Evenings', leadScore:62 },
-    { name:'Lisa Martinez',  phone:'(858) 555-0562', status:'New Lead',        policy:'Auto', source:'Facebook Ads',agent:'Ashley Lee',   received:d(-1), fee:0,   attempts:{calls:0,texts:1}, sr22:false, language:'Spanish', priorCoverage:'Allstate — current', bestTime:'Mornings', leadScore:74 },
-    { name:'Priya Patel',    phone:'(760) 555-0719', status:'Quoted',          policy:'Auto', source:'Everquote',  agent:'Jordan Torres', received:d(-4), fee:250, attempts:{calls:5,texts:6}, sr22:true,  language:'English', priorCoverage:'GEICO cancelled DUI', bestTime:'Evenings', leadScore:48 },
-    { name:'James Wilson',   phone:'(619) 555-0822', status:'New Lead',        policy:'Auto', source:'Cold Call',  agent:'Unassigned',    received:d(0),  fee:0   },
-    { name:'Sandra Lee',     phone:'(858) 555-0913', status:'Appointment Set', policy:'Auto', source:'Facebook Ads',agent:'Sarah Kim',    received:d(-5), fee:0   },
-    { name:'Carlos Ramirez', phone:'(619) 555-1023', status:'Quoted',          policy:'Auto', source:'Everquote',  agent:'Marcus Rivera', received:d(-2), fee:420 },
-    { name:'Tracy Nguyen',   phone:'(858) 555-1188', status:'Bad Lead',        policy:'Auto', source:'Everquote',  agent:'Chris Park',    received:d(-1), fee:0   },
-    { name:'Henry Silva',    phone:'(760) 555-1294', status:'New Lead',        policy:'Auto', source:'Everquote',  agent:'Nina Reyes',    received:d(0),  fee:0   },
-    { name:'Diane Walker',   phone:'(619) 555-1377', status:'Quoted',          policy:'Auto', source:'Referral',   agent:'Ashley Lee',    received:d(-3), fee:295 },
-    { name:'Aaron Brooks',   phone:'(858) 555-1481', status:'New Lead',        policy:'Auto', source:'Everquote',  agent:'Unassigned',    received:d(-1), fee:0   },
-    { name:'Megan Russo',    phone:'(760) 555-1502', status:'Appointment Set', policy:'Auto', source:'Google Ads', agent:'Sarah Kim',     received:d(-2), fee:0   },
-    { name:'Luis Hernandez', phone:'(619) 555-1644', status:'Quoted',          policy:'Auto', source:'Everquote',  agent:'Jordan Torres', received:d(-4), fee:380 },
-    { name:'Olivia Tran',    phone:'(858) 555-1789', status:'New Lead',        policy:'Auto', source:'Cold Call',  agent:'Brian Walsh',   received:d(0),  fee:0   },
-    { name:'Marco Diaz',     phone:'(760) 555-1832', status:'New Lead',        policy:'Auto', source:'Everquote',  agent:'Marcus Rivera', received:d(-1), fee:0   },
-    { name:'Kelly White',    phone:'(619) 555-1944', status:'Quoted',          policy:'Auto', source:'Facebook Ads',agent:'Sarah Kim',    received:d(-3), fee:265 },
-    { name:'Mike Patel',     phone:'(858) 555-2055', status:'New Lead',        policy:'Auto', source:'Everquote',  agent:'Nina Reyes',    received:d(-2), fee:0   },
-    { name:'Jessica Long',   phone:'(760) 555-2168', status:'Appointment Set', policy:'Auto', source:'Referral',   agent:'Ashley Lee',    received:d(-5), fee:0   },
-    { name:'Sam Cohen',      phone:'(619) 555-2277', status:'Quoted',          policy:'Auto', source:'Everquote',  agent:'Marcus Rivera', received:d(-2), fee:340 },
-    { name:'Nora Bell',      phone:'(858) 555-2389', status:'New Lead',        policy:'Auto', source:'Everquote',  agent:'Jordan Torres', received:d(-1), fee:0   },
-    { name:'Tom Bradley',    phone:'(760) 555-0047', status:'Bad Lead',        policy:'Auto', source:'Cold Call',  agent:'Chris Park',    received:d(-3), fee:0   },
-    { name:'Anna Klein',     phone:'(619) 555-2491', status:'New Lead',        policy:'Auto', source:'Everquote',  agent:'Unassigned',    received:d(0),  fee:0   },
-    { name:'Brett Owens',    phone:'(858) 555-2533', status:'Quoted',          policy:'Auto', source:'Everquote',  agent:'Sarah Kim',     received:d(-4), fee:410 },
-    // Contacted (used in board view's Contacted column)
-    { name:'Erik Johansson', phone:'(619) 555-2604', status:'Contacted',       policy:'Auto', source:'Everquote',  agent:'Sarah Kim',     received:d(-2), fee:0   },
-    { name:'Maya Castillo',  phone:'(858) 555-2715', status:'Contacted',       policy:'Auto', source:'Referral',   agent:'Marcus Rivera', received:d(-3), fee:0   },
-    { name:'Daniel Wu',      phone:'(760) 555-2843', status:'Contacted',       policy:'Auto', source:'Everquote',  agent:'Jordan Torres', received:d(-1), fee:0   },
-    { name:'Rachel Adams',   phone:'(619) 555-2989', status:'Contacted',       policy:'Auto', source:'Facebook Ads',agent:'Ashley Lee',   received:d(-2), fee:0   },
-    // Sold (board view only — filtered out of table view)
-    { name:'Frank Delgado',  phone:'(858) 555-3104', status:'Sold',            policy:'Auto', source:'Everquote',  agent:'Sarah Kim',     received:d(-6), fee:380 },
-    { name:'Sophia Park',    phone:'(760) 555-3267', status:'Sold',            policy:'Auto', source:'Referral',   agent:'Marcus Rivera', received:d(-4), fee:295 },
-    { name:'Tom Hilliard',   phone:'(619) 555-3398', status:'Sold',            policy:'Auto', source:'Everquote',  agent:'Jordan Torres', received:d(-7), fee:450 },
-    { name:'Jenna Murphy',   phone:'(858) 555-3445', status:'Sold',            policy:'Auto', source:'Google Ads', agent:'Sarah Kim',     received:d(-3), fee:325 },
+    { name:'Carlos Mendoza',    phone:'(619) 555-0182', status:'New Lead',        policy:'Auto', source:'Everquote',   agent:'Unassigned', received:d(0),  fee:0,   attempts:{calls:0,texts:0}, sr22:false, language:'Spanish', priorCoverage:'No prior insurance',          bestTime:'Mornings',    leadScore:88 },
+    { name:'Jessica Hartman',   phone:'(858) 555-0247', status:'New Lead',        policy:'Auto', source:'Facebook Ads',agent:'Unassigned', received:d(0),  fee:0,   attempts:{calls:0,texts:1}, sr22:false, language:'English', priorCoverage:'Geico — current',             bestTime:'Afternoons',  leadScore:82 },
+    { name:'Michael Torres',    phone:'(760) 555-0319', status:'Quoted',          policy:'Auto', source:'Everquote',   agent:'Unassigned', received:d(-1), fee:320, attempts:{calls:2,texts:3}, sr22:false, language:'English', priorCoverage:'Progressive — lapse 30d',     bestTime:'Evenings',    leadScore:75 },
+    { name:'Ana Reyes',         phone:'(619) 555-0461', status:'Appointment Set', policy:'Auto', source:'Referral',    agent:'Unassigned', received:d(-1), fee:0,   attempts:{calls:1,texts:2}, sr22:false, language:'Spanish', priorCoverage:'State Farm — current',        bestTime:'Evenings',    leadScore:91 },
+    { name:'David Nguyen',      phone:'(858) 555-0534', status:'New Lead',        policy:'Auto', source:'Google Ads',  agent:'Unassigned', received:d(-1), fee:0,   attempts:{calls:1,texts:0}, sr22:false, language:'English', priorCoverage:'Mercury — cancelled 14d',    bestTime:'Mornings',    leadScore:79 },
+    { name:'Sandra Flores',     phone:'(619) 555-0628', status:'Quoted',          policy:'Auto', source:'Everquote',   agent:'Unassigned', received:d(-2), fee:275, attempts:{calls:3,texts:4}, sr22:true,  language:'Spanish', priorCoverage:'No prior — SR-22 required',   bestTime:'Evenings',    leadScore:61 },
+    { name:'Robert Kim',        phone:'(760) 555-0715', status:'New Lead',        policy:'Auto', source:'Cold Call',   agent:'Unassigned', received:d(-2), fee:0,   attempts:{calls:0,texts:0}, sr22:false, language:'English', priorCoverage:'Allstate — current',          bestTime:'Afternoons',  leadScore:70 },
+    { name:'Maria Castillo',    phone:'(858) 555-0833', status:'Appointment Set', policy:'Auto', source:'Facebook Ads',agent:'Unassigned', received:d(-2), fee:0,   attempts:{calls:2,texts:3}, sr22:false, language:'Spanish', priorCoverage:'GEICO — lapse 7d',            bestTime:'Mornings',    leadScore:85 },
+    { name:'James Patel',       phone:'(619) 555-0946', status:'Quoted',          policy:'Auto', source:'Everquote',   agent:'Unassigned', received:d(-3), fee:410, attempts:{calls:4,texts:5}, sr22:false, language:'English', priorCoverage:'Nationwide — current',        bestTime:'Afternoons',  leadScore:77 },
+    { name:'Linda Guzman',      phone:'(760) 555-1072', status:'New Lead',        policy:'Auto', source:'Referral',    agent:'Unassigned', received:d(-3), fee:0,   attempts:{calls:0,texts:1}, sr22:false, language:'Spanish', priorCoverage:'Bristol West — lapse 45d',   bestTime:'Evenings',    leadScore:68 },
+    { name:'Kevin Walker',      phone:'(858) 555-1148', status:'Contacted',       policy:'Auto', source:'Everquote',   agent:'Unassigned', received:d(-3), fee:0,   attempts:{calls:2,texts:2}, sr22:false, language:'English', priorCoverage:'Farmers — current',           bestTime:'Mornings',    leadScore:73 },
+    { name:'Brenda Lopez',      phone:'(619) 555-1294', status:'Quoted',          policy:'Auto', source:'Direct Call', agent:'Unassigned', received:d(-4), fee:350, attempts:{calls:3,texts:2}, sr22:false, language:'Spanish', priorCoverage:'No prior insurance',          bestTime:'Afternoons',  leadScore:80 },
+    { name:'Thomas Rivera',     phone:'(760) 555-1381', status:'Contacted',       policy:'Auto', source:'Everquote',   agent:'Unassigned', received:d(-4), fee:0,   attempts:{calls:1,texts:3}, sr22:true,  language:'English', priorCoverage:'National General — lapse 60d',bestTime:'Evenings',    leadScore:55 },
+    { name:'Patricia Chen',     phone:'(858) 555-1459', status:'New Lead',        policy:'Auto', source:'Google Ads',  agent:'Unassigned', received:d(-4), fee:0,   attempts:{calls:0,texts:0}, sr22:false, language:'English', priorCoverage:'Liberty Mutual — current',    bestTime:'Mornings',    leadScore:87 },
+    { name:'Jorge Martinez',    phone:'(619) 555-1537', status:'Appointment Set', policy:'Auto', source:'Referral',    agent:'Unassigned', received:d(-5), fee:0,   attempts:{calls:2,texts:4}, sr22:false, language:'Spanish', priorCoverage:'Kemper — lapse 10d',          bestTime:'Evenings',    leadScore:83 },
+    { name:'Ashley Williams',   phone:'(760) 555-1623', status:'New Lead',        policy:'Auto', source:'Facebook Ads',agent:'Unassigned', received:d(-5), fee:0,   attempts:{calls:1,texts:1}, sr22:false, language:'English', priorCoverage:'USAA — current',              bestTime:'Afternoons',  leadScore:76 },
+    { name:'Emmanuel Diaz',     phone:'(858) 555-1718', status:'Quoted',          policy:'Auto', source:'Everquote',   agent:'Unassigned', received:d(-5), fee:290, attempts:{calls:3,texts:5}, sr22:false, language:'Spanish', priorCoverage:'Aspire — cancelled 21d',      bestTime:'Mornings',    leadScore:69 },
+    { name:'Nicole Johnson',    phone:'(619) 555-1804', status:'Bad Lead',        policy:'Auto', source:'Everquote',   agent:'Unassigned', received:d(-6), fee:0,   attempts:{calls:5,texts:3}, sr22:false, language:'English', priorCoverage:'N/A',                         bestTime:'Mornings',    leadScore:22 },
+    { name:'Raymond Solis',     phone:'(760) 555-1991', status:'Sold',            policy:'Auto', source:'Referral',    agent:'Unassigned', received:d(-7), fee:385, attempts:{calls:3,texts:4}, sr22:false, language:'Spanish', priorCoverage:'State Farm — lapse 90d',      bestTime:'Evenings',    leadScore:90 },
+    { name:'Stephanie Park',    phone:'(858) 555-2077', status:'Sold',            policy:'Auto', source:'Everquote',   agent:'Unassigned', received:d(-8), fee:440, attempts:{calls:2,texts:3}, sr22:false, language:'English', priorCoverage:'Progressive — current',       bestTime:'Afternoons',  leadScore:94 },
   ];
 })();
 
@@ -1935,185 +2047,13 @@ function submitTaskModal() {
 }
 
 // ==================== DASHBOARD (REDESIGNED) ====================
-PAGES.dashboard = `
-
-<!-- ==== AGENT HERO CARD ==== -->
-<div style="display:flex;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(135deg,#0A1624 0%,#122B47 100%);padding:24px 28px;border-radius:var(--radius-xl);margin-bottom:20px;color:#fff;box-shadow:0 6px 22px rgba(10,22,36,0.28)">
-  <div>
-    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:7px">Friday · May 1, 2026</div>
-    <div style="font-family:var(--font-display);font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.5px;line-height:1.15">Good morning, Tony 👋</div>
-    <div style="font-size:14px;color:rgba(255,255,255,0.58);margin-top:7px">12% ahead of last pay period &nbsp;·&nbsp; Rank <strong style="color:#fff;font-weight:800">#1</strong> of 14 agents &nbsp;·&nbsp; Tier 2</div>
-  </div>
-  <div style="display:flex;align-items:center;gap:14px;flex-shrink:0">
-    <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:var(--radius-lg);padding:14px 24px;text-align:center;min-width:110px">
-      <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px">Status</div>
-      <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.55)" id="dashClockStatus">Not clocked in</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.32);margin-top:3px" id="dashClockTime">—</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:9px">
-      <button onclick="handleClockIn()" id="clockInBtn" style="background:#1A6ED0;border:none;color:#fff;border-radius:var(--radius-md);padding:12px 24px;font-family:var(--font-body);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px;transition:background 0.15s">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v3.5l2.5 1.5" stroke-linecap="round"/></svg>Clock In
-      </button>
-      <button onclick="handleClockOut()" id="clockOutBtn" style="background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.60);border-radius:var(--radius-md);padding:12px 24px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px;transition:all 0.15s">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M10.5 5.5l-5 5M5.5 5.5l5 5" stroke-linecap="round"/></svg>Clock Out
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ==== KPI ROW ==== -->
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
-
-  <div onclick="goToPayPeriodPolicies()" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden" onmouseenter="this.style.borderColor='#163D6B';this.style.boxShadow='0 8px 24px rgba(22,61,107,0.13)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#122B47,#163D6B)"></div>
-    <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Policies This Period</div>
-    <div style="font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">28</div>
-    <div style="font-size:13px;color:var(--green-700);font-weight:600;margin-top:9px">↑ 4 vs last period</div>
-  </div>
-
-  <div onclick="goToBrokerFeeCollected()" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden" onmouseenter="this.style.borderColor='#1A6ED0';this.style.boxShadow='0 8px 24px rgba(26,110,208,0.13)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#163D6B,#1A6ED0)"></div>
-    <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Broker Fee Collected</div>
-    <div style="font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">\$8,330</div>
-    <div style="font-size:13px;color:var(--green-700);font-weight:600;margin-top:9px">↑ 12% vs last period</div>
-  </div>
-
-  <div onclick="goToOpenBalances()" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden" onmouseenter="this.style.borderColor='#3A6A95';this.style.boxShadow='0 8px 24px rgba(58,106,149,0.13)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#1A6ED0,#3A6A95)"></div>
-    <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Outstanding HCC</div>
-    <div style="font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">\$1,190</div>
-    <div style="font-size:13px;color:var(--gray-500);margin-top:9px">4 customers · oldest 12 days</div>
-  </div>
-
-  <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#3A6A95,#5B8DB8)"></div>
-    <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:12px">Avg Fee per Policy</div>
-    <div style="font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--navy-900);line-height:1;letter-spacing:-0.5px">\$340</div>
-    <div style="font-size:13px;color:var(--gray-500);margin-top:9px">Goal: \$500 · 68% to goal</div>
-  </div>
-
-</div>
-
-<!-- ==== GOAL + TIER ==== -->
-<div style="display:grid;grid-template-columns:360px 1fr;gap:14px;margin-bottom:20px">
-
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">Pay Period Goal</div>
-      <span style="font-size:11px;font-weight:700;color:#fff;background:var(--green-600);padding:3px 11px;border-radius:var(--radius-full)">ON TRACK</span>
-    </div>
-    <div class="card-body" style="display:flex;align-items:center;gap:22px;padding:22px">
-      <div style="flex-shrink:0">
-        <svg width="148" height="148" viewBox="0 0 148 148">
-          <circle cx="74" cy="74" r="60" fill="none" stroke="var(--gray-100)" stroke-width="13"/>
-          <circle cx="74" cy="74" r="60" fill="none" stroke="#163D6B" stroke-width="13"
-            stroke-dasharray="${112*2*Math.PI*60/100} ${2*Math.PI*60}" stroke-dashoffset="${2*Math.PI*60*0.25}" stroke-linecap="round"
-            transform="rotate(-90 74 74)"/>
-          <text x="74" y="70" text-anchor="middle" font-family="Sora" font-weight="800" font-size="30" fill="#0C1D33">112%</text>
-          <text x="74" y="90" text-anchor="middle" font-family="Outfit" font-weight="500" font-size="11" fill="#94A3B8">to goal</text>
-        </svg>
-      </div>
-      <div style="flex:1">
-        <div style="font-size:12px;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">28 of 25 policies</div>
-        <div style="font-family:var(--font-display);font-size:17px;font-weight:800;color:var(--navy-900);margin-bottom:16px">Goal exceeded by 3</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div style="background:var(--gray-50);padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--border)">
-            <div style="font-size:10px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Days Left</div>
-            <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--navy-900)">9</div>
-          </div>
-          <div style="background:var(--gray-50);padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--border)">
-            <div style="font-size:10px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Pace / Day</div>
-            <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--navy-900)">3.1</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">Tier Tracker</div>
-      <span style="font-size:13px;color:var(--gray-400)">Next tier in <strong style="color:var(--navy-900)">3 policies</strong></span>
-    </div>
-    <div class="card-body" style="padding:20px">
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
-        ${[
-          ['Tier 1','0–21','25% + \$10',false,100],
-          ['Tier 2','22–30','30% + \$10',true,87],
-          ['Tier 3','31–38','35% + \$15',false,0],
-          ['Tier 4','39+','40%',false,0],
-        ].map(([n,r,c,here,prog])=>`
-        <div style="border:${here?'2px solid #163D6B':'1px solid var(--border)'};border-radius:var(--radius-md);padding:16px 14px;background:${here?'rgba(22,61,107,0.06)':'#fff'};position:relative">
-          ${here?`<div style="position:absolute;top:8px;right:8px;background:var(--green-600);color:#fff;font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:var(--radius-full);letter-spacing:0.4px">YOU</div>`:''}
-          <div style="width:8px;height:8px;border-radius:50%;background:${here?'var(--green-500)':'var(--gray-200)'};margin-bottom:9px${here?';box-shadow:0 0 0 3px rgba(59,170,71,0.22)':''}"></div>
-          <div style="font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--navy-900);margin-bottom:3px">${n}</div>
-          <div style="font-size:12.5px;color:var(--gray-500);margin-bottom:2px">${r} policies</div>
-          <div style="font-size:13px;color:${here?'#163D6B':'var(--gray-300)'};font-weight:${here?'700':'500'};margin-bottom:10px">${c}</div>
-          <div style="height:4px;background:var(--gray-100);border-radius:100px;overflow:hidden">
-            <div style="height:100%;width:${prog}%;background:#163D6B;border-radius:100px"></div>
-          </div>
-          ${here?`<div style="font-size:12px;color:var(--gray-500);margin-top:5px;font-weight:600">28 / 30 policies</div>`:''}
-        </div>`).join('')}
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- ==== LEADERBOARD + TREND ==== -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-
-  <div class="card">
-    <div class="card-header"><div class="card-title">Top Performers — Pay Period</div><a class="card-link" onclick="nav('reports',null)">Full Report →</a></div>
-    <div class="card-body" style="padding:8px 18px">
-      ${AGENTS.slice(0,5).map((a,i)=>`
-      <div class="lb-row" style="cursor:pointer;padding:12px 0" onclick="nav('reports',null)">
-        <div class="lb-rank ${['r1','r2','r3','rn','rn'][i]}">${['🥇','🥈','🥉','',''][i]||(i+1)}</div>
-        <div style="flex:1">
-          <div style="font-size:15px;font-weight:700;color:var(--navy-900)">${a.name}</div>
-          <div style="font-size:12px;color:var(--gray-400);margin-top:2px">${a.contact} contact · ${a.close} close</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--navy-900)">${a.apps}</div>
-          <div style="font-size:12px;color:var(--gray-400)">${fmtK(a.fee)}</div>
-        </div>
-      </div>`).join('')}
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header"><div class="card-title">9-Month App Trend</div><span style="font-size:13px;color:var(--gray-400)">Jul 2025 – Mar 2026</span></div>
-    <div class="card-body" style="padding:18px 22px">
-      <div class="rpt-bar-wrap" style="height:150px">
-        ${[['Jul',168],['Aug',195],['Sep',180],['Oct',212],['Nov',198],['Dec',225],['Jan',241],['Feb',219],['Mar',247]].map(([m,v])=>`
-        <div class="bar-col" title="${m}: ${v} apps">
-          <div class="bar-val" style="font-size:12px">${v}</div>
-          <div class="bar-fill" style="height:${Math.round(v/247*130)}px;background:${m==='Mar'?'#163D6B':'var(--navy-100)'};border:1px solid ${m==='Mar'?'#0E2340':'var(--navy-200)'};border-radius:5px 5px 0 0"></div>
-          <div class="bar-lbl">${m}</div>
-        </div>`).join('')}
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px">
-        <div style="background:var(--gray-50);border-radius:var(--radius-md);padding:13px;text-align:center;border:1px solid var(--border)">
-          <div style="font-size:10px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Best Month</div>
-          <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--navy-900)">247</div>
-          <div style="font-size:12px;color:var(--gray-500);margin-top:2px">Mar 2026</div>
-        </div>
-        <div style="background:var(--gray-50);border-radius:var(--radius-md);padding:13px;text-align:center;border:1px solid var(--border)">
-          <div style="font-size:10px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">9-Mo Avg</div>
-          <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--navy-900)">210</div>
-          <div style="font-size:12px;color:var(--gray-500);margin-top:2px">apps / month</div>
-        </div>
-        <div style="background:rgba(22,61,107,0.06);border-radius:var(--radius-md);padding:13px;text-align:center;border:1px solid rgba(22,61,107,0.16)">
-          <div style="font-size:10px;color:#163D6B;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Growth</div>
-          <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#163D6B">+47%</div>
-          <div style="font-size:12px;color:#163D6B;margin-top:2px">Jul → Mar</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div>
-`;
+PAGES.dashboard = '';
+window.SALES           = window.SALES           || [];
+window.DASH_ADMIN_STATE= window.DASH_ADMIN_STATE || { range: 'period', customStart: '', customEnd: '' };
+window.CURRENT_USER    = window.CURRENT_USER    || { name: 'Tony Ballo', role: 'Admin' };
+window.PENDING_PAYMENT = window.PENDING_PAYMENT || null;
+window.PAYMENT_STATE   = window.PAYMENT_STATE   || { step: 'entry', last4: '', cardBrand: '' };
+window.ESIGN_STATE     = window.ESIGN_STATE     || { step: 'prepare' };
 
 // ==================== LEADS ====================
 // State for filters/pagination/view
@@ -2330,8 +2270,6 @@ function refreshLeads(){
 
 PAGES.leads = ''; // built dynamically by renderLeadsPage()
 window.PAGE_INIT = window.PAGE_INIT || {};
-window.PAGE_INIT = window.PAGE_INIT || {};
-window.PAGE_INIT.dashboard = function() {};
 window.PAGE_INIT.leads = function(){ refreshLeads(); };
 
 // ===== LEADS VIEW TOGGLE =====
@@ -3282,45 +3220,45 @@ body.dark-mode .text-thread { background:#1E1E1E; }
     <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
       <div class="form-group">
         <div class="form-label">Primary Producer</div>
-        <select class="form-control">
+        <select id="nsProd" class="form-control">
           ${AGENTS.map(a=>`<option>${a.name}</option>`).join('')}
         </select>
       </div>
       <div class="form-group">
         <div class="form-label">Carrier</div>
-        <select class="form-control">
-          <option>Progressive</option><option>National General</option><option>Bristol West</option><option>Mercury</option><option>Kemper</option><option>InsureMax</option><option>The General</option><option>Foremost</option><option>Other</option>
+        <select id="nsCarrier" class="form-control">
+          <option>Progressive</option><option>National General</option><option>Aspire</option><option>Bristol West</option><option>Mapfre</option><option>Kemper</option><option>Bridger</option><option>Anchor</option><option>Mercury</option><option>The General</option><option>Foremost</option><option>Other</option>
         </select>
       </div>
       <div class="form-group">
         <div class="form-label">Policy Type</div>
-        <select class="form-control">
+        <select id="nsPolicyType" class="form-control">
           <option>Auto — Non-Standard</option><option>Auto — Standard</option><option>SR-22</option><option>Commercial Auto</option><option>Home</option><option>Renters</option><option>Life</option>
         </select>
       </div>
       <div class="form-group">
         <div class="form-label">Policy #</div>
-        <input class="form-control" placeholder="e.g. PRG-2026-118247">
+        <input id="nsPolicyNum" class="form-control" placeholder="e.g. PRG-2026-118247">
       </div>
       <div class="form-group">
         <div class="form-label">Broker Fee Total</div>
-        <input class="form-control" placeholder="$0.00">
+        <input id="nsFeeTotal" class="form-control" placeholder="$0.00">
       </div>
       <div class="form-group">
         <div class="form-label">Broker Fee Collected</div>
-        <input class="form-control" placeholder="$0.00">
+        <input id="nsFeeCollected" class="form-control" placeholder="$0.00">
       </div>
       <div class="form-group" style="grid-column:1 / span 2">
         <div class="form-label">Broker Fee Extended</div>
-        <input class="form-control" placeholder="$0.00">
+        <input id="nsFeeExtended" class="form-control" placeholder="$0.00">
       </div>
       <div class="form-group">
         <div class="form-label">Premium Total</div>
-        <input class="form-control" placeholder="$0.00">
+        <input id="nsPremium" class="form-control" placeholder="$0.00">
       </div>
       <div class="form-group">
         <div class="form-label">Towing Premium</div>
-        <input class="form-control" placeholder="$0.00">
+        <input id="nsTowingPrem" class="form-control" placeholder="$0.00">
       </div>
       <div class="form-group" style="grid-column:1 / span 2">
         <div class="form-label">Effective Date</div>
@@ -4213,7 +4151,9 @@ window.PAGE_INIT.customerdetail = function(){
           ${secHdr('Policies ('+c.policies.length+')','<span style="font-size:11px;color:var(--gray-400)">All-time</span>')}
           ${c.policies.map((p,i) => {
             const bal = customerBalance(p);
-            const sc = p.status==='Active'?'#3BAA47':p.status==='Cancelled'?'#EF4444':'#F59E0B';
+            const sc = p.status==='Active'?'#3BAA47':(p.status==='Cancelled'||p.status==='Voided')?'#EF4444':'#F59E0B';
+            const isActive = p.status === 'Active';
+            const canVoid = isActive && p.saleTimestamp && (Date.now() - new Date(p.saleTimestamp).getTime() < 86400000);
             return `<div style="padding:12px 16px;${i<c.policies.length-1?'border-bottom:1px solid var(--border)':''}">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
                 <div style="font-size:13.5px;font-weight:700;color:var(--navy-900)">${p.carrier} <span style="font-size:11.5px;color:var(--gray-400);font-weight:400">&middot; ${p.line}</span></div>
@@ -4224,6 +4164,10 @@ window.PAGE_INIT.customerdetail = function(){
               ${infoRow('Annual Premium',fmt$(p.premium))}
               ${infoRow('Fee Collected',fmt$(p.feeCollected))}
               ${infoRow('Balance',bal>0?'<span style="color:var(--red);font-weight:700">'+fmt$(bal)+'</span>':'<span style="color:var(--green-700);font-weight:700">$0.00</span>',true)}
+              ${isActive ? `<div style="display:flex;gap:8px;padding:10px 0 2px">
+                ${canVoid ? `<button onclick="voidPolicy('${escAttr(c.id)}','${escAttr(p.number)}')" style="flex:1;padding:7px 0;font-size:11.5px;font-weight:700;font-family:var(--font-body);background:#FEF2F2;color:#DC2626;border:1.5px solid #FECACA;border-radius:var(--radius-md);cursor:pointer">&#128683; Void</button>` : ''}
+                <button onclick="cancelPolicy('${escAttr(c.id)}','${escAttr(p.number)}')" style="flex:1;padding:7px 0;font-size:11.5px;font-weight:700;font-family:var(--font-body);background:#FFF7ED;color:#C2410C;border:1.5px solid #FED7AA;border-radius:var(--radius-md);cursor:pointer">&#10006; Cancel Policy</button>
+              </div>` : ''}
             </div>`;
           }).join('')}
           <div style="padding:12px 16px;background:var(--gray-50);border-top:1px solid var(--border);display:flex;gap:22px">
@@ -5480,8 +5424,366 @@ function viewTranscript(name) {
 PAGES.inbox = '';
 window.PAGE_INIT = window.PAGE_INIT || {};
 window.PAGE_INIT.inbox = function(){ refreshInbox(); };
-PAGES.esignatures= stubPage('✍️','E Signatures','Send, track & manage digital signature requests. Coming soon.');
-PAGES.payment    = stubPage('💳','Payment Terminal','Collect broker fees & process payments. Coming soon.');
+// ==================== PAYMENT TERMINAL ====================
+PAGES.payment = '';
+window.PAGE_INIT.payment = function() { refreshPaymentTerminal(); };
+
+function refreshPaymentTerminal() {
+  const c = document.getElementById('content');
+  if (!c) return;
+  c.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'page-content';
+  div.innerHTML = renderPaymentTerminal();
+  c.appendChild(div);
+}
+
+function renderPaymentTerminal() {
+  const pp   = window.PENDING_PAYMENT || {};
+  const sale = pp.sale || {};
+  const name = pp.leadName || sale.leadName || 'Customer';
+  const fmt$ = n => '$' + (n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const chargeAmt = sale.feeCollected || 0;
+
+  if ((window.PAYMENT_STATE||{}).step === 'success') {
+    const ps = window.PAYMENT_STATE;
+    return `
+    <div style="max-width:540px;margin:60px auto;text-align:center">
+      <div style="width:80px;height:80px;border-radius:50%;background:#DCFCE7;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px">✓</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--navy-900);margin-bottom:8px">Payment Successful</div>
+      <div style="font-size:16px;color:var(--gray-500);margin-bottom:6px">${fmt$(chargeAmt)} collected from ${name}</div>
+      <div style="font-size:13px;color:var(--gray-400);margin-bottom:36px">${ps.cardBrand} ending in ${ps.last4}</div>
+      <button onclick="goToESign()" style="background:linear-gradient(135deg,#163D6B,#1A6ED0);border:none;color:#fff;border-radius:var(--radius-lg);padding:16px 36px;font-family:var(--font-display);font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 18px rgba(26,110,208,0.35)">Continue to E-Sign &rarr;</button>
+      <div style="margin-top:14px"><button onclick="goToESign()" style="background:none;border:none;color:var(--gray-400);font-size:13px;cursor:pointer;font-family:var(--font-body);text-decoration:underline">Skip e-sign for now</button></div>
+    </div>`;
+  }
+
+  const infoRow = (label, val) => val ? `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--gray-500)">${label}</span><span style="font-size:13px;font-weight:600;color:var(--navy-900)">${val}</span></div>` : '';
+
+  return `
+  <!-- HEADER -->
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+    <div style="width:48px;height:48px;border-radius:var(--radius-lg);background:linear-gradient(135deg,#163D6B,#1A6ED0);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">💳</div>
+    <div>
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--navy-900)">Payment Terminal</div>
+      <div style="font-size:13px;color:var(--gray-500);margin-top:2px">Collecting broker fee for <strong>${name}</strong></div>
+    </div>
+    <div style="margin-left:auto;background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:var(--radius-lg);padding:10px 20px;text-align:center">
+      <div style="font-size:11px;font-weight:700;color:#16A34A;text-transform:uppercase;letter-spacing:0.5px">Charge Amount</div>
+      <div style="font-family:var(--font-display);font-size:26px;font-weight:800;color:#15803D">${fmt$(chargeAmt)}</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start">
+    <!-- SALE SUMMARY -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Sale Summary</div></div>
+      <div class="card-body" style="padding:16px 20px">
+        ${infoRow('Customer',    name)}
+        ${infoRow('Carrier',     sale.carrier)}
+        ${infoRow('Policy Type', sale.policyType)}
+        ${infoRow('Policy #',    sale.policyNum)}
+        ${infoRow('Eff. Date',   sale.effDate)}
+        ${infoRow('Agent',       sale.agentName)}
+        <div style="height:10px"></div>
+        ${infoRow('Fee Total',     fmt$(sale.feeTotal))}
+        ${infoRow('Fee Collected', fmt$(sale.feeCollected))}
+        ${sale.feeExtended ? infoRow('Fee Extended', fmt$(sale.feeExtended)) : ''}
+        <div style="margin-top:14px;background:linear-gradient(135deg,#163D6B,#1A6ED0);border-radius:var(--radius-md);padding:14px 16px;text-align:center">
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Charging Now</div>
+          <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:#fff">${fmt$(chargeAmt)}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD ENTRY -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Credit / Debit Card</div><div style="display:flex;gap:6px;font-size:22px">💳🏦</div></div>
+      <div class="card-body" style="padding:20px 24px">
+
+        <!-- CARD VISUAL -->
+        <div style="background:linear-gradient(135deg,#0A1624,#163D6B);border-radius:var(--radius-xl);padding:24px 28px;margin-bottom:24px;color:#fff;min-height:150px;position:relative;overflow:hidden;box-shadow:0 8px 28px rgba(10,22,36,0.35)">
+          <div style="position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
+          <div style="position:absolute;bottom:-50px;right:40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.04)"></div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px;margin-bottom:28px">MaxSave Insurance</div>
+          <div id="cardPreviewNum" style="font-family:monospace;font-size:20px;font-weight:700;letter-spacing:3px;color:#fff;margin-bottom:20px">•••• •••• •••• ••••</div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-end">
+            <div><div style="font-size:9px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Card Holder</div><div id="cardPreviewName" style="font-size:14px;font-weight:700;color:#fff">${name.toUpperCase()}</div></div>
+            <div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">Expires</div><div id="cardPreviewExp" style="font-size:14px;font-weight:700;color:#fff">MM/YY</div></div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:16px">
+          <div class="form-label">Card Number</div>
+          <input id="pt_cardnum" class="form-control" maxlength="19" placeholder="1234 5678 9012 3456" style="font-family:monospace;font-size:15px;letter-spacing:2px"
+            oninput="
+              let v=this.value.replace(/\\D/g,'').slice(0,16);
+              this.value=v.replace(/(\\d{4})(?=\\d)/g,'$1 ');
+              document.getElementById('cardPreviewNum').textContent=v.padEnd(16,'•').replace(/(\\d{4})/g,'$1 ').trim().replace(/\\d(?=.{5})/g,'•')||'•••• •••• •••• ••••';
+            ">
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <div class="form-label">Cardholder Name</div>
+          <input id="pt_cardname" class="form-control" placeholder="${name}" value="${name}"
+            oninput="document.getElementById('cardPreviewName').textContent=(this.value||'${name}').toUpperCase()">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px">
+          <div class="form-group">
+            <div class="form-label">Expiration Date</div>
+            <input id="pt_exp" class="form-control" placeholder="MM/YY" maxlength="5"
+              oninput="let v=this.value.replace(/\\D/g,'');if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);this.value=v;document.getElementById('cardPreviewExp').textContent=v||'MM/YY'">
+          </div>
+          <div class="form-group">
+            <div class="form-label">CVV</div>
+            <input id="pt_cvv" class="form-control" placeholder="•••" maxlength="4" type="password">
+          </div>
+        </div>
+        <button onclick="submitPayment()" style="width:100%;background:linear-gradient(135deg,#15803D,#16A34A);border:none;color:#fff;border-radius:var(--radius-lg);padding:16px;font-family:var(--font-display);font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 4px 18px rgba(22,163,74,0.35);transition:opacity 0.15s" onmouseenter="this.style.opacity='0.9'" onmouseleave="this.style.opacity='1'">
+          Charge ${fmt$(chargeAmt)}
+        </button>
+        <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--gray-400)">🔒 Encrypted · PCI Compliant</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function submitPayment() {
+  const num  = (document.getElementById('pt_cardnum') ||{}).value.replace(/\s/g,'');
+  const name = (document.getElementById('pt_cardname')||{}).value.trim();
+  const exp  = (document.getElementById('pt_exp')     ||{}).value.trim();
+  const cvv  = (document.getElementById('pt_cvv')     ||{}).value.trim();
+  if (num.length < 15)  { alert('Please enter a valid card number.');    return; }
+  if (!name)            { alert('Please enter the cardholder name.');    return; }
+  if (!exp.match(/^\d{2}\/\d{2}$/)) { alert('Please enter a valid expiration date (MM/YY).'); return; }
+  if (cvv.length < 3)   { alert('Please enter the CVV.');               return; }
+
+  // Show processing state briefly
+  const btn = document.querySelector('[onclick="submitPayment()"]');
+  if (btn) { btn.textContent = 'Processing…'; btn.style.opacity = '0.7'; btn.disabled = true; }
+
+  setTimeout(() => {
+    const brands = ['VISA','Mastercard','Amex','Discover'];
+    const brand  = num[0]==='4' ? 'VISA' : num[0]==='5' ? 'Mastercard' : num.slice(0,2)==='37'||num.slice(0,2)==='34' ? 'Amex' : 'Card';
+    window.PAYMENT_STATE = { step: 'success', last4: num.slice(-4), cardBrand: brand };
+    launchConfetti(2500);
+    refreshPaymentTerminal();
+  }, 1400);
+}
+
+function goToESign() {
+  window.ESIGN_STATE = { step: 'prepare' };
+  const esNavEl = document.querySelector('.nav-item[onclick*="esignatures"]');
+  nav('esignatures', esNavEl || null);
+}
+
+// ==================== E-SIGNATURES ====================
+PAGES.esignatures = '';
+window.PAGE_INIT.esignatures = function() { refreshESignPage(); };
+
+function refreshESignPage() {
+  const c = document.getElementById('content');
+  if (!c) return;
+  c.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'page-content';
+  div.innerHTML = renderESignPage();
+  c.appendChild(div);
+}
+
+function renderESignPage() {
+  const pp        = window.PENDING_PAYMENT || {};
+  const sale      = pp.sale || {};
+  const name      = pp.leadName || sale.leadName || 'Customer';
+  const isCxl     = pp.type === 'cancellation';
+  const fmt$      = n => '$' + (n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const esState   = window.ESIGN_STATE || {};
+
+  if (esState.step === 'sent') {
+    const now = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+    const sentTitle = isCxl ? 'Cancellation Sent' : 'Documents Sent';
+    const sentSub   = isCxl
+      ? name + ' will receive the cancellation forms shortly'
+      : name + ' will receive a signing link shortly';
+    const backBtn = isCxl
+      ? `<button onclick="nav('customers',document.querySelector('.nav-item[onclick*=customers]'))" style="background:var(--gray-100);border:none;color:var(--gray-700);border-radius:var(--radius-lg);padding:13px 24px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer">Back to Customers</button>`
+      : `<button onclick="nav('leads',document.querySelector('.nav-item[onclick*=leads]'))" style="background:var(--gray-100);border:none;color:var(--gray-700);border-radius:var(--radius-lg);padding:13px 24px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer">Back to Leads</button>`;
+    return `
+    <div style="max-width:540px;margin:60px auto;text-align:center">
+      <div style="width:80px;height:80px;border-radius:50%;background:${isCxl?'#FEF2F2':'#EFF6FF'};display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:38px">${isCxl?'📄':'✍️'}</div>
+      <div style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--navy-900);margin-bottom:8px">${sentTitle}</div>
+      <div style="font-size:15px;color:var(--gray-500);margin-bottom:6px">${sentSub}</div>
+      <div style="font-size:13px;color:var(--gray-400);margin-bottom:36px">Sent ${now}</div>
+      <div style="display:flex;gap:12px;justify-content:center">
+        ${backBtn}
+        <button onclick="nav('dashboard',document.querySelector('.nav-item'))" style="background:linear-gradient(135deg,#163D6B,#1A6ED0);border:none;color:#fff;border-radius:var(--radius-lg);padding:13px 24px;font-family:var(--font-display);font-size:14px;font-weight:700;cursor:pointer">Go to Dashboard</button>
+      </div>
+    </div>`;
+  }
+
+  const sr22 = !!(pp.sale && pp.leadRef && pp.leadRef.sr22);
+
+  const newSaleDocs = [
+    { id:'doc_app',   label:'Insurance Application',         desc:'Customer info & coverage request',     checked: true  },
+    { id:'doc_dec',   label:'Policy Declaration Page',       desc:'Coverage summary & premium breakdown',  checked: true  },
+    { id:'doc_ids',   label:'Auto ID Cards',                 desc:'Proof of insurance cards',             checked: true  },
+    { id:'doc_sr22',  label:'SR-22 Filing',                  desc:'State-mandated filing for high-risk',  checked: sr22  },
+    { id:'doc_broker',label:'Broker Fee Agreement',          desc:'Signed acknowledgment of fees',        checked: true  },
+    { id:'doc_cancel',label:'Cancellation Authorization',    desc:'ACH / recurring payment authorization', checked: false },
+  ];
+  const cancelDocs = [
+    { id:'doc_cxl_req', label:'Cancellation Request Form',   desc:'Customer-signed request to cancel policy', checked: true  },
+    { id:'doc_cxl_auth',label:'Cancellation Authorization',  desc:'Authorization to process the cancellation', checked: true  },
+    { id:'doc_cxl_ref', label:'Refund Authorization',        desc:'Authorization for any applicable refund',   checked: true  },
+  ];
+  const docs = isCxl ? cancelDocs : newSaleDocs;
+
+  const accentGrad = isCxl ? 'linear-gradient(135deg,#DC2626,#EF4444)' : 'linear-gradient(135deg,#4338CA,#6366F1)';
+  const accentGlow = isCxl ? 'rgba(239,68,68,0.30)' : 'rgba(99,102,241,0.35)';
+  const accentChk  = isCxl ? '#DC2626' : '#4338CA';
+  const pageTitle  = isCxl ? 'Policy Cancellation' : 'E-Signatures';
+  const pageSub    = isCxl
+    ? 'Send cancellation documents to <strong>' + name + '</strong>'
+    : 'Prepare &amp; send documents for <strong>' + name + '</strong>';
+  const badgeHtml  = isCxl
+    ? `<div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:var(--radius-lg);padding:10px 18px;text-align:center"><div style="font-size:11px;font-weight:700;color:#DC2626;text-transform:uppercase;letter-spacing:0.5px">Action</div><div style="font-size:14px;font-weight:800;color:#DC2626">Cancellation</div></div>`
+    : `<div style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:var(--radius-lg);padding:10px 18px;text-align:center"><div style="font-size:11px;font-weight:700;color:#1D4ED8;text-transform:uppercase;letter-spacing:0.5px">Payment</div><div style="font-size:14px;font-weight:800;color:#1D4ED8">✓ Collected</div></div>`;
+  const firstName  = name.split(' ')[0];
+  const defaultMsg = isCxl
+    ? 'Hi ' + firstName + ', please review and sign the attached cancellation documents. If you have any questions please give us a call.'
+    : 'Hi ' + firstName + ', please review and sign the attached documents for your new auto insurance policy. Let us know if you have any questions!';
+  const btnLabel   = isCxl ? 'Send Cancellation Forms &rarr;' : 'Send for Signature &rarr;';
+
+  return `
+  <!-- HEADER -->
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+    <div style="width:48px;height:48px;border-radius:var(--radius-lg);background:${accentGrad};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${isCxl?'📄':'✍️'}</div>
+    <div>
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--navy-900)">${pageTitle}</div>
+      <div style="font-size:13px;color:var(--gray-500);margin-top:2px">${pageSub}</div>
+    </div>
+    <div style="margin-left:auto">${badgeHtml}</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start">
+    <!-- LEFT: DOCUMENTS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Documents to Send</div>
+        <div style="font-size:12px;color:var(--gray-400)">Check all that apply</div>
+      </div>
+      <div class="card-body" style="padding:16px 20px">
+        ${docs.map(doc=>`
+        <label style="display:flex;align-items:flex-start;gap:14px;padding:13px 0;border-bottom:1px solid var(--border);cursor:pointer">
+          <input type="checkbox" id="${doc.id}" ${doc.checked?'checked':''} style="width:17px;height:17px;margin-top:2px;accent-color:${accentChk};cursor:pointer;flex-shrink:0">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--navy-900)">${doc.label}</div>
+            <div style="font-size:12px;color:var(--gray-400);margin-top:2px">${doc.desc}</div>
+          </div>
+        </label>`).join('')}
+        <div style="margin-top:20px">
+          <div class="form-label">Message to Signer (optional)</div>
+          <textarea id="esign_msg" class="form-control" rows="2" style="resize:none">${defaultMsg}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: SIGNER + SEND -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Signer Info</div></div>
+        <div class="card-body" style="padding:16px 20px">
+          <div class="form-group" style="margin-bottom:12px">
+            <div class="form-label">Full Name</div>
+            <input id="esign_name" class="form-control" value="${name}">
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <div class="form-label">Email Address</div>
+            <input id="esign_email" class="form-control" type="email" placeholder="customer@email.com">
+          </div>
+          <div class="form-group">
+            <div class="form-label">Phone (for SMS link)</div>
+            <input id="esign_phone" class="form-control" type="tel" placeholder="(619) 555-0000">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Policy Info</div></div>
+        <div class="card-body" style="padding:14px 20px">
+          ${[['Carrier',sale.carrier],['Policy Type',sale.policyType],['Policy #',sale.policyNum],['Premium',fmt$(sale.premium)],['Fee Collected',fmt$(sale.feeCollected)]].filter(r=>r[1]).map(([l,v])=>`
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:12.5px;color:var(--gray-500)">${l}</span>
+            <span style="font-size:12.5px;font-weight:700;color:var(--navy-900)">${v}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <button onclick="submitESign()" style="width:100%;background:${accentGrad};border:none;color:#fff;border-radius:var(--radius-lg);padding:16px;font-family:var(--font-display);font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 18px ${accentGlow}">
+        ${btnLabel}
+      </button>
+      <div style="text-align:center;font-size:12px;color:var(--gray-400)">🔒 Delivered via secure signing link</div>
+    </div>
+  </div>`;
+}
+
+function submitESign() {
+  const email = (document.getElementById('esign_email')||{}).value.trim();
+  const phone = (document.getElementById('esign_phone')||{}).value.trim();
+  if (!email && !phone) { alert('Please enter at least an email or phone number to send the signing link.'); return; }
+  const btn = document.querySelector('[onclick="submitESign()"]');
+  if (btn) { btn.textContent = 'Sending…'; btn.style.opacity = '0.7'; btn.disabled = true; }
+  setTimeout(() => {
+    const pp = window.PENDING_PAYMENT || {};
+    if (pp.type === 'cancellation' && pp.custId && pp.policyNum) {
+      const ci = (typeof CUSTOMERS !== 'undefined' ? CUSTOMERS : []).findIndex(cu => cu.id === pp.custId);
+      if (ci >= 0) {
+        const pol = CUSTOMERS[ci].policies.find(p => p.number === pp.policyNum);
+        if (pol) pol.status = 'Cancelled';
+      }
+    }
+    window.ESIGN_STATE = { step: 'sent', type: (window.ESIGN_STATE||{}).type };
+    launchConfetti(2000);
+    refreshESignPage();
+  }, 1200);
+}
+function voidPolicy(custId, policyNum) {
+  if (!confirm('VOID this policy? This will reverse the sale and cannot be undone.')) return;
+  const custIdx = (typeof CUSTOMERS !== 'undefined' ? CUSTOMERS : []).findIndex(cu => cu.id === custId);
+  if (custIdx < 0) return;
+  const pol = CUSTOMERS[custIdx].policies.find(p => p.number === policyNum);
+  if (!pol) return;
+  const saleIdx = (window.SALES||[]).findIndex(s => s.id === pol.saleId);
+  if (saleIdx >= 0) {
+    const s = window.SALES[saleIdx];
+    const ai = (typeof AGENTS !== 'undefined' ? AGENTS : []).findIndex(a => a.name === s.agentName);
+    if (ai >= 0) {
+      AGENTS[ai].apps    = Math.max(0, (AGENTS[ai].apps    || 0) - (s.totalPolicies || 1));
+      AGENTS[ai].fee     = Math.max(0, (AGENTS[ai].fee     || 0) - (s.feeCollected  || 0));
+      AGENTS[ai].premium = Math.max(0, (AGENTS[ai].premium || 0) - ((s.premium||0)+(s.towingPrem||0)));
+    }
+    window.SALES.splice(saleIdx, 1);
+  }
+  pol.status = 'Voided';
+  nav('customerdetail', null);
+}
+
+function cancelPolicy(custId, policyNum) {
+  const custIdx = (typeof CUSTOMERS !== 'undefined' ? CUSTOMERS : []).findIndex(cu => cu.id === custId);
+  if (custIdx < 0) return;
+  const pol = CUSTOMERS[custIdx].policies.find(p => p.number === policyNum);
+  if (!pol) return;
+  const cu = CUSTOMERS[custIdx];
+  window.PENDING_PAYMENT = {
+    type: 'cancellation',
+    custId,
+    policyNum,
+    sale: { carrier: pol.carrier, policyType: pol.line, policyNum: pol.number, premium: pol.premium, feeCollected: pol.feeCollected },
+    leadName: cu.first + ' ' + cu.last,
+  };
+  window.ESIGN_STATE = { step: 'prepare', type: 'cancellation' };
+  nav('esignatures', document.querySelector('.nav-item[onclick*="esignatures"]'));
+}
+
 PAGES.reputation = stubPage('⭐','Reputation Manager','Reviews, ratings & online presence. Coming soon.');
 PAGES.agency = '';
 window.PAGE_INIT = window.PAGE_INIT || {};
@@ -6034,8 +6336,8 @@ function renderReportsPage() {
 
   const chipStyle = (active) => `padding:5px 14px;border-radius:var(--radius-full);border:none;cursor:pointer;font-size:12.5px;font-weight:600;font-family:var(--font-body);transition:all 0.15s;background:${active?'#1A6ED0':'var(--gray-100)'};color:${active?'#fff':'var(--gray-600)'}`;
 
-  const tabs = ['overview','agents','leads','carriers','financial','payroll','activity','newbusiness','fees'];
-  const tabLabels = { overview:'🏠 Overview', agents:'👤 Agents', leads:'🎯 Leads', carriers:'🏢 Carriers', financial:'💼 Financial', payroll:'💵 Payroll', activity:'📅 Activity', newbusiness:'✨ New Business', fees:'💰 Fees' };
+  const tabs = ['overview','agents','leads','carriers','financial','payroll','activity','newbusiness','fees','timeclock'];
+  const tabLabels = { overview:'🏠 Overview', agents:'👤 Agents', leads:'🎯 Leads', carriers:'🏢 Carriers', financial:'💼 Financial', payroll:'💵 Payroll', activity:'📅 Activity', newbusiness:'✨ New Business', fees:'💰 Fees', timeclock:'🕐 Time Clock' };
 
   let tabContent = '';
   if      (s.tab === 'overview')    tabContent = renderRptOverview(sc, totalApps, totalFeeCollected, totalFeeExtended, totalPremium, avgClose);
@@ -6047,6 +6349,7 @@ function renderReportsPage() {
   else if (s.tab === 'activity')    tabContent = renderRptActivity(sc);
   else if (s.tab === 'newbusiness') tabContent = renderRptNewBusiness(sc);
   else if (s.tab === 'fees')        tabContent = renderRptFees(sc, totalFeeCollected, totalFeeExtended);
+  else if (s.tab === 'timeclock')   tabContent = renderRptTimeClock();
   else                              tabContent = renderRptOverview(sc, totalApps, totalFeeCollected, totalFeeExtended, totalPremium, avgClose);
 
   return `
@@ -7135,6 +7438,203 @@ function renderRptFees(sc, totalFeeCollected, totalFeeExtended) {
       </tbody>
     </table>
   </div>`;
+}
+
+// ==================== TIME CLOCK REPORT ====================
+function renderRptTimeClock() {
+  const s = window.REPORTS_STATE;
+  window.TC_FILTER = window.TC_FILTER || { agent: 'All' };
+
+  const records = (window.TIME_CLOCK || []).filter(r => {
+    if (r.date < s.startDate || r.date > s.endDate) return false;
+    if (window.TC_FILTER.agent !== 'All' && r.agentName !== window.TC_FILTER.agent) return false;
+    return true;
+  }).sort((a,b) => b.date.localeCompare(a.date) || (b.clockIn||'').localeCompare(a.clockIn||''));
+
+  const agentList = (typeof AGENTS !== 'undefined' ? AGENTS : []).filter(a=>!a._archived).map(a=>a.name);
+  const agentDropdown = ['All',...agentList].map(n=>`<option value="${n}" ${window.TC_FILTER.agent===n?'selected':''}>${n}</option>`).join('');
+
+  // Per-agent hours summary
+  const totals = {};
+  records.forEach(r => {
+    if (!totals[r.agentName]) totals[r.agentName] = { mins:0, days:new Set() };
+    const mins = _tcMinutes(r.clockOut) - _tcMinutes(r.clockIn);
+    if (mins > 0) totals[r.agentName].mins += mins;
+    if (r.date) totals[r.agentName].days.add(r.date);
+  });
+  const summaryRows = Object.entries(totals).map(([name,t]) => {
+    const h=Math.floor(t.mins/60), m=t.mins%60;
+    const hrs = t.mins>0 ? `${h}h${m?' '+m+'m':''}` : '—';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border)">
+      <div style="flex:1;font-size:13px;font-weight:700;color:var(--navy-900)">${name}</div>
+      <div style="text-align:center;min-width:48px"><div style="font-size:13px;font-weight:700;color:#1A6ED0">${t.days.size}</div><div style="font-size:10px;color:var(--gray-400)">days</div></div>
+      <div style="text-align:right;min-width:70px"><div style="font-size:14px;font-weight:800;color:var(--navy-900)">${hrs}</div><div style="font-size:10px;color:var(--gray-400)">total</div></div>
+    </div>`;
+  }).join('') || `<div style="padding:28px;text-align:center;color:var(--gray-400);font-size:13px">No records this period.</div>`;
+
+  const tableRows = records.length ? records.map(r => {
+    const hrs  = r.clockOut ? _tcHoursWorked(r.clockIn, r.clockOut) : '—';
+    const open = !r.clockOut;
+    const dateLbl = new Date(r.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    return `<tr>
+      <td style="font-weight:700;color:var(--navy-900)">${r.agentName}</td>
+      <td style="color:var(--gray-600)">${dateLbl}</td>
+      <td style="font-weight:600;color:#16A34A">${r.clockIn||'—'}</td>
+      <td style="font-weight:600;color:${open?'#D97706':'#DC2626'}">${open?'<em style="color:#D97706">Still in</em>':(r.clockOut||'—')}</td>
+      <td style="font-weight:800;color:var(--navy-900)">${hrs}</td>
+      <td style="color:var(--gray-500);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.notes||'—'}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button onclick="openTimeCardModal('edit','${r.id}')" style="background:#EFF6FF;border:1px solid #BFDBFE;color:#1A6ED0;border-radius:var(--radius-md);padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body)">Edit</button>
+          <button onclick="deleteTimeCard('${r.id}')" style="background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;border-radius:var(--radius-md);padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body)">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="7" style="padding:48px;text-align:center;color:var(--gray-400)">No time card records for this period.<br><span style="font-size:12px">Agents clock in/out from the Dashboard. Use "+ Add Entry" to add a manual record.</span></td></tr>`;
+
+  return `
+  <div style="display:grid;grid-template-columns:1fr 260px;gap:16px;align-items:start">
+    <div class="card" style="overflow:hidden">
+      <div class="card-header">
+        <div class="card-title">Time Card Records</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <select onchange="window.TC_FILTER.agent=this.value;refreshReports()" style="font-size:12.5px;padding:5px 10px;border:1px solid var(--border);border-radius:var(--radius-md);font-family:var(--font-body);color:var(--navy-900);background:#fff;cursor:pointer">
+            ${agentDropdown}
+          </select>
+          <button onclick="openTimeCardModal('add',null)" style="background:#1A6ED0;border:none;color:#fff;border-radius:var(--radius-md);padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:var(--font-body);white-space:nowrap">+ Add Entry</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr>
+            <th>Agent</th><th>Date</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>Notes</th><th style="min-width:130px">Actions</th>
+          </tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="overflow:hidden">
+      <div class="card-header"><div class="card-title">Hours Summary</div><div style="font-size:11.5px;color:var(--gray-400)">Selected period</div></div>
+      ${summaryRows}
+    </div>
+  </div>`;
+}
+
+function _tcTo24(str) {
+  if (!str) return '';
+  const [t,ampm] = str.split(' ');
+  let [h,m] = t.split(':').map(Number);
+  if (ampm==='PM' && h!==12) h+=12;
+  if (ampm==='AM' && h===12) h=0;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+function _tc12hr(val) {
+  if (!val) return '';
+  let [h,m] = val.split(':').map(Number);
+  const ampm = h>=12 ? 'PM' : 'AM';
+  h = h%12 || 12;
+  return `${h}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+
+function openTimeCardModal(mode, recordId) {
+  const rec     = mode==='edit' ? (window.TIME_CLOCK||[]).find(r=>String(r.id)===String(recordId)) : null;
+  const agents  = (typeof AGENTS!=='undefined'?AGENTS:[]).filter(a=>!a._archived).map(a=>a.name);
+  const today   = new Date().toISOString().slice(0,10);
+  const title   = mode==='edit' ? 'Edit Time Card' : 'Add Manual Entry';
+
+  let ov = document.getElementById('tcModalOverlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'tcModalOverlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.onclick = function(e){ if(e.target===this) closeTimeCardModal(); };
+    document.body.appendChild(ov);
+  }
+
+  ov.innerHTML = `
+  <div style="background:#fff;border-radius:var(--radius-xl);width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.22)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0">
+      <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--navy-900)">${title}</div>
+      <button onclick="closeTimeCardModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray-400);line-height:1;padding:4px">✕</button>
+    </div>
+    <div style="padding:20px 24px">
+      <div class="form-group" style="margin-bottom:14px">
+        <div class="form-label">Agent</div>
+        ${mode==='edit'
+          ? `<input class="form-control" value="${rec?rec.agentName:''}" readonly style="background:var(--gray-50);cursor:not-allowed"><input type="hidden" id="tc_agent_val" value="${rec?rec.agentName:''}">`
+          : `<select id="tc_agent" class="form-control"><option value="">— Select agent —</option>${agents.map(n=>`<option value="${n}">${n}</option>`).join('')}</select>`}
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <div class="form-label">Date</div>
+        <input type="date" id="tc_date" class="form-control" value="${rec?rec.date:today}">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        <div class="form-group">
+          <div class="form-label">Clock In</div>
+          <input type="time" id="tc_in" class="form-control" value="${rec&&rec.clockIn?_tcTo24(rec.clockIn):'09:00'}">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Clock Out</div>
+          <input type="time" id="tc_out" class="form-control" value="${rec&&rec.clockOut?_tcTo24(rec.clockOut):''}">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <div class="form-label">Notes / Reason for Edit</div>
+        <textarea id="tc_notes" class="form-control" rows="2" placeholder="Optional — e.g. Forgot to clock out, correcting time..." style="resize:none">${rec?rec.notes||'':''}</textarea>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        ${mode==='edit'
+          ? `<button onclick="deleteTimeCard('${recordId}')" style="background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;border-radius:var(--radius-md);padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body)">Delete Entry</button>`
+          : '<div></div>'}
+        <div style="display:flex;gap:10px">
+          <button onclick="closeTimeCardModal()" style="background:var(--gray-100);border:none;color:var(--gray-700);border-radius:var(--radius-md);padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">Cancel</button>
+          <button onclick="saveTimeCardModal('${mode}','${recordId||''}')" style="background:#1A6ED0;border:none;color:#fff;border-radius:var(--radius-md);padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body)">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  ov.style.display = 'flex';
+}
+
+function closeTimeCardModal() {
+  const ov = document.getElementById('tcModalOverlay');
+  if (ov) ov.style.display = 'none';
+}
+
+function saveTimeCardModal(mode, recordId) {
+  const agentVal = mode==='edit'
+    ? (document.getElementById('tc_agent_val')||{}).value
+    : (document.getElementById('tc_agent')||{}).value;
+  const date   = (document.getElementById('tc_date') ||{}).value;
+  const inVal  = (document.getElementById('tc_in')   ||{}).value;
+  const outVal = (document.getElementById('tc_out')  ||{}).value;
+  const notes  = ((document.getElementById('tc_notes')||{}).value||'').trim();
+
+  if (!agentVal) { alert('Please select an agent.'); return; }
+  if (!date)     { alert('Please set a date.'); return; }
+  if (!inVal)    { alert('Please set a clock-in time.'); return; }
+
+  const clockIn  = _tc12hr(inVal);
+  const clockOut = outVal ? _tc12hr(outVal) : null;
+
+  window.TIME_CLOCK = window.TIME_CLOCK || [];
+  if (mode==='add') {
+    window.TIME_CLOCK.push({ id: Date.now(), agentName: agentVal, date, clockIn, clockOut, notes });
+  } else {
+    const idx = window.TIME_CLOCK.findIndex(r=>String(r.id)===String(recordId));
+    if (idx!==-1) window.TIME_CLOCK[idx] = { ...window.TIME_CLOCK[idx], date, clockIn, clockOut, notes };
+  }
+  closeTimeCardModal();
+  window.REPORTS_STATE.tab = 'timeclock';
+  refreshReports();
+}
+
+function deleteTimeCard(recordId) {
+  if (!confirm('Delete this time card entry? This cannot be undone.')) return;
+  window.TIME_CLOCK = (window.TIME_CLOCK||[]).filter(r=>String(r.id)!==String(recordId));
+  closeTimeCardModal();
+  window.REPORTS_STATE.tab = 'timeclock';
+  refreshReports();
 }
 
 function openFeeAgingModal(bucket) {
@@ -9403,28 +9903,29 @@ function renderAddAgentForm() {
 
       <!-- PLATFORM ACCESS -->
       <div style="font-size:10px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--navy-100)">Platform Access</div>
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--radius-md);padding:10px 14px;font-size:12.5px;color:#1D4ED8;margin-bottom:12px">
+        The agent's <strong>email address</strong> will be their username. A signup link will be generated and shown after you save — send it to them so they can set their password and log in for the first time.
+      </div>
       <div class="form-grid" style="margin-bottom:14px">
-        <div class="form-group">
-          <div class="form-label">Login Email <span style="color:var(--red)">*</span></div>
-          <input id="af_loginemail" class="form-control" type="email" placeholder="Login email address" oninput="clearAgentError()">
-        </div>
         <div class="form-group">
           <div class="form-label">Role <span style="color:var(--red)">*</span></div>
           <select id="af_role" class="form-control">
             <option>Agent</option>
-            <option>Senior Agent</option>
-            <option>Team Lead</option>
-            <option>Manager</option>
+            <option>HR</option>
             <option>Admin</option>
           </select>
         </div>
         <div class="form-group">
-          <div class="form-label">Temporary Password <span style="color:var(--red)">*</span></div>
-          <input id="af_pass" class="form-control" type="password" placeholder="Min 8 characters" oninput="clearAgentError()">
-        </div>
-        <div class="form-group">
-          <div class="form-label">Confirm Password <span style="color:var(--red)">*</span></div>
-          <input id="af_pass2" class="form-control" type="password" placeholder="Re-enter password" oninput="clearAgentError()">
+          <div class="form-label">Agent Type</div>
+          <select id="af_agentType" class="form-control">
+            <option>Licensed Producer</option>
+            <option>Pre-License / Trainee</option>
+            <option>Account Manager</option>
+            <option>Customer Service Rep</option>
+            <option>Team Lead</option>
+            <option>Manager</option>
+            <option>Agency Owner / Principal</option>
+          </select>
         </div>
         <div class="form-group">
           <div class="form-label">Start Date <span style="color:var(--red)">*</span></div>
@@ -9496,10 +9997,10 @@ function renderAddAgentForm() {
       <div style="display:flex;align-items:center;gap:10px;padding-top:16px;border-top:1px solid var(--border)">
         <button class="btn btn-primary" style="padding:9px 24px;font-size:13px" onclick="submitAddAgent()">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
-          Create Agent Account
+          Create Agent &amp; Generate Link
         </button>
         <button class="btn btn-ghost" onclick="window.ADMIN_STATE.addingAgent=false;window.ADMIN_STATE.agentError='';refreshAdminPage()">Cancel</button>
-        <span style="font-size:11px;color:var(--gray-400);margin-left:4px">Agent will receive a welcome email with login instructions.</span>
+        <span style="font-size:11px;color:var(--gray-400);margin-left:4px">A signup link will be shown after creation — copy &amp; send it to the agent.</span>
       </div>
 
     </div>
@@ -9517,52 +10018,154 @@ function clearAgentError() {
 function submitAddAgent() {
   const get = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
   const required = [
-    ['af_first',      'First Name'],
-    ['af_last',       'Last Name'],
-    ['af_email',      'Email Address'],
-    ['af_phone',      'Phone Number'],
-    ['af_npn',        'NPN'],
-    ['af_lic',        'License Number'],
-    ['af_licstate',   'License State(s)'],
-    ['af_licexp',     'License Expiration Date'],
-    ['af_eo',         'E&O Insurance Carrier'],
-    ['af_eoexp',      'E&O Expiration Date'],
-    ['af_loginemail', 'Login Email'],
-    ['af_pass',       'Temporary Password'],
-    ['af_pass2',      'Confirm Password'],
-    ['af_start',      'Start Date'],
-    ['af_pgoal',      'Policy Goal'],
+    ['af_first',    'First Name'],
+    ['af_last',     'Last Name'],
+    ['af_email',    'Email Address'],
+    ['af_phone',    'Phone Number'],
+    ['af_npn',      'NPN'],
+    ['af_lic',      'License Number'],
+    ['af_licstate', 'License State(s)'],
+    ['af_licexp',   'License Expiration Date'],
+    ['af_eo',       'E&O Insurance Carrier'],
+    ['af_eoexp',    'E&O Expiration Date'],
+    ['af_start',    'Start Date'],
+    ['af_pgoal',    'Policy Goal'],
   ];
   for (const [id, label] of required) {
     if (!get(id)) {
       window.ADMIN_STATE.agentError = `⚠ "${label}" is required.`;
       refreshAdminPage();
-      document.querySelector('.card-body').scrollTop = 0;
+      setTimeout(() => { const cb = document.querySelector('.card-body'); if (cb) cb.scrollTop = 0; }, 50);
       return;
     }
   }
-  if (get('af_pass') !== get('af_pass2')) {
-    window.ADMIN_STATE.agentError = '⚠ Passwords do not match.';
-    refreshAdminPage();
-    return;
-  }
-  if (get('af_pass').length < 8) {
-    window.ADMIN_STATE.agentError = '⚠ Password must be at least 8 characters.';
-    refreshAdminPage();
-    return;
-  }
+  const email     = get('af_email');
+  const firstName = get('af_first');
+  const lastName  = get('af_last');
+  const fullName  = firstName + ' ' + lastName;
+  const feeGoal   = parseInt(get('af_fgoal').replace(/[^0-9]/g,'')) || 0;
+  const tierRaw   = (get('af_tier') || 'Tier 4').split(' — ')[0] || 'Tier 4';
+
   const newAgent = {
-    name: get('af_first') + ' ' + get('af_last'),
-    apps: 0, goal: parseInt(get('af_pgoal')) || 20,
-    fee: 0, feeGoal: 8000, premium: 0,
-    tier: 'Tier 4', close: '0%', contact: '0%', leads: 0,
-    rank: AGENTS.length + 1
+    name:             fullName,
+    apps:             0,
+    goal:             parseInt(get('af_pgoal')) || 0,
+    fee:              0,
+    feeGoal:          feeGoal,
+    premium:          0,
+    tier:             tierRaw,
+    close:            '0%',
+    contact:          '0%',
+    leads:            0,
+    rank:             AGENTS.length + 1,
+    _role:            get('af_role') || 'Agent',
+    _agentType:       get('af_agentType') || 'Licensed Producer',
+    _email:           email,
+    _phone:           get('af_phone'),
+    _npn:             get('af_npn'),
+    _lic:             get('af_lic'),
+    _licstate:        get('af_licstate'),
+    _licexp:          get('af_licexp'),
+    _eo:              get('af_eo'),
+    _eoexp:           get('af_eoexp'),
+    _startDate:       get('af_start'),
+    _team:            get('af_team'),
+    _dob:             get('af_dob'),
+    _lang:            get('af_lang'),
+    _leadcap:         get('af_leadcap'),
+    _2fa:             false,
+    _inboundDisabled: false,
+    _archived:        false,
+    _onboarded:       new Date().toISOString().slice(0,10),
   };
   AGENTS.push(newAgent);
+
+  if (!window.TEAM_MEMBERS) window.TEAM_MEMBERS = [];
+  window.TEAM_MEMBERS.push({
+    name: fullName, first: firstName, last: lastName,
+    email, phone: get('af_phone'), ext: '',
+    role: get('af_role') || 'Agent',
+    tier: tierRaw, team: get('af_team'),
+    status: 'Active', startDate: get('af_start'),
+    goalApps: parseInt(get('af_pgoal')) || 0,
+    goalFee: feeGoal, goalPremium: 0, goalClose: 0, goalContact: 0,
+    permViewAll: false, permReports: false, permPayments: false,
+    permManage: false, permAddRemove: false,
+  });
+
+  if (!window.AGENT_GOALS) window.AGENT_GOALS = {};
+  window.AGENT_GOALS[fullName] = { apps: parseInt(get('af_pgoal'))||0, fee: feeGoal, premium: 0, close: 0, contact: 0 };
+
   window.ADMIN_STATE.addingAgent = false;
-  window.ADMIN_STATE.agentError = '';
-  window.ADMIN_STATE.successMsg = get('af_first') + ' ' + get('af_last');
+  window.ADMIN_STATE.agentError  = '';
   refreshAdminPage();
+  showOnboardingModal(fullName, email, get('af_role')||'Agent');
+}
+
+function showOnboardingModal(name, email, role) {
+  const token = Math.random().toString(36).slice(2,10).toUpperCase() + Math.random().toString(36).slice(2,6).toUpperCase();
+  const link  = 'https://msihub.maxsave.com/join/' + token;
+  const first = name.split(' ')[0];
+
+  let overlay = document.getElementById('onboardingModalOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'onboardingModalOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:none;align-items:center;justify-content:center;padding:16px';
+    overlay.onclick = e => { if (e.target === overlay) overlay.style.display = 'none'; };
+    document.body.appendChild(overlay);
+  }
+
+  const emailBody = encodeURIComponent(
+    'Hi ' + first + ',\n\n' +
+    'Welcome to MSIHub! Your account has been created.\n\n' +
+    'Username (Login): ' + email + '\n\n' +
+    'Click the link below to set your password and log in for the first time:\n' +
+    link + '\n\n' +
+    'This link expires in 72 hours. If you have any issues, reach out to your manager.\n\n' +
+    'Welcome to the team!\n\nMaxSave Insurance'
+  );
+  const mailtoLink = 'mailto:' + encodeURIComponent(email) +
+    '?subject=' + encodeURIComponent('Welcome to MSIHub — Set Up Your Account') +
+    '&body=' + emailBody;
+
+  overlay.innerHTML = `
+<div style="background:#fff;border-radius:16px;width:520px;max-width:96vw;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3)" onclick="event.stopPropagation()">
+  <div style="background:linear-gradient(135deg,#0E2340 0%,#1A6ED0 100%);padding:22px 26px">
+    <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#fff;margin-bottom:3px">Agent Account Created</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.65)">Send the signup link below to ${name} so they can log in</div>
+  </div>
+  <div style="padding:24px 26px">
+
+    <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:18px">
+      <div class="avatar av-green" style="font-size:14px;flex-shrink:0">${name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+      <div>
+        <div style="font-weight:700;font-size:14px;color:var(--navy-900)">${name}</div>
+        <div style="font-size:12.5px;color:var(--gray-500);margin-top:2px">${role} · Username: <strong style="color:var(--navy-900)">${email}</strong></div>
+      </div>
+      <div style="margin-left:auto;background:#DCFCE7;color:#16A34A;border:1px solid #86EFAC;padding:3px 12px;border-radius:var(--radius-full);font-size:12px;font-weight:700;white-space:nowrap">● Active</div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:7px">Signup Link — send this to ${first}</div>
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <div id="onboardLink" style="flex:1;background:var(--gray-50);border:1.5px solid #BFDBFE;border-radius:var(--radius-md);padding:10px 13px;font-size:12.5px;font-weight:600;color:#1D4ED8;word-break:break-all;line-height:1.4">${link}</div>
+      <button onclick="navigator.clipboard.writeText('${link}').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy Link',2000)})" style="flex-shrink:0;background:#1A6ED0;color:#fff;border:none;border-radius:var(--radius-md);padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">Copy Link</button>
+    </div>
+    <div style="font-size:11.5px;color:var(--gray-400);margin-bottom:20px">This link expires in 72 hours. The agent will use it to set their password on first login.</div>
+
+    <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius-md);padding:11px 14px;font-size:12.5px;color:#92400E;margin-bottom:20px">
+      <strong>All metrics start at zero.</strong> Policies, fees, and premium will only update when sales are recorded in the system. Goals were set to the values you entered during onboarding.
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <a href="${mailtoLink}" style="flex:1;background:#0E2340;color:#fff;border:none;border-radius:var(--radius-md);padding:11px 0;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);text-align:center;text-decoration:none;display:block">Open Email Draft</a>
+      <button onclick="document.getElementById('onboardingModalOverlay').style.display='none'" style="flex:1;background:var(--gray-50);color:var(--navy-900);border:1px solid var(--border);border-radius:var(--radius-md);padding:11px 0;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">Done</button>
+    </div>
+
+  </div>
+</div>`;
+
+  overlay.style.display = 'flex';
 }
 
 function refreshAdminPage() {
@@ -9588,7 +10191,524 @@ function refreshAdminPage() {
   }
 }
 
+// ==================== ADMIN DASHBOARD ====================
+
 window.PAGE_INIT = window.PAGE_INIT || {};
+window.PAGE_INIT.dashboard = function() { refreshDashboard(); };
+
+function refreshDashboard() {
+  const c = document.getElementById('content');
+  if (!c) return;
+  c.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'page-content';
+  div.innerHTML = buildAdminDashboard();
+  c.appendChild(div);
+}
+
+function getDashRange() {
+  const s = window.DASH_ADMIN_STATE || { range:'period' };
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0,10);
+  if (s.range === 'today') {
+    return { start: todayStr, end: todayStr, label: 'Today — ' + today.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) };
+  }
+  if (s.range === 'month') {
+    const start = todayStr.slice(0,7) + '-01';
+    return { start, end: todayStr, label: today.toLocaleDateString('en-US',{month:'long',year:'numeric'}) };
+  }
+  if (s.range === 'custom' && s.customStart && s.customEnd) {
+    return { start: s.customStart, end: s.customEnd, label: s.customStart + ' → ' + s.customEnd };
+  }
+  // Default: this pay period (14 days)
+  const ps = new Date(today); ps.setDate(ps.getDate() - 13);
+  return { start: ps.toISOString().slice(0,10), end: todayStr, label: 'This Pay Period' };
+}
+
+function getFilteredSales() {
+  const { start, end } = getDashRange();
+  return (window.SALES || []).filter(s => s.date >= start && s.date <= end);
+}
+
+function buildAgentDashboard() {
+  const cu      = window.CURRENT_USER || {};
+  const me      = (typeof AGENTS !== 'undefined' ? AGENTS : []).find(a => a.name === cu.name) || {};
+  const ag      = (window.AGENT_GOALS || {})[cu.name] || {};
+  const goal    = ag.apps    !== undefined ? ag.apps    : (me.goal    || 1);
+  const feeGoal = ag.fee     !== undefined ? ag.fee     : (me.feeGoal || 0);
+  const premGoal= ag.premium !== undefined ? ag.premium : 0;
+  const apps    = me.apps    || 0;
+  const fee     = me.fee     || 0;
+  const prem    = me.premium || 0;
+  const pct     = Math.min(150, Math.round(apps / (goal||1) * 100));
+  const feePct  = feeGoal ? Math.min(100, Math.round(fee / feeGoal * 100)) : 0;
+  const status      = pct >= 100 ? 'ON TRACK' : pct >= 75 ? 'CLOSE' : 'BEHIND';
+  const statusColor = pct >= 100 ? '#16A34A' : pct >= 75 ? '#D97706' : '#DC2626';
+  const ringFill    = Math.min(1, pct / 100) * 2 * Math.PI * 60;
+  const ringTotal   = 2 * Math.PI * 60;
+  const fmt$a = n => '$' + (n||0).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+  // Full agency leaderboard sorted by apps, with "me" highlighted
+  const allAgentsA = (typeof AGENTS !== 'undefined' ? AGENTS : []).filter(a => !a._archived);
+  const sortedA    = allAgentsA.slice().sort((a,b)=>(b.apps||0)-(a.apps||0));
+  const rankColorsA = ['#F59E0B','#94A3B8','#CD7F32'];
+  const lbBars = sortedA.map((a, i) => {
+    const ag_ = (window.AGENT_GOALS || {})[a.name] || {};
+    const g   = ag_.apps !== undefined ? ag_.apps : (a.goal || 1);
+    const p   = Math.min(100, Math.round((a.apps||0) / (g||1) * 100));
+    const ini = a.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+    const isMe    = a.name === cu.name;
+    const rankBg  = i < 3 ? rankColorsA[i] : '#E5E7EB';
+    const rankClr = i < 3 ? '#fff' : '#374151';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:11px ${isMe?'20px':'0'};border-bottom:1px solid var(--border);${isMe?'background:rgba(26,110,208,0.06);margin:0 -20px;border-radius:8px':''}">
+      <div style="width:28px;height:28px;border-radius:50%;background:${rankBg};color:${rankClr};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">${i+1}</div>
+      <div style="width:28px;height:28px;border-radius:50%;background:${isMe?'#1A6ED0':'#94A3B8'};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:${isMe?'800':'700'};color:${isMe?'#1A6ED0':'var(--navy-900)'}">${a.name}${isMe?' (You)':''}</span>
+          <span style="font-size:12px;font-weight:700;color:${p>=100?'#16A34A':p>=75?'#B45309':'var(--navy-700)'}">${a.apps||0} / ${g} &nbsp;<span style="color:${p>=100?'#16A34A':p>=75?'#F59E0B':'#1A6ED0'}">${p}%</span></span>
+        </div>
+        <div style="height:7px;background:#F3F4F6;border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:${p}%;background:${p>=100?'#16A34A':p>=75?'#F59E0B':'#1A6ED0'};border-radius:99px;transition:width 0.4s ease"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+  <!-- AGENT HEADER -->
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(135deg,#0A1624 0%,#122B47 100%);padding:22px 28px;border-radius:var(--radius-xl);margin-bottom:20px;color:#fff;box-shadow:0 6px 22px rgba(10,22,36,0.28)">
+    <div>
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:7px">My Dashboard</div>
+      <div style="font-family:var(--font-display);font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.5px">Welcome, ${(cu.name||'Agent').split(' ')[0]}</div>
+      <div style="font-size:13.5px;color:rgba(255,255,255,0.55);margin-top:6px">${apps} policies &nbsp;·&nbsp; ${pct}% to goal &nbsp;·&nbsp; ${fmt$a(fee)} collected</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;flex-shrink:0">
+      <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:var(--radius-lg);padding:14px 24px;text-align:center;min-width:110px">
+        <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px">Status</div>
+        <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.55)" id="dashClockStatus">Not clocked in</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.32);margin-top:3px" id="dashClockTime">—</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <button onclick="handleClockIn()" id="clockInBtn" style="background:#1A6ED0;border:none;color:#fff;border-radius:var(--radius-md);padding:12px 24px;font-family:var(--font-body);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v3.5l2.5 1.5" stroke-linecap="round"/></svg>Clock In</button>
+        <button onclick="handleClockOut()" id="clockOutBtn" style="background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.60);border-radius:var(--radius-md);padding:12px 24px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M10.5 5.5l-5 5M5.5 5.5l5 5" stroke-linecap="round"/></svg>Clock Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERSONAL KPI CARDS -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+    <div style="background:#fff;border:1.5px solid #E5E7EB;border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">My Policies</div>
+      <div style="font-family:var(--font-display);font-size:30px;font-weight:800;color:#111827;letter-spacing:-0.5px">${apps}</div>
+      <div style="font-size:12px;color:#6B7280;margin-top:5px">Goal: <strong>${goal} apps</strong></div>
+    </div>
+    <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12px;font-weight:700;color:#16A34A;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Fees Collected</div>
+      <div style="font-family:var(--font-display);font-size:30px;font-weight:800;color:#111827;letter-spacing:-0.5px">${fmt$a(fee)}</div>
+      <div style="font-size:12px;color:${feeGoal?( feePct>=100?'#16A34A':feePct>=75?'#D97706':'#6B7280'):'#6B7280'};margin-top:5px">${feeGoal?'Goal: <strong>'+fmt$a(feeGoal)+'</strong> &nbsp;('+feePct+'%)':'No fee goal set'}</div>
+    </div>
+    <div style="background:#fff;border:1.5px solid #E5E7EB;border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Premium Written</div>
+      <div style="font-family:var(--font-display);font-size:30px;font-weight:800;color:#111827;letter-spacing:-0.5px">${fmt$a(prem)}</div>
+      <div style="font-size:12px;color:#6B7280;margin-top:5px">${premGoal?'Goal: <strong>'+fmt$a(premGoal)+'</strong>':'No premium goal set'}</div>
+    </div>
+    <div style="background:#fff;border:1.5px solid #E5E7EB;border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Goal Progress</div>
+      <div style="font-family:var(--font-display);font-size:30px;font-weight:800;color:${pct>=100?'#16A34A':pct>=75?'#D97706':'#111827'};letter-spacing:-0.5px">${pct}%</div>
+      <div style="font-size:12px;color:#6B7280;margin-top:5px">${pct>=100?'Goal exceeded!':goal-apps+' left to goal'}</div>
+    </div>
+  </div>
+
+  <!-- GOAL RING + LEADERBOARD -->
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:16px">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">My Goal</div>
+        <span style="font-size:11px;font-weight:700;color:#fff;background:${statusColor};padding:3px 11px;border-radius:var(--radius-full)">${status}</span>
+      </div>
+      <div class="card-body" style="display:flex;flex-direction:column;align-items:center;padding:24px">
+        <svg width="160" height="160" viewBox="0 0 148 148">
+          <circle cx="74" cy="74" r="60" fill="none" stroke="var(--gray-100)" stroke-width="13"/>
+          <circle cx="74" cy="74" r="60" fill="none" stroke="#163D6B" stroke-width="13"
+            stroke-dasharray="${ringFill} ${ringTotal}"
+            stroke-linecap="round" transform="rotate(-90 74 74)"/>
+          <text x="74" y="70" text-anchor="middle" font-family="Sora" font-weight="800" font-size="30" fill="#0C1D33">${pct}%</text>
+          <text x="74" y="90" text-anchor="middle" font-family="Outfit" font-weight="500" font-size="11" fill="#94A3B8">to goal</text>
+        </svg>
+        <div style="text-align:center;margin-top:12px">
+          <div style="font-size:14px;font-weight:700;color:var(--navy-900)">${apps} of ${goal} policies</div>
+          <div style="font-size:12px;color:var(--gray-400);margin-top:4px">${pct>=100?'You\'ve hit your goal — keep going!':goal-apps+' more to reach your goal'}</div>
+        </div>
+        ${feeGoal ? `<div style="width:100%;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:700;color:var(--gray-500)">Fee Goal</span>
+            <span style="font-size:12px;font-weight:700;color:${feePct>=100?'#16A34A':feePct>=75?'#D97706':'var(--navy-700)'}">${fmt$a(fee)} / ${fmt$a(feeGoal)} &nbsp;(${feePct}%)</span>
+          </div>
+          <div style="height:8px;background:#F3F4F6;border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:${feePct}%;background:${feePct>=100?'#16A34A':feePct>=75?'#F59E0B':'#1A6ED0'};border-radius:99px;transition:width 0.4s ease"></div>
+          </div>
+        </div>` : ''}
+        ${premGoal ? `<div style="width:100%;margin-top:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:700;color:var(--gray-500)">Premium Goal</span>
+            <span style="font-size:12px;font-weight:700;color:var(--navy-700)">${fmt$a(prem)} / ${fmt$a(premGoal)}</span>
+          </div>
+          <div style="height:8px;background:#F3F4F6;border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:${Math.min(100,premGoal?Math.round(prem/premGoal*100):0)}%;background:#8B5CF6;border-radius:99px;transition:width 0.4s ease"></div>
+          </div>
+        </div>` : ''}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Agency Leaderboard — Goal Progress</div>
+      </div>
+      <div class="card-body" style="padding:8px 20px">
+        ${lbBars || '<div style="text-align:center;padding:24px;color:var(--gray-400)">No agents yet.</div>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildAdminDashboard() {
+  if ((window.CURRENT_USER||{}).role === 'Agent') return buildAgentDashboard();
+  const s    = window.DASH_ADMIN_STATE || { range: 'period' };
+  const range = getDashRange();
+  const sales = getFilteredSales();
+  const allAgents = (typeof AGENTS !== 'undefined' ? AGENTS : []).filter(a => !a._archived);
+
+  // Aggregate metrics from filtered sales
+  const totalPolicies    = sales.reduce((sum, s) => sum + (s.totalPolicies || 1), 0);
+  const totalFeeCollected= sales.reduce((sum, s) => sum + (s.feeCollected || 0), 0);
+  const totalFeeExtended = sales.reduce((sum, s) => sum + (s.feeExtended || 0), 0);
+  const totalPremium     = sales.reduce((sum, s) => sum + (s.premium || 0) + (s.towingPremium || 0), 0);
+  const agentsWriting    = new Set(sales.map(s => s.agentName)).size;
+
+  // Per-agent breakdown
+  const agentMap = {};
+  sales.forEach(sale => {
+    if (!agentMap[sale.agentName]) agentMap[sale.agentName] = { policies:0, feeCollected:0, feeExtended:0, premium:0, sales:0 };
+    agentMap[sale.agentName].policies     += sale.totalPolicies || 1;
+    agentMap[sale.agentName].feeCollected += sale.feeCollected || 0;
+    agentMap[sale.agentName].feeExtended  += sale.feeExtended  || 0;
+    agentMap[sale.agentName].premium      += (sale.premium||0) + (sale.towingPremium||0);
+    agentMap[sale.agentName].sales        += 1;
+  });
+
+  const fmt$ = n => '$' + (n||0).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+  // KPI cards
+  const kpi = (label, value, sub, bg, color, border) => `
+  <div style="background:${bg||'#fff'};border:1.5px solid ${border||'#E5E7EB'};border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
+    <div style="font-size:12px;font-weight:700;color:${color||'#6B7280'};text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">${label}</div>
+    <div style="font-family:var(--font-display);font-size:30px;font-weight:800;color:${color==='#fff'?'#fff':'#111827'};letter-spacing:-0.5px">${value}</div>
+    <div style="font-size:12px;color:${color==='#fff'?'rgba(255,255,255,0.65)':'#6B7280'};margin-top:5px">${sub}</div>
+  </div>`;
+
+  // Filter tabs
+  const tab = (key, label) => `<button onclick="window.DASH_ADMIN_STATE.range='${key}';refreshDashboard()" style="padding:8px 18px;border:1.5px solid ${s.range===key?'#1A6ED0':'#E5E7EB'};background:${s.range===key?'#1A6ED0':'#fff'};color:${s.range===key?'#fff':'#374151'};border-radius:var(--radius-md);font-size:13px;font-weight:${s.range===key?'700':'500'};cursor:pointer;font-family:var(--font-body);transition:all 0.15s">${label}</button>`;
+
+  // Agent breakdown rows (sorted by policies desc)
+  const sortedAgents = Object.entries(agentMap).sort((a,b)=>b[1].policies - a[1].policies);
+  const agentRows = sortedAgents.length ? sortedAgents.map(([name, m], i) => {
+    const pct = totalPolicies > 0 ? Math.round(m.policies / totalPolicies * 100) : 0;
+    const avatarColors = ['#16A34A','#1D4ED8','#B45309','#7C3AED','#0E7490','#DC2626'];
+    const av = avatarColors[i % avatarColors.length];
+    const ini = name.split(' ').map(w=>w[0]).join('').slice(0,2);
+    return `<tr>
+      <td style="padding:12px 16px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:50%;background:${av};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${ini}</div>
+          <div style="font-weight:600;font-size:13.5px;color:var(--navy-900)">${name}</div>
+        </div>
+      </td>
+      <td style="padding:12px 16px;text-align:center;font-weight:700;font-size:15px;color:var(--navy-900)">${m.policies}</td>
+      <td style="padding:12px 16px;text-align:center;font-weight:700;color:#16A34A">${fmt$(m.feeCollected)}</td>
+      <td style="padding:12px 16px;text-align:center;color:#6B7280">${fmt$(m.feeExtended)}</td>
+      <td style="padding:12px 16px;text-align:center;color:#374151">${fmt$(m.premium)}</td>
+      <td style="padding:12px 16px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;height:7px;background:#F3F4F6;border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:#1A6ED0;border-radius:99px"></div></div>
+          <span style="font-size:12px;font-weight:600;color:#6B7280;min-width:32px">${pct}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--gray-400)">No sales recorded for this period yet. Use the New Sale button on any lead to start tracking.</td></tr>`;
+
+  // Recent sales list
+  const recentSales = (window.SALES||[]).slice().reverse().slice(0,12);
+  const recentRows = recentSales.length ? recentSales.map(sale => {
+    const d = new Date(sale.timestamp || sale.date+'T00:00:00');
+    const dateStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const timeStr = sale.timestamp ? d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border)">
+      <div style="flex-shrink:0;text-align:center;min-width:44px">
+        <div style="font-size:12px;font-weight:700;color:var(--navy-900)">${dateStr}</div>
+        <div style="font-size:10.5px;color:var(--gray-400)">${timeStr}</div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sale.leadName||'—'}</div>
+        <div style="font-size:11.5px;color:var(--gray-500);margin-top:1px">${sale.agentName} · ${sale.carrier} · ${sale.policyType}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:13px;font-weight:700;color:#16A34A">${fmt$(sale.feeCollected)}</div>
+        <div style="font-size:11px;color:var(--gray-400)">${sale.totalPolicies>1?sale.totalPolicies+' policies':'1 policy'}</div>
+      </div>
+    </div>`;
+  }).join('') : `<div style="padding:40px;text-align:center;color:var(--gray-400);font-size:13px">No sales recorded yet.</div>`;
+
+  // Goal progress leaderboard — sorted by apps descending
+  const sortedGoalAgents = allAgents.slice().sort((a,b)=>(b.apps||0)-(a.apps||0));
+  const rankColors = ['#F59E0B','#94A3B8','#CD7F32'];
+  const goalBars = sortedGoalAgents.map((a, i) => {
+    const _ag  = (window.AGENT_GOALS || {})[a.name] || {};
+    const goal = _ag.apps !== undefined ? _ag.apps : (a.goal || 1);
+    const pct  = Math.min(100, Math.round((a.apps||0) / (goal||1) * 100));
+    const ini  = a.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+    const rankBg  = i < 3 ? rankColors[i] : '#E5E7EB';
+    const rankClr = i < 3 ? '#fff' : '#374151';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">
+      <div style="width:28px;height:28px;border-radius:50%;background:${rankBg};color:${rankClr};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">${i+1}</div>
+      <div style="width:28px;height:28px;border-radius:50%;background:#1A6ED0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:700;color:var(--navy-900)">${a.name}</span>
+          <span style="font-size:12px;font-weight:700;color:${pct>=100?'#16A34A':pct>=75?'#B45309':'var(--navy-700)'}">${a.apps||0} / ${goal} apps &nbsp; <span style="color:${pct>=100?'#16A34A':pct>=75?'#F59E0B':'#1A6ED0'}">${pct}%</span></span>
+        </div>
+        <div style="height:7px;background:#F3F4F6;border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${pct>=100?'#16A34A':pct>=75?'#F59E0B':'#1A6ED0'};border-radius:99px;transition:width 0.4s ease"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Agency goal ring data
+  const agencyGoal      = allAgents.reduce((s2, a) => { const _ag=(window.AGENT_GOALS||{})[a.name]||{}; return s2+(_ag.apps!==undefined?_ag.apps:(a.goal||0)); }, 0) || 1;
+  const agencyGoalPct   = Math.min(150, Math.round(totalPolicies / agencyGoal * 100));
+  const goalStatus      = agencyGoalPct >= 100 ? 'EXCEEDED' : agencyGoalPct >= 75 ? 'ON TRACK' : 'BEHIND';
+  const goalStatusColor = agencyGoalPct >= 100 ? '#16A34A' : agencyGoalPct >= 75 ? '#D97706' : '#DC2626';
+  const ringFill        = Math.min(1, agencyGoalPct / 100) * 2 * Math.PI * 60;
+  const ringTotal       = 2 * Math.PI * 60;
+
+  // 9-month app trend from window.SALES
+  const _mnms = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const _nowD = new Date();
+  const trendMonths = [];
+  for (let _ti = 8; _ti >= 0; _ti--) {
+    const _td = new Date(_nowD.getFullYear(), _nowD.getMonth() - _ti, 1);
+    trendMonths.push({ label: _mnms[_td.getMonth()], year: _td.getFullYear(), month: _td.getMonth(), count: 0 });
+  }
+  (window.SALES||[]).forEach(_ts => {
+    const _td = new Date(_ts.timestamp || _ts.date + 'T00:00:00');
+    const _tm = trendMonths.find(t => t.year === _td.getFullYear() && t.month === _td.getMonth());
+    if (_tm) _tm.count += _ts.totalPolicies || 1;
+  });
+  const maxTrend    = Math.max(...trendMonths.map(m => m.count), 1);
+  const trendAvg    = Math.round(trendMonths.reduce((sum2, m) => sum2 + m.count, 0) / 9);
+  const trendBest   = trendMonths.reduce((b, m) => m.count > b.count ? m : b, trendMonths[0]);
+  const trendGrowth = trendMonths[0].count > 0
+    ? Math.round((trendMonths[8].count - trendMonths[0].count) / trendMonths[0].count * 100)
+    : (trendMonths[8].count > 0 ? 100 : 0);
+
+  // Custom date range row
+  const customRow = s.range === 'custom' ? `
+  <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+    <div style="font-size:13px;font-weight:600;color:var(--gray-600)">From:</div>
+    <input type="date" value="${s.customStart||''}" class="form-control" style="width:160px;font-size:13px" onchange="window.DASH_ADMIN_STATE.customStart=this.value;refreshDashboard()">
+    <div style="font-size:13px;font-weight:600;color:var(--gray-600)">To:</div>
+    <input type="date" value="${s.customEnd||''}" class="form-control" style="width:160px;font-size:13px" onchange="window.DASH_ADMIN_STATE.customEnd=this.value;refreshDashboard()">
+  </div>` : '';
+
+  return `
+  <!-- HEADER -->
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(135deg,#0A1624 0%,#122B47 100%);padding:22px 28px;border-radius:var(--radius-xl);margin-bottom:20px;color:#fff;box-shadow:0 6px 22px rgba(10,22,36,0.28)">
+    <div>
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:7px">Agency Dashboard</div>
+      <div style="font-family:var(--font-display);font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.5px">${range.label}</div>
+      <div style="font-size:13.5px;color:rgba(255,255,255,0.55);margin-top:6px">${allAgents.length} agents &nbsp;·&nbsp; ${agentsWriting} writing this period &nbsp;·&nbsp; ${totalPolicies} policies &nbsp;·&nbsp; ${fmt$(totalFeeCollected)} collected</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;flex-shrink:0">
+      <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:var(--radius-lg);padding:14px 24px;text-align:center;min-width:110px">
+        <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:5px">Status</div>
+        <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.55)" id="dashClockStatus">Not clocked in</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.32);margin-top:3px" id="dashClockTime">—</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <button onclick="handleClockIn()" id="clockInBtn" style="background:#1A6ED0;border:none;color:#fff;border-radius:var(--radius-md);padding:12px 24px;font-family:var(--font-body);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v3.5l2.5 1.5" stroke-linecap="round"/></svg>Clock In</button>
+        <button onclick="handleClockOut()" id="clockOutBtn" style="background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.60);border-radius:var(--radius-md);padding:12px 24px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M10.5 5.5l-5 5M5.5 5.5l5 5" stroke-linecap="round"/></svg>Clock Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATE FILTER -->
+  <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:18px;box-shadow:var(--shadow-sm)">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:12.5px;font-weight:700;color:var(--gray-500);margin-right:4px">Show:</span>
+      ${tab('today','Today')}
+      ${tab('period','This Pay Period')}
+      ${tab('month','This Month')}
+      ${tab('custom','Custom Range')}
+    </div>
+    ${customRow}
+  </div>
+
+  <!-- KPI CARDS -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px">
+    ${kpi('Policies Sold', totalPolicies, range.label)}
+    ${kpi('Fees Collected', fmt$(totalFeeCollected), 'Broker fees paid in full','#F0FDF4','#16A34A','#86EFAC')}
+    ${kpi('Fees Extended', fmt$(totalFeeExtended), 'Broker fees still owed')}
+    ${kpi('Premium Written', fmt$(totalPremium), 'Total premium this period')}
+    ${kpi('Agents Writing', agentsWriting + ' of ' + allAgents.length, 'Agents with recorded sales')}
+  </div>
+
+  <!-- MAIN CONTENT: TWO COLUMNS -->
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:16px">
+
+    <!-- AGENT BREAKDOWN TABLE -->
+    <div class="card" style="overflow:hidden">
+      <div class="card-header">
+        <div class="card-title">Agent Performance</div>
+        <div style="font-size:12px;color:var(--gray-500)">${range.label}</div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr>
+            <th style="padding:10px 16px">Agent</th>
+            <th style="padding:10px 16px;text-align:center">Policies</th>
+            <th style="padding:10px 16px;text-align:center">Fees Collected</th>
+            <th style="padding:10px 16px;text-align:center">Fees Extended</th>
+            <th style="padding:10px 16px;text-align:center">Premium</th>
+            <th style="padding:10px 16px">% of Total</th>
+          </tr></thead>
+          <tbody>${agentRows}</tbody>
+          ${totalPolicies > 0 ? `<tfoot><tr style="background:var(--gray-50);border-top:2px solid var(--border)">
+            <td style="padding:12px 16px;font-weight:700;color:var(--navy-900)">Agency Total</td>
+            <td style="padding:12px 16px;text-align:center;font-weight:800;font-size:16px;color:var(--navy-900)">${totalPolicies}</td>
+            <td style="padding:12px 16px;text-align:center;font-weight:700;color:#16A34A">${fmt$(totalFeeCollected)}</td>
+            <td style="padding:12px 16px;text-align:center;font-weight:700;color:#6B7280">${fmt$(totalFeeExtended)}</td>
+            <td style="padding:12px 16px;text-align:center;font-weight:700">${fmt$(totalPremium)}</td>
+            <td style="padding:12px 16px;font-weight:700">100%</td>
+          </tr></tfoot>` : ''}
+        </table>
+      </div>
+    </div>
+
+    <!-- RECENT SALES -->
+    <div class="card" style="overflow:hidden">
+      <div class="card-header" style="padding:14px 16px">
+        <div class="card-title" style="font-size:14px">Recent Sales</div>
+        <div style="font-size:11.5px;color:var(--gray-400)">All time</div>
+      </div>
+      <div style="overflow-y:auto;max-height:420px">${recentRows}</div>
+    </div>
+
+  </div>
+
+  <!-- GOAL PROGRESS -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-header">
+      <div class="card-title">Agent Goal Progress — Policies</div>
+      <div style="font-size:12px;color:var(--gray-500)">All-time from agent profiles</div>
+    </div>
+    <div class="card-body" style="padding:8px 20px">
+      ${goalBars || '<div style="text-align:center;padding:24px;color:var(--gray-400)">No agents yet.</div>'}
+    </div>
+  </div>
+
+  <!-- AGENCY GOAL RING + TIER TRACKER -->
+  <div style="display:grid;grid-template-columns:360px 1fr;gap:14px;margin-bottom:20px">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Agency Goal</div>
+        <span style="font-size:11px;font-weight:700;color:#fff;background:${goalStatusColor};padding:3px 11px;border-radius:var(--radius-full)">${goalStatus}</span>
+      </div>
+      <div class="card-body" style="display:flex;align-items:center;gap:22px;padding:22px">
+        <div style="flex-shrink:0">
+          <svg width="148" height="148" viewBox="0 0 148 148">
+            <circle cx="74" cy="74" r="60" fill="none" stroke="var(--gray-100)" stroke-width="13"/>
+            <circle cx="74" cy="74" r="60" fill="none" stroke="#163D6B" stroke-width="13"
+              stroke-dasharray="${ringFill} ${ringTotal}"
+              stroke-linecap="round" transform="rotate(-90 74 74)"/>
+            <text x="74" y="70" text-anchor="middle" font-family="Sora" font-weight="800" font-size="30" fill="#0C1D33">${agencyGoalPct}%</text>
+            <text x="74" y="90" text-anchor="middle" font-family="Outfit" font-weight="500" font-size="11" fill="#94A3B8">to goal</text>
+          </svg>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:12px;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">${totalPolicies} of ${agencyGoal} policies</div>
+          <div style="font-family:var(--font-display);font-size:17px;font-weight:800;color:var(--navy-900);margin-bottom:16px">${agencyGoalPct>=100?'Exceeded by '+(totalPolicies-agencyGoal):(agencyGoal-totalPolicies)+' left to go'}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="background:var(--gray-50);padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--border)">
+              <div style="font-size:10px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Agents</div>
+              <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--navy-900)">${allAgents.length}</div>
+            </div>
+            <div style="background:var(--gray-50);padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--border)">
+              <div style="font-size:10px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Writing</div>
+              <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--navy-900)">${agentsWriting}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Tier Thresholds</div>
+        <span style="font-size:13px;color:var(--gray-400)">Agency reference</span>
+      </div>
+      <div class="card-body" style="padding:20px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+          ${(window.TIER_DATA||[]).map((tier,ti)=>`
+          <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 14px;background:#fff">
+            <div style="width:8px;height:8px;border-radius:50%;background:${['#16A34A','#1A6ED0','#D97706','#6B7280'][ti]||'#6B7280'};margin-bottom:9px"></div>
+            <div style="font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--navy-900);margin-bottom:3px">${tier.name}</div>
+            <div style="font-size:12.5px;color:var(--gray-500);margin-bottom:2px">${tier.minApps}+ apps</div>
+            <div style="font-size:12px;color:var(--gray-400);margin-bottom:8px">${fmt$(tier.minFee||0)} fee · ${fmt$(tier.minPremium||0)} prem</div>
+            <div style="font-size:14px;font-weight:800;color:#163D6B">${tier.commission}%</div>
+            <div style="font-size:11px;color:var(--gray-400)">commission</div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9-MONTH TREND (full width) -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">9-Month Policy Trend</div>
+        <span style="font-size:13px;color:var(--gray-400)">${trendMonths[0].label} ${trendMonths[0].year} – ${trendMonths[8].label} ${trendMonths[8].year}</span>
+      </div>
+      <div class="card-body" style="padding:18px 22px">
+        <div class="rpt-bar-wrap" style="height:150px">
+          ${trendMonths.map((m,idx)=>`
+          <div class="bar-col" title="${m.label}: ${m.count} policies">
+            <div class="bar-val" style="font-size:12px">${m.count}</div>
+            <div class="bar-fill" style="height:${Math.max(4,Math.round(m.count/maxTrend*130))}px;background:${idx===8?'#163D6B':'var(--navy-100)'};border:1px solid ${idx===8?'#0E2340':'var(--navy-200)'};border-radius:5px 5px 0 0"></div>
+            <div class="bar-lbl">${m.label}</div>
+          </div>`).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px">
+          <div style="background:var(--gray-50);border-radius:var(--radius-md);padding:13px;text-align:center;border:1px solid var(--border)">
+            <div style="font-size:10px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Best Month</div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--navy-900)">${trendBest.count}</div>
+            <div style="font-size:12px;color:var(--gray-500);margin-top:2px">${trendBest.label} ${trendBest.year}</div>
+          </div>
+          <div style="background:var(--gray-50);border-radius:var(--radius-md);padding:13px;text-align:center;border:1px solid var(--border)">
+            <div style="font-size:10px;color:var(--gray-400);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">9-Mo Avg</div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--navy-900)">${trendAvg}</div>
+            <div style="font-size:12px;color:var(--gray-500);margin-top:2px">policies / month</div>
+          </div>
+          <div style="background:rgba(22,61,107,0.06);border-radius:var(--radius-md);padding:13px;text-align:center;border:1px solid rgba(22,61,107,0.16)">
+            <div style="font-size:10px;color:#163D6B;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Growth</div>
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#163D6B">${trendGrowth>=0?'+':''}${trendGrowth}%</div>
+            <div style="font-size:12px;color:#163D6B;margin-top:2px">${trendMonths[0].label} → ${trendMonths[8].label}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
 window.PAGE_INIT.admin = function() { refreshAdminPage(); };
 
 // ==================== TAB SWITCHER ====================
