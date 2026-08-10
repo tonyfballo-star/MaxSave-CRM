@@ -54,6 +54,7 @@
   .logo svg { width: 30px; height: 30px; flex-shrink: 0; }
   .logo .word { font-size: 23px; font-weight: 800; color: #fff; letter-spacing: -0.5px; line-height: 1; }
   .nav { flex: 1; padding: 8px 10px; }
+  .nav-bottom { flex: 0 0 auto; padding: 8px 10px; border-top: 1px solid var(--border); }
   .nav-item {
     display: flex; align-items: center; gap: 11px;
     padding: 10px 12px; margin-bottom: 2px;
@@ -124,18 +125,6 @@
   .b-neutral  { color: var(--ink-2);    background: rgba(255,255,255,0.08); }
   .b-accent   { color: #8db9f0;         background: rgba(57,135,229,0.15); }
 
-  /* ---------- Alerts ---------- */
-  .alert {
-    display: flex; gap: 10px; align-items: flex-start;
-    padding: 11px 14px; border-radius: 10px; margin-bottom: 8px;
-    background: var(--surface-2); border: 1px solid var(--border);
-    font-size: 13px; color: var(--ink-2);
-  }
-  .alert:last-child { margin-bottom: 0; }
-  .alert .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-  .alert b { color: var(--ink); }
-  .alert .when { margin-left: auto; color: var(--ink-muted); font-size: 12px; white-space: nowrap; }
-
   /* ---------- Brand cards ---------- */
   .brand-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
   .brand-card .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
@@ -149,12 +138,14 @@
 
   /* ---------- Filters ---------- */
   .filter-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-  input[type="text"], select {
+  input[type="text"], input[type="date"], select {
     background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
     color: var(--ink); padding: 8px 12px; font-size: 13px; font-family: inherit;
     outline: none;
   }
-  input[type="text"]:focus, select:focus { border-color: var(--accent); }
+  input[type="text"]:focus, input[type="date"]:focus, select:focus { border-color: var(--accent); }
+  input[type="date"] { color-scheme: dark; }
+  .filter-row .lbl { font-size: 12px; color: var(--ink-muted); align-self: center; }
   input[type="text"] { min-width: 220px; }
 
   /* ---------- Charts ---------- */
@@ -220,6 +211,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z"/></svg>
         <span>Home</span>
       </div>
+      <div class="nav-item" data-page="orders">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M16 5h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h3"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+        <span>Orders</span>
+      </div>
       <div class="nav-item" data-page="brands">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v5.5L5.5 14a4.5 4.5 0 0 0 3.9 6.8h5.2a4.5 4.5 0 0 0 3.9-6.8L14 7.5V2"/><path d="M8.5 2h7"/></svg>
         <span>Brands</span>
@@ -232,11 +227,13 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-6"/><path d="M22 20H2"/></svg>
         <span>Analytics</span>
       </div>
+    </nav>
+    <div class="nav nav-bottom">
       <div class="nav-item" data-page="settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
         <span>Settings</span>
       </div>
-    </nav>
+    </div>
     <div class="sidebar-foot"><b>Tierlink Ownership</b>Admin view</div>
   </aside>
 
@@ -250,6 +247,14 @@
         <div class="sub" id="today-label"></div>
       </div>
 
+      <div class="filter-row">
+        <span class="lbl">Metrics for orders placed:</span>
+        <input type="date" id="home-from">
+        <span class="lbl">to</span>
+        <input type="date" id="home-to">
+        <button class="btn ghost" id="home-today">Today</button>
+      </div>
+
       <div class="grid kpi-row" id="home-kpis"></div>
 
       <div class="grid two-col">
@@ -259,21 +264,38 @@
           <div class="chart-wrap" id="ship-chart"></div>
         </div>
         <div class="card">
-          <h3>Action Items</h3>
-          <div id="alerts"></div>
+          <h3>Sales by Brand — Month to Date</h3>
+          <div class="table-scroll"><table id="brand-sales-table"></table></div>
+          <div class="section-note">Top-selling brands first, by revenue. Units = bottles (cases × 12).</div>
         </div>
       </div>
 
-      <div class="grid two-col">
-        <div class="card">
-          <h3>Recent Orders</h3>
-          <div class="table-scroll"><table id="orders-table"></table></div>
-        </div>
-        <div class="card">
-          <h3>Compliance Snapshot</h3>
-          <div class="table-scroll"><table id="compliance-table"></table></div>
-          <div class="section-note">COLA = federal label approval (TTB). Track renewals and new-state registrations here.</div>
-        </div>
+      <div class="card">
+        <h3>Recent Orders</h3>
+        <div class="table-scroll"><table id="orders-table"></table></div>
+      </div>
+    </section>
+
+    <!-- ========== ORDERS ========== -->
+    <section class="page" id="page-orders">
+      <div class="page-head">
+        <h1>Orders</h1>
+        <div class="sub" id="order-count"></div>
+      </div>
+      <div class="filter-row">
+        <input type="text" id="ord-search" placeholder="Search order # or distributor…">
+        <select id="ord-brand"><option value="">All brands</option></select>
+        <select id="ord-status">
+          <option value="">All statuses</option>
+          <option>Processing</option>
+          <option>Shipped</option>
+          <option>Delivered</option>
+          <option>On Hold</option>
+          <option value="__late">Late only</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="table-scroll"><table id="orders-full-table"></table></div>
       </div>
     </section>
 
@@ -393,12 +415,12 @@
 const BOTTLES_PER_CASE = 12; /* used to estimate Bottles Shipped from cases */
 
 const BRANDS = [
-  { name: "Northlight Vodka",    cat: "Vodka · 80 proof",          skus: 5, states: 22, distributors: 17, mtdCases: 2950, ytdRevenue: 3900000, status: "Active" },
-  { name: "Oakhaven Bourbon",    cat: "Straight Bourbon Whiskey",  skus: 4, states: 18, distributors: 14, mtdCases: 2310, ytdRevenue: 3400000, status: "Active" },
-  { name: "Solora Spritz",       cat: "RTD · Wine Spritz",         skus: 8, states: 9,  distributors: 6,  mtdCases: 4120, ytdRevenue: 1800000, status: "Active" },
-  { name: "Cerro Azul Tequila",  cat: "Tequila · Blanco / Repo",   skus: 6, states: 12, distributors: 9,  mtdCases: 1840, ytdRevenue: 2100000, status: "Active" },
-  { name: "Villa Marea Prosecco",cat: "Sparkling Wine · DOC",      skus: 4, states: 15, distributors: 11, mtdCases: 1120, ytdRevenue: 1500000, status: "Active" },
-  { name: "Copperline Rye",      cat: "Rye Whiskey · Small Batch", skus: 3, states: 8,  distributors: 5,  mtdCases: 640,  ytdRevenue: 890000,  status: "Watch" },
+  { name: "Northlight Vodka",    cat: "Vodka · 80 proof",          skus: 5, states: 22, distributors: 17, mtdCases: 2950, mtdRevenue: 585000, ytdRevenue: 3900000, status: "Active" },
+  { name: "Oakhaven Bourbon",    cat: "Straight Bourbon Whiskey",  skus: 4, states: 18, distributors: 14, mtdCases: 2310, mtdRevenue: 495000, ytdRevenue: 3400000, status: "Active" },
+  { name: "Solora Spritz",       cat: "RTD · Wine Spritz",         skus: 8, states: 9,  distributors: 6,  mtdCases: 4120, mtdRevenue: 335000, ytdRevenue: 1800000, status: "Active" },
+  { name: "Cerro Azul Tequila",  cat: "Tequila · Blanco / Repo",   skus: 6, states: 12, distributors: 9,  mtdCases: 1840, mtdRevenue: 315000, ytdRevenue: 2100000, status: "Active" },
+  { name: "Villa Marea Prosecco",cat: "Sparkling Wine · DOC",      skus: 4, states: 15, distributors: 11, mtdCases: 1120, mtdRevenue: 215000, ytdRevenue: 1500000, status: "Active" },
+  { name: "Copperline Rye",      cat: "Rye Whiskey · Small Batch", skus: 3, states: 8,  distributors: 5,  mtdCases: 640,  mtdRevenue: 118000, ytdRevenue: 890000,  status: "Watch" },
 ];
 
 /* Monthly cases shipped, Mar–Aug, for the Home line chart (top 3 brands) */
@@ -412,31 +434,23 @@ const SHIP_SERIES = [
 /* Total monthly cases (all brands) for Analytics */
 const TOTAL_MONTHLY = { labels: MONTHS, values: [9800, 10400, 11350, 12300, 12750, 12980] };
 
+/* "placed" = date the order came in (used by the Home date filter).
+   "shipBy" = promised ship date. Any order not yet Shipped/Delivered
+   whose shipBy date has passed is automatically counted as LATE.
+   "total"  = order value in dollars (feeds the Sales Total tile).
+   TODAY is filled in automatically so the newest sample orders always
+   show under the default "today" filter — replace with real dates. */
+const TODAY = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
 const ORDERS = [
-  { id: "SO-2841", distributor: "Garden State Bev Co.", brand: "Northlight Vodka",   state: "NJ", cases: 420, status: "Shipped" },
-  { id: "SO-2840", distributor: "Lone Star Distributing", brand: "Solora Spritz",    state: "TX", cases: 610, status: "Processing" },
-  { id: "SO-2839", distributor: "Pacific Crest Wine & Spirits", brand: "Cerro Azul Tequila", state: "CA", cases: 260, status: "Shipped" },
-  { id: "SO-2838", distributor: "Empire Metro Beverage", brand: "Oakhaven Bourbon",  state: "NY", cases: 380, status: "Delivered" },
-  { id: "SO-2837", distributor: "Sunbelt Beverage Group", brand: "Villa Marea Prosecco", state: "FL", cases: 190, status: "Delivered" },
-  { id: "SO-2836", distributor: "Great Lakes Spirits", brand: "Copperline Rye",      state: "IL", cases: 85,  status: "On Hold" },
-  { id: "SO-2835", distributor: "Garden State Bev Co.", brand: "Solora Spritz",      state: "NJ", cases: 540, status: "Delivered" },
-  { id: "SO-2834", distributor: "Blue Ridge Wholesale", brand: "Oakhaven Bourbon",   state: "NC", cases: 220, status: "Delivered" },
-];
-
-const COMPLIANCE = [
-  { item: "COLA renewal — Copperline Rye 750ml", due: "Aug 20, 2026", status: "Due Soon" },
-  { item: "NY state brand registration — Solora Spritz", due: "Sep 1, 2026",  status: "In Progress" },
-  { item: "TX price posting — all brands", due: "Sep 10, 2026", status: "On Track" },
-  { item: "CA ABC renewal — Cerro Azul Tequila", due: "Oct 4, 2026",  status: "On Track" },
-  { item: "FL brand registration — Villa Marea", due: "Nov 15, 2026", status: "On Track" },
-];
-
-const ALERTS = [
-  { level: "critical", text: "<b>Order SO-2836 on hold</b> — Great Lakes Spirits credit check pending", when: "2h ago" },
-  { level: "serious",  text: "<b>Reorder now:</b> Solora Spritz Variety 12pk (NJ) below reorder point", when: "Today" },
-  { level: "serious",  text: "<b>COLA renewal due Aug 20</b> — Copperline Rye 750ml label", when: "15 days" },
-  { level: "warning",  text: "<b>Low stock:</b> Cerro Azul Reposado 750ml (CA) — 12 days of supply left", when: "Today" },
-  { level: "warning",  text: "<b>Aging inventory:</b> Villa Marea 187ml 4pk — 140 days on hand in TX", when: "This week" },
+  { id: "SO-2841", distributor: "Garden State Bev Co.", brand: "Northlight Vodka",   state: "NJ", cases: 420, total: 92400,  placed: TODAY,          shipBy: "Aug 4, 2026",  status: "Shipped" },
+  { id: "SO-2840", distributor: "Lone Star Distributing", brand: "Solora Spritz",    state: "TX", cases: 610, total: 97600,  placed: TODAY,          shipBy: "Aug 3, 2026",  status: "Processing" },
+  { id: "SO-2839", distributor: "Pacific Crest Wine & Spirits", brand: "Cerro Azul Tequila", state: "CA", cases: 260, total: 66300,  placed: "Aug 3, 2026",  shipBy: "Aug 6, 2026",  status: "Shipped" },
+  { id: "SO-2838", distributor: "Empire Metro Beverage", brand: "Oakhaven Bourbon",  state: "NY", cases: 380, total: 110200, placed: "Jul 28, 2026", shipBy: "Jul 30, 2026", status: "Delivered" },
+  { id: "SO-2837", distributor: "Sunbelt Beverage Group", brand: "Villa Marea Prosecco", state: "FL", cases: 190, total: 45600,  placed: "Jul 27, 2026", shipBy: "Jul 29, 2026", status: "Delivered" },
+  { id: "SO-2836", distributor: "Great Lakes Spirits", brand: "Copperline Rye",      state: "IL", cases: 85,  total: 21250,  placed: "Jul 27, 2026", shipBy: "Aug 1, 2026",  status: "On Hold" },
+  { id: "SO-2835", distributor: "Garden State Bev Co.", brand: "Solora Spritz",      state: "NJ", cases: 540, total: 86400,  placed: "Jul 24, 2026", shipBy: "Jul 28, 2026", status: "Delivered" },
+  { id: "SO-2834", distributor: "Blue Ridge Wholesale", brand: "Oakhaven Bourbon",   state: "NC", cases: 220, total: 63800,  placed: "Jul 23, 2026", shipBy: "Jul 27, 2026", status: "Delivered" },
 ];
 
 const INVENTORY = [
@@ -515,35 +529,62 @@ function kpi(label, value, delta, dir) {
 /* ----- HOME ----- */
 $("today-label").textContent = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
-const totalMtd = BRANDS.reduce((s, b) => s + b.mtdCases, 0);
-const openOrders = ORDERS.filter((o) => o.status === "Processing" || o.status === "On Hold").length;
+function isLate(o) {
+  return o.status !== "Shipped" && o.status !== "Delivered" && new Date(o.shipBy) < new Date();
+}
+
+const lateOrders = ORDERS.filter(isLate).length;
 const lowSkus = INVENTORY.filter((r) => r.onHand - r.allocated <= r.reorder).length;
 
-$("home-kpis").innerHTML =
-  kpi("Active Brands", BRANDS.length) +
-  kpi("Bottles Shipped", fmt(totalMtd * BOTTLES_PER_CASE), "month to date", "") +
-  kpi("Cases Shipped", fmt(totalMtd), "▲ 6.2% vs July", "up") +
-  kpi("Gross Revenue", "$1.42M", "▲ 4.8% vs July", "up") +
-  kpi("Open Orders", openOrders, "1 on hold", openOrders ? "down" : "") +
-  kpi("On-Time Fulfillment", "96.4%", "▲ 1.1 pts", "up") +
-  kpi("SKUs Needing Reorder", lowSkus, "across 3 warehouses", lowSkus ? "down" : "");
+/* Home KPIs — filtered by the "orders placed" date range, defaults to today */
+function localISO(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
 
-$("alerts").innerHTML = ALERTS.map((a) =>
-  `<div class="alert"><div class="dot" style="background:var(--${a.level})"></div><div>${a.text}</div><div class="when">${a.when}</div></div>`
-).join("");
+function renderHomeKpis() {
+  const from = new Date($("home-from").value + "T00:00:00");
+  const to = new Date($("home-to").value + "T23:59:59");
+  const rows = ORDERS.filter((o) => {
+    const d = new Date(o.placed);
+    return d >= from && d <= to;
+  });
+  const open = rows.filter((o) => o.status === "Processing" || o.status === "On Hold").length;
+  const held = rows.filter((o) => o.status === "On Hold").length;
+  const late = rows.filter(isLate).length;
+  const bottles = rows.reduce((s, o) => s + o.cases, 0) * BOTTLES_PER_CASE;
+  const sales = rows.reduce((s, o) => s + o.total, 0);
+
+  $("home-kpis").innerHTML =
+    kpi("Open Orders", open, held ? held + " on hold" : "none on hold", open ? "down" : "") +
+    kpi("Bottles Ordered", fmt(bottles), rows.length + (rows.length === 1 ? " order" : " orders") + " in range", "") +
+    kpi("Sales Total", sales ? money(sales) : "$0", "orders placed in range", "") +
+    kpi("Late Orders", late, late ? "past ship-by date" : "all on time", late ? "down" : "up") +
+    kpi("SKUs Needing Reorder", lowSkus, "current inventory", lowSkus ? "down" : "");
+}
+
+const todayISO = localISO(new Date());
+$("home-from").value = todayISO;
+$("home-to").value = todayISO;
+["home-from", "home-to"].forEach((id) => $(id).addEventListener("input", renderHomeKpis));
+$("home-today").addEventListener("click", () => {
+  $("home-from").value = todayISO;
+  $("home-to").value = todayISO;
+  renderHomeKpis();
+});
+renderHomeKpis();
+
+/* Sales by Brand — ranked by MTD revenue */
+$("brand-sales-table").innerHTML =
+  `<thead><tr><th>#</th><th>Brand</th><th class="num">Units Sold</th><th class="num">Revenue</th></tr></thead><tbody>` +
+  [...BRANDS].sort((a, b) => b.mtdRevenue - a.mtdRevenue).map((b, i) =>
+    `<tr><td style="color:var(--ink-muted)">${i + 1}</td><td><b>${b.name}</b></td><td class="num">${fmt(b.mtdCases * BOTTLES_PER_CASE)}</td><td class="num"><b>${money(b.mtdRevenue)}</b></td></tr>`
+  ).join("") + `</tbody>`;
 
 const ORDER_BADGE = { "Delivered": "b-good", "Shipped": "b-accent", "Processing": "b-warning", "On Hold": "b-critical" };
 $("orders-table").innerHTML =
   `<thead><tr><th>Order</th><th>Distributor</th><th>Brand</th><th>State</th><th class="num">Cases</th><th>Status</th></tr></thead><tbody>` +
   ORDERS.map((o) =>
     `<tr><td><b>${o.id}</b></td><td>${o.distributor}</td><td>${o.brand}</td><td>${o.state}</td><td class="num">${fmt(o.cases)}</td><td><span class="badge ${ORDER_BADGE[o.status]}">${o.status}</span></td></tr>`
-  ).join("") + `</tbody>`;
-
-const COMP_BADGE = { "Due Soon": "b-serious", "In Progress": "b-warning", "On Track": "b-good" };
-$("compliance-table").innerHTML =
-  `<thead><tr><th>Item</th><th>Due</th><th>Status</th></tr></thead><tbody>` +
-  COMPLIANCE.map((c) =>
-    `<tr><td>${c.item}</td><td style="white-space:nowrap">${c.due}</td><td><span class="badge ${COMP_BADGE[c.status]}">${c.status}</span></td></tr>`
   ).join("") + `</tbody>`;
 
 /* ----- Line chart (shared by Home + Analytics) ----- */
@@ -609,6 +650,31 @@ $("ship-legend").innerHTML = SHIP_SERIES.map((s, i) =>
   `<div class="li"><span class="sw" style="background:${SERIES_HEX[i]}"></span>${s.name}</div>`
 ).join("");
 lineChart("ship-chart", MONTHS, SHIP_SERIES);
+
+/* ----- ORDERS PAGE ----- */
+[...new Set(ORDERS.map((o) => o.brand))].forEach((b) => {
+  $("ord-brand").insertAdjacentHTML("beforeend", `<option>${b}</option>`);
+});
+
+function renderOrders() {
+  const q = $("ord-search").value.toLowerCase();
+  const fb = $("ord-brand").value;
+  const fs = $("ord-status").value;
+  const rows = ORDERS.filter((o) =>
+    (!q || o.id.toLowerCase().includes(q) || o.distributor.toLowerCase().includes(q)) &&
+    (!fb || o.brand === fb) &&
+    (!fs || (fs === "__late" ? isLate(o) : o.status === fs))
+  );
+  $("order-count").textContent = rows.length + " of " + ORDERS.length + " orders" + (lateOrders ? " · " + lateOrders + " late" : "");
+  $("orders-full-table").innerHTML =
+    `<thead><tr><th>Order</th><th>Distributor</th><th>Brand</th><th>State</th><th class="num">Cases</th><th class="num">Bottles</th><th>Ship By</th><th>Status</th></tr></thead><tbody>` +
+    (rows.length ? rows.map((o) =>
+      `<tr><td><b>${o.id}</b></td><td>${o.distributor}</td><td>${o.brand}</td><td>${o.state}</td><td class="num">${fmt(o.cases)}</td><td class="num">${fmt(o.cases * BOTTLES_PER_CASE)}</td><td style="white-space:nowrap">${o.shipBy}</td><td><span class="badge ${ORDER_BADGE[o.status]}">${o.status}</span>${isLate(o) ? ' <span class="badge b-critical">Late</span>' : ""}</td></tr>`
+    ).join("") : `<tr><td colspan="8" style="text-align:center;color:var(--ink-muted);padding:24px">No orders match these filters</td></tr>`) +
+    `</tbody>`;
+}
+["ord-search", "ord-brand", "ord-status"].forEach((id) => $(id).addEventListener("input", renderOrders));
+renderOrders();
 
 /* ----- BRANDS ----- */
 $("brand-count").textContent = BRANDS.length + " brands in portfolio";
