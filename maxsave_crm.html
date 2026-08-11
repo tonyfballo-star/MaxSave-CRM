@@ -1417,14 +1417,14 @@ function closeCustomerFolder() {
 window.ADDITIONAL_POLICIES = [];
 
 function openNewSale() {
-  const today = new Date().toISOString().slice(0,10);
-  const dateInput = document.getElementById('newSaleEffDate');
-  if (dateInput) dateInput.value = today;
-  // Reset additional-policies state on open
+  // New flow: Payment → E-Sign → fill sale details
+  window._preSaleLeadName    = window._currentLeadName || '';
+  window.PENDING_PAYMENT     = { leadName: window._currentLeadName || '' };
+  window.PAYMENT_STATE       = { step: 'entry', last4: '', cardBrand: '' };
+  window.ESIGN_STATE         = { step: 'prepare' };
   window.ADDITIONAL_POLICIES = [];
-  setAdditionalPolicies(false);
-  document.getElementById('newSaleOverlay').style.display = 'flex';
   launchConfetti();
+  nav('payment', document.querySelector('.nav-item[onclick*="payment"]'));
 }
 function closeNewSale() {
   document.getElementById('newSaleOverlay').style.display = 'none';
@@ -1523,11 +1523,6 @@ function submitNewSale() {
     window._currentCustomerId = _newCust.id;
   }
 
-  // Store sale context for payment terminal → e-sign flow
-  window.PENDING_PAYMENT = { sale, leadName: window._currentLeadName || '' };
-  window.PAYMENT_STATE   = { step: 'entry', last4: '', cardBrand: '' };
-  window.ESIGN_STATE     = { step: 'prepare' };
-
   closeNewSale();
 
   // Reset form fields
@@ -1538,9 +1533,8 @@ function submitNewSale() {
   });
   window.ADDITIONAL_POLICIES = [];
 
-  // Navigate to payment terminal
-  const payNavEl = document.querySelector('.nav-item[onclick*="payment"]');
-  nav('payment', payNavEl || null);
+  // Refresh the lead profile so the new policy appears
+  if (window.PAGE_INIT && window.PAGE_INIT.leaddetail) window.PAGE_INIT.leaddetail();
 }
 
 // Additional Policies handlers
@@ -1581,7 +1575,7 @@ function renderAdditionalPolicies() {
   const list = document.getElementById('additionalPoliciesList');
   if (!list) return;
   const lines    = ['Auto','Home','Renters','RV','Boat','Jet Ski','Motorcycle','Life','Commercial Auto','Commercial Property','Umbrella','Mexico Auto','Other'];
-  const carriers = ['Progressive','National General','Bristol West','Mercury','Kemper','InsureMax','The General','Foremost','Other'];
+  const carriers = (window.CARRIER_DATA && window.CARRIER_DATA.length) ? window.CARRIER_DATA.map(cd=>cd.name).concat(['Other']) : ['Progressive','National General','Bristol West','Mercury','Kemper','InsureMax','The General','Foremost','Other'];
   const terms    = ['6 Months','12 Months','Monthly'];
   list.innerHTML = window.ADDITIONAL_POLICIES.map((p, i) => `
     <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;background:var(--white);position:relative">
@@ -4801,7 +4795,7 @@ function renderLiveView() {
           const safe    = a.name.replace(/'/g,"\\'");
           return `
           <div class="agent-card" ${canDrag ? `draggable="true" ondragstart="onAgentCallDragStart(event,'${safe}');this.style.opacity='0.5'" ondragend="onAgentCallDragEnd(event);this.style.opacity='1'"` : ''}
-            style="display:grid;grid-template-columns:1fr 190px 160px;min-height:68px;border-bottom:1px solid var(--border);background:${rowBg};">
+            style="display:grid;grid-template-columns:260px 190px 1fr;min-height:68px;border-bottom:1px solid var(--border);background:${rowBg};">
 
             <!-- Left info -->
             <div style="display:flex;align-items:center;gap:12px;padding:0 16px;min-width:0;">
@@ -5604,9 +5598,16 @@ function renderESignPage() {
     const sentSub   = isCxl
       ? name + ' will receive the cancellation forms shortly'
       : name + ' will receive a signing link shortly';
-    const backBtn = isCxl
-      ? `<button onclick="nav('customers',document.querySelector('.nav-item[onclick*=customers]'))" style="background:var(--gray-100);border:none;color:var(--gray-700);border-radius:var(--radius-lg);padding:13px 24px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer">Back to Customers</button>`
-      : `<button onclick="nav('leads',document.querySelector('.nav-item[onclick*=leads]'))" style="background:var(--gray-100);border:none;color:var(--gray-700);border-radius:var(--radius-lg);padding:13px 24px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer">Back to Leads</button>`;
+    const actionBtns = isCxl
+      ? `<button onclick="nav('customers',document.querySelector('.nav-item[onclick*=customers]'))" style="background:var(--gray-100);border:none;color:var(--gray-700);border-radius:var(--radius-lg);padding:13px 24px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer">Back to Customers</button>
+         <button onclick="nav('dashboard',document.querySelector('.nav-item'))" style="background:linear-gradient(135deg,#163D6B,#1A6ED0);border:none;color:#fff;border-radius:var(--radius-lg);padding:13px 24px;font-family:var(--font-display);font-size:14px;font-weight:700;cursor:pointer">Go to Dashboard</button>`
+      : `<div style="margin-top:4px">
+           <div style="display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;color:var(--gray-500);margin-bottom:16px">
+             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1A6ED0" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5v3.5l2.5 1.5"/></svg>
+             Returning to lead profile to complete sale details…
+           </div>
+           <button onclick="completeNewSaleDetails()" style="background:linear-gradient(135deg,#163D6B,#1A6ED0);border:none;color:#fff;border-radius:var(--radius-lg);padding:13px 28px;font-family:var(--font-display);font-size:14px;font-weight:700;cursor:pointer">Go Now →</button>
+         </div>`;
     return `
     <div style="max-width:540px;margin:60px auto;text-align:center">
       <div style="width:80px;height:80px;border-radius:50%;background:${isCxl?'#FEF2F2':'#EFF6FF'};display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:38px">${isCxl?'📄':'✍️'}</div>
@@ -5614,8 +5615,7 @@ function renderESignPage() {
       <div style="font-size:15px;color:var(--gray-500);margin-bottom:6px">${sentSub}</div>
       <div style="font-size:13px;color:var(--gray-400);margin-bottom:36px">Sent ${now}</div>
       <div style="display:flex;gap:12px;justify-content:center">
-        ${backBtn}
-        <button onclick="nav('dashboard',document.querySelector('.nav-item'))" style="background:linear-gradient(135deg,#163D6B,#1A6ED0);border:none;color:#fff;border-radius:var(--radius-lg);padding:13px 24px;font-family:var(--font-display);font-size:14px;font-weight:700;cursor:pointer">Go to Dashboard</button>
+        ${actionBtns}
       </div>
     </div>`;
   }
@@ -5744,8 +5744,33 @@ function submitESign() {
     window.ESIGN_STATE = { step: 'sent', type: (window.ESIGN_STATE||{}).type };
     launchConfetti(2000);
     refreshESignPage();
+    if ((window.PENDING_PAYMENT||{}).type !== 'cancellation') {
+      setTimeout(completeNewSaleDetails, 2500);
+    }
   }, 1200);
 }
+
+function completeNewSaleDetails() {
+  const leadName = window._preSaleLeadName || (window.PENDING_PAYMENT||{}).leadName || '';
+  if (leadName) window._currentLeadName = leadName;
+  nav('leaddetail', document.querySelector('.nav-item[onclick*="leads"]'));
+  setTimeout(() => {
+    window.ADDITIONAL_POLICIES = [];
+    if (typeof setAdditionalPolicies === 'function') setAdditionalPolicies(false);
+    const carrierSel = document.getElementById('nsCarrier');
+    if (carrierSel && window.CARRIER_DATA && window.CARRIER_DATA.length) {
+      const cur = carrierSel.value;
+      carrierSel.innerHTML = window.CARRIER_DATA.map(cd=>`<option${cd.name===cur?' selected':''}>${cd.name}</option>`).join('') + `<option${cur==='Other'?' selected':''}>Other</option>`;
+    }
+    const overlay = document.getElementById('newSaleOverlay');
+    if (overlay) {
+      const dateInput = document.getElementById('newSaleEffDate');
+      if (dateInput) dateInput.value = new Date().toISOString().slice(0,10);
+      overlay.style.display = 'flex';
+    }
+  }, 450);
+}
+
 function voidPolicy(custId, policyNum) {
   if (!confirm('VOID this policy? This will reverse the sale and cannot be undone.')) return;
   const custIdx = (typeof CUSTOMERS !== 'undefined' ? CUSTOMERS : []).findIndex(cu => cu.id === custId);
@@ -6192,13 +6217,13 @@ function confirmRemoveAgent(name) {
 
 // Extended per-agent metrics for the reports section (pay-period baseline)
 const AGENT_EXTENDED_DATA = {
-  'Sarah Kim':     { feeExtended:4200, inboundClose:'51.2%', outboundClose:'37.4%', totalCalls:142, inboundCalls:49, outboundCalls:93, missedCalls:11, avgCallDur:428, dials:156, textsSent:74, textsRecv:102, avgResponse:'4m 12s', revenuePerLead:365, refunds:0, retention:'94.2%' },
-  'Marcus Rivera': { feeExtended:3100, inboundClose:'44.8%', outboundClose:'33.5%', totalCalls:121, inboundCalls:38, outboundCalls:83, missedCalls:15, avgCallDur:384, dials:134, textsSent:59, textsRecv:87,  avgResponse:'6m 45s', revenuePerLead:239, refunds:1, retention:'91.8%' },
-  'Jordan Torres': { feeExtended:2550, inboundClose:'38.5%', outboundClose:'29.6%', totalCalls:99,  inboundCalls:27, outboundCalls:72, missedCalls:14, avgCallDur:356, dials:112, textsSent:45, textsRecv:71,  avgResponse:'8m 30s', revenuePerLead:147, refunds:0, retention:'89.4%' },
-  'Ashley Lee':    { feeExtended:2150, inboundClose:'33.6%', outboundClose:'24.8%', totalCalls:94,  inboundCalls:25, outboundCalls:69, missedCalls:17, avgCallDur:312, dials:98,  textsSent:37, textsRecv:59,  avgResponse:'11m 18s',revenuePerLead:127, refunds:1, retention:'87.6%' },
-  'Chris Park':    { feeExtended:1450, inboundClose:'27.4%', outboundClose:'19.2%', totalCalls:72,  inboundCalls:16, outboundCalls:56, missedCalls:21, avgCallDur:278, dials:79,  textsSent:26, textsRecv:42,  avgResponse:'14m 52s',revenuePerLead:100, refunds:1, retention:'82.3%' },
-  'Nina Reyes':    { feeExtended:1200, inboundClose:'24.1%', outboundClose:'16.8%', totalCalls:69,  inboundCalls:14, outboundCalls:55, missedCalls:24, avgCallDur:261, dials:75,  textsSent:24, textsRecv:39,  avgResponse:'18m 04s',revenuePerLead:85,  refunds:1, retention:'79.1%' },
-  'Brian Walsh':   { feeExtended:700,  inboundClose:'18.9%', outboundClose:'13.1%', totalCalls:56,  inboundCalls:10, outboundCalls:46, missedCalls:26, avgCallDur:234, dials:64,  textsSent:16, textsRecv:27,  avgResponse:'24m 37s',revenuePerLead:67,  refunds:2, retention:'71.4%' },
+  'Sarah Kim':     { feeExtended:4200, inboundClose:'51.2%', outboundClose:'37.4%', totalCalls:142, inboundCalls:49, outboundCalls:93, missedCalls:11, avgCallDur:428, dials:156, textsSent:74, textsRecv:102, avgResponse:'4m 12s', revenuePerLead:365, refunds:0, retention:'94.2%', newLeads:108, leadsMissed:6  },
+  'Marcus Rivera': { feeExtended:3100, inboundClose:'44.8%', outboundClose:'33.5%', totalCalls:121, inboundCalls:38, outboundCalls:83, missedCalls:15, avgCallDur:384, dials:134, textsSent:59, textsRecv:87,  avgResponse:'6m 45s', revenuePerLead:239, refunds:1, retention:'91.8%', newLeads:95,  leadsMissed:9  },
+  'Jordan Torres': { feeExtended:2550, inboundClose:'38.5%', outboundClose:'29.6%', totalCalls:99,  inboundCalls:27, outboundCalls:72, missedCalls:14, avgCallDur:356, dials:112, textsSent:45, textsRecv:71,  avgResponse:'8m 30s', revenuePerLead:147, refunds:0, retention:'89.4%', newLeads:88,  leadsMissed:11 },
+  'Ashley Lee':    { feeExtended:2150, inboundClose:'33.6%', outboundClose:'24.8%', totalCalls:94,  inboundCalls:25, outboundCalls:69, missedCalls:17, avgCallDur:312, dials:98,  textsSent:37, textsRecv:59,  avgResponse:'11m 18s',revenuePerLead:127, refunds:1, retention:'87.6%', newLeads:82,  leadsMissed:14 },
+  'Chris Park':    { feeExtended:1450, inboundClose:'27.4%', outboundClose:'19.2%', totalCalls:72,  inboundCalls:16, outboundCalls:56, missedCalls:21, avgCallDur:278, dials:79,  textsSent:26, textsRecv:42,  avgResponse:'14m 52s',revenuePerLead:100, refunds:1, retention:'82.3%', newLeads:74,  leadsMissed:18 },
+  'Nina Reyes':    { feeExtended:1200, inboundClose:'24.1%', outboundClose:'16.8%', totalCalls:69,  inboundCalls:14, outboundCalls:55, missedCalls:24, avgCallDur:261, dials:75,  textsSent:24, textsRecv:39,  avgResponse:'18m 04s',revenuePerLead:85,  refunds:1, retention:'79.1%', newLeads:70,  leadsMissed:21 },
+  'Brian Walsh':   { feeExtended:700,  inboundClose:'18.9%', outboundClose:'13.1%', totalCalls:56,  inboundCalls:10, outboundCalls:46, missedCalls:26, avgCallDur:234, dials:64,  textsSent:16, textsRecv:27,  avgResponse:'24m 37s',revenuePerLead:67,  refunds:2, retention:'71.4%', newLeads:60,  leadsMissed:24 },
 };
 
 const CARRIER_DATA = [
@@ -7149,51 +7174,201 @@ function renderRptPayroll(sc) {
 }
 
 function renderRptActivity(sc) {
-  const totCalls  = AGENTS.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).totalCalls||0,sc),0);
-  const totTexts  = AGENTS.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).textsSent||0,sc),0);
-  const totDials  = AGENTS.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).dials||0,sc),0);
-  const avgDurSec = Math.round(Object.values(AGENT_EXTENDED_DATA).reduce((s,e)=>s+(e.avgCallDur||0),0)/Object.values(AGENT_EXTENDED_DATA).length);
-  const fmtDur = secs => { const m=Math.floor(secs/60),sec=secs%60; return m+'m '+(sec<10?'0':'')+sec+'s'; };
+  const fmtDur  = secs => { const m=Math.floor(secs/60),s2=secs%60; return m+'m '+(s2<10?'0':'')+s2+'s'; };
+  const pct2    = (n,d) => d ? Math.round(n/d*100) : 0;
+  const clrPct  = p => p>=75?'#16A34A':p>=50?'#D97706':'#DC2626';
+  const barPct  = p => p>=75?'pb-green':p>=50?'pb-amber':'pb-red';
+  const fmt$    = n => '$'+(n||0).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+  const agents  = (typeof AGENTS!=='undefined'?AGENTS:[]).filter(a=>!a._archived);
+
+  // Team-level aggregates
+  const totOut   = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).outboundCalls||0,sc),0);
+  const totIn    = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).inboundCalls||0,sc),0);
+  const totMiss  = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).missedCalls||0,sc),0);
+  const totDials = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).dials||0,sc),0);
+  const totTS    = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).textsSent||0,sc),0);
+  const totTR    = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).textsRecv||0,sc),0);
+  const totNL    = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).newLeads||0,sc),0);
+  const totLM    = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).leadsMissed||0,sc),0);
+  const totCalls = totOut + totIn;
+  const ansRate  = pct2(totIn - totMiss, totIn||1);
+  const contactR = pct2(totOut, totDials||1);
+  const calledPct= pct2(totOut, totNL||1);
+  const replyR   = pct2(totTR, totTS||1);
+
+  // Team avg close rate
+  const closeNums = agents.map(a=>{
+    const ext=AGENT_EXTENDED_DATA[a.name]||{};
+    const ic=parseFloat(ext.inboundClose)||0;
+    const oc=parseFloat(ext.outboundClose)||0;
+    return ic||oc ? (ic+oc)/(ic&&oc?2:1) : null;
+  }).filter(x=>x!==null);
+  const teamClose = closeNums.length ? Math.round(closeNums.reduce((a,b)=>a+b,0)/closeNums.length*10)/10 : 0;
+
+  const avgDur = agents.length ? Math.round(agents.reduce((s,a)=>s+((AGENT_EXTENDED_DATA[a.name]||{}).avgCallDur||0),0)/agents.length) : 0;
+
+  // Mini progress bar helper
+  const miniBar = (val, max, color) => {
+    const w = max ? Math.min(100, Math.round(val/max*100)) : 0;
+    return `<div style="height:4px;background:#F3F4F6;border-radius:99px;margin-top:3px;overflow:hidden"><div style="width:${w}%;height:100%;background:${color};border-radius:99px"></div></div>`;
+  };
+
+  // Group header style
+  const ghStyle = (bg,clr) => `padding:6px 10px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;background:${bg};color:${clr};text-align:center;border-bottom:2px solid var(--border)`;
+  const shStyle = `padding:8px 12px;font-size:10.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);background:var(--gray-50);white-space:nowrap;text-align:center`;
+
   return `
-  <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(5,1fr)">
-    <div class="kpi-card accent"><div class="kpi-label">Total Calls</div><div class="kpi-value">${totCalls}</div><div class="kpi-sub"><span class="trend up">↑ 8%</span> vs prior</div></div>
-    <div class="kpi-card accent"><div class="kpi-label">Texts Sent</div><div class="kpi-value">${totTexts}</div><div class="kpi-sub">Team total</div></div>
-    <div class="kpi-card accent-navy"><div class="kpi-label">Dials Made</div><div class="kpi-value">${totDials}</div><div class="kpi-sub">Outbound attempts</div></div>
-    <div class="kpi-card accent"><div class="kpi-label">Avg Call Duration</div><div class="kpi-value" style="font-size:18px">${fmtDur(avgDurSec)}</div><div class="kpi-sub">Team average</div></div>
-    <div class="kpi-card accent-navy"><div class="kpi-label">Avg Response Time</div><div class="kpi-value" style="font-size:18px">11m 8s</div><div class="kpi-sub">Team average</div></div>
+  <!-- TEAM KPI CARDS -->
+  <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin-bottom:16px">
+    ${[
+      ['Outbound Calls', totOut,      'Calls made by agents',       '#1A6ED0', '#EFF6FF'],
+      ['Inbound Calls',  totIn,       ansRate+'% answer rate',       '#16A34A', '#F0FDF4'],
+      ['Calls Missed',   totMiss,     'Inbound not answered',        '#DC2626', '#FEF2F2'],
+      ['Dials Made',     totDials,    contactR+'% contact rate',     '#7C3AED', '#F5F3FF'],
+      ['Texts Sent',     totTS,       replyR+'% reply rate',         '#0891B2', '#ECFEFF'],
+      ['Texts Received', totTR,       'From leads & customers',      '#059669', '#F0FDF4'],
+      ['New Leads',      totNL,       calledPct+'% called',          '#D97706', '#FFFBEB'],
+      ['Team Close %',   teamClose+'%','Avg of all agents',          '#1C2B4B', '#F0F4FF'],
+    ].map(([label,val,sub,clr,bg])=>`
+    <div style="background:${bg};border:1.5px solid ${clr}22;border-radius:var(--radius-lg);padding:14px 16px;border-left:4px solid ${clr}">
+      <div style="font-size:10px;font-weight:700;color:${clr};text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">${label}</div>
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--navy-900)">${val}</div>
+      <div style="font-size:11px;color:var(--gray-500);margin-top:4px">${sub}</div>
+    </div>`).join('')}
   </div>
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-header"><div class="card-title">Agent Activity Detail</div></div>
+
+  <!-- AGENT SCORECARD TABLE -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+      <div class="card-title">Agent Activity Scorecard</div>
+      <div style="font-size:12px;color:var(--gray-400)">Per-agent breakdown · ${window.REPORTS_STATE ? ({payperiod:'Pay Period',thismonth:'This Month',lastmonth:'Last Month',ytd:'YTD',custom:'Custom'}[window.REPORTS_STATE.dateMode]||'Period') : 'Period'}</div>
+    </div>
     <div style="overflow-x:auto">
-      <table class="data-table">
-        <thead><tr><th>Agent</th><th>Calls</th><th>Inbound</th><th>Outbound</th><th>Missed</th><th>Dials</th><th>Texts Sent</th><th>Texts Recv</th><th>Avg Duration</th><th>Avg Response</th></tr></thead>
+      ${agents.length ? `<table style="width:100%;border-collapse:collapse;min-width:1100px">
+        <thead>
+          <tr>
+            <th rowspan="2" style="padding:8px 16px;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);background:var(--gray-50);text-align:left;white-space:nowrap">Agent</th>
+            <th rowspan="2" style="${shStyle}">Tier</th>
+            <th colspan="5" style="${ghStyle('#EFF6FF','#1A6ED0')}">📞 CALLS</th>
+            <th colspan="3" style="${ghStyle('#ECFEFF','#0891B2')}">💬 TEXTS</th>
+            <th colspan="3" style="${ghStyle('#FFFBEB','#D97706')}">🎯 LEADS</th>
+            <th colspan="3" style="${ghStyle('#F0FDF4','#16A34A')}">✅ CLOSING</th>
+            <th colspan="2" style="${ghStyle('#F5F3FF','#7C3AED')}">⏱ PRODUCTIVITY</th>
+          </tr>
+          <tr>
+            <th style="${shStyle}">Outbound</th>
+            <th style="${shStyle}">Inbound</th>
+            <th style="${shStyle}">Missed</th>
+            <th style="${shStyle}">Dials</th>
+            <th style="${shStyle}">Contact %</th>
+            <th style="${shStyle}">Sent</th>
+            <th style="${shStyle}">Received</th>
+            <th style="${shStyle}">Reply %</th>
+            <th style="${shStyle}">New Leads</th>
+            <th style="${shStyle}">Missed Leads</th>
+            <th style="${shStyle}">Called %</th>
+            <th style="${shStyle}">Inbound</th>
+            <th style="${shStyle}">Outbound</th>
+            <th style="${shStyle}">Overall</th>
+            <th style="${shStyle}">Avg Duration</th>
+            <th style="${shStyle}">Rev / Lead</th>
+          </tr>
+        </thead>
         <tbody>
-          ${AGENTS.map(a => {
-            const ext = AGENT_EXTENDED_DATA[a.name] || {};
-            const tc  = rptVal(ext.totalCalls||0, sc);
-            const ic  = rptVal(ext.inboundCalls||0, sc);
-            const oc  = rptVal(ext.outboundCalls||0, sc);
-            const mc  = rptVal(ext.missedCalls||0, sc);
-            const d   = rptVal(ext.dials||0, sc);
-            const ts  = rptVal(ext.textsSent||0, sc);
-            const tr  = rptVal(ext.textsRecv||0, sc);
+          ${agents.map((a,i) => {
+            const ext  = AGENT_EXTENDED_DATA[a.name] || {};
+            const oc   = rptVal(ext.outboundCalls||0, sc);
+            const ic   = rptVal(ext.inboundCalls||0, sc);
+            const mc   = rptVal(ext.missedCalls||0, sc);
+            const d    = rptVal(ext.dials||0, sc);
+            const ts   = rptVal(ext.textsSent||0, sc);
+            const tr2  = rptVal(ext.textsRecv||0, sc);
+            const nl   = rptVal(ext.newLeads||0, sc);
+            const lm   = rptVal(ext.leadsMissed||0, sc);
+            const ibC  = parseFloat(ext.inboundClose)||0;
+            const obC  = parseFloat(ext.outboundClose)||0;
+            const ovC  = ibC||obC ? Math.round(((ibC+(obC||ibC))/2)*10)/10 : 0;
+            const contPct  = pct2(oc, d||1);
+            const replPct  = pct2(tr2, ts||1);
+            const callPct  = pct2(oc, nl||1);
+            const rowBg    = i%2===0?'#fff':'var(--gray-50)';
+
+            const statCell = (val, clr, note) => `<td style="padding:10px 12px;text-align:center;border-bottom:1px solid var(--border);background:${rowBg}">
+              <div style="font-size:13.5px;font-weight:700;color:${clr||'var(--navy-900)'}">${val}</div>
+              ${note?`<div style="font-size:10px;color:var(--gray-400);margin-top:1px">${note}</div>`:''}
+            </td>`;
+
+            const pctCell = (p, suffix) => `<td style="padding:10px 12px;text-align:center;border-bottom:1px solid var(--border);background:${rowBg}">
+              <div style="font-size:13.5px;font-weight:800;color:${clrPct(p)}">${p}${suffix||'%'}</div>
+              ${miniBar(p,100,clrPct(p))}
+            </td>`;
+
             return `<tr>
-              <td style="font-weight:700">${a.name}</td>
-              <td style="font-weight:700;color:var(--navy-900)">${tc}</td>
-              <td style="color:#1A6ED0">${ic}</td>
-              <td style="color:var(--green-700)">${oc}</td>
-              <td style="color:${mc>20?'var(--red)':'var(--gray-500)'}">${mc}</td>
-              <td style="color:var(--gray-600)">${d}</td>
-              <td style="color:#1A6ED0">${ts}</td>
-              <td style="color:var(--gray-600)">${tr}</td>
-              <td style="font-size:12px;color:var(--gray-600)">${fmtDur(ext.avgCallDur||0)}</td>
-              <td style="font-size:12px;color:var(--gray-500)">${ext.avgResponse||'—'}</td>
+              <td style="padding:11px 16px;border-bottom:1px solid var(--border);background:${rowBg};white-space:nowrap">
+                <div style="font-weight:700;font-size:14px;color:var(--navy-900)">${a.name}</div>
+                <div style="font-size:11px;color:var(--gray-400);margin-top:1px">${a._role||'Agent'}</div>
+              </td>
+              <td style="padding:10px 12px;text-align:center;border-bottom:1px solid var(--border);background:${rowBg}">
+                <span class="tier ${tierClass(a.tier)}">${a.tier}</span>
+              </td>
+              ${statCell(oc, '#1A6ED0')}
+              ${statCell(ic, '#16A34A')}
+              ${statCell(mc, mc>15?'#DC2626':mc>8?'#D97706':'var(--gray-600)')}
+              ${statCell(d, 'var(--gray-600)')}
+              ${pctCell(contPct)}
+              ${statCell(ts, '#0891B2')}
+              ${statCell(tr2, 'var(--gray-600)')}
+              ${pctCell(replPct)}
+              ${statCell(nl, '#D97706')}
+              ${statCell(lm, lm>15?'#DC2626':lm>8?'#D97706':'var(--gray-600)')}
+              ${pctCell(callPct)}
+              ${pctCell(ibC, '%')}
+              ${pctCell(obC, '%')}
+              <td style="padding:10px 12px;text-align:center;border-bottom:1px solid var(--border);background:${rowBg}">
+                <div style="font-size:13.5px;font-weight:800;color:${clrPct(ovC)}">${ovC}%</div>
+                ${miniBar(ovC,100,clrPct(ovC))}
+              </td>
+              ${statCell(fmtDur(ext.avgCallDur||0), 'var(--gray-700)')}
+              ${statCell(ext.revenuePerLead ? fmt$(ext.revenuePerLead) : '—', '#16A34A')}
             </tr>`;
           }).join('')}
         </tbody>
-      </table>
+        <tfoot>
+          <tr style="background:var(--navy-50);border-top:2px solid var(--navy-100)">
+            <td colspan="2" style="padding:12px 16px;font-size:12px;font-weight:800;color:var(--navy-700);text-transform:uppercase;letter-spacing:0.5px">Team Total / Avg</td>
+            <td style="padding:12px;text-align:center;font-weight:800;color:var(--navy-900)">${totOut}</td>
+            <td style="padding:12px;text-align:center;font-weight:800;color:var(--navy-900)">${totIn}</td>
+            <td style="padding:12px;text-align:center;font-weight:800;color:${totMiss>50?'#DC2626':'var(--navy-900)'}">${totMiss}</td>
+            <td style="padding:12px;text-align:center;font-weight:800;color:var(--navy-900)">${totDials}</td>
+            <td style="padding:12px;text-align:center;font-weight:800;color:${clrPct(contactR)}">${contactR}%</td>
+            <td style="padding:12px;text-align:center;font-weight:800;color:var(--navy-900)">${totTS}</td>
+            <td style="padding:12px;text-align:center;font-weight:800;color:var(--navy-900)">${totTR}</td>
+            <td style="padding:12px;text-align:center;font-weight:800;color:${clrPct(replyR)}">${replyR}%</td>
+            <td style="padding:12px;text-align:center;font-weight:800;color:var(--navy-900)">${totNL}</td>
+            <td style="padding:12px;text-align:center;font-weight:800;color:${totLM>60?'#DC2626':'var(--navy-900)'}">${totLM}</td>
+            <td style="padding:12px;text-align:center;font-weight:800;color:${clrPct(calledPct)}">${calledPct}%</td>
+            <td colspan="2" style="padding:12px;text-align:center;font-size:11px;color:var(--gray-500)">See per-agent</td>
+            <td style="padding:12px;text-align:center;font-weight:800;color:${clrPct(teamClose)}">${teamClose}%</td>
+            <td style="padding:12px;text-align:center;font-size:12px;color:var(--gray-500)">${fmtDur(avgDur)} avg</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>` : `<div style="text-align:center;padding:60px;color:var(--gray-400)">
+        <div style="font-size:28px;margin-bottom:10px">📊</div>
+        <div style="font-size:14px;font-weight:600">No agents yet</div>
+        <div style="font-size:13px;margin-top:4px">Add agents in Settings to see activity metrics</div>
+      </div>`}
     </div>
   </div>
+
+  <!-- COLUMN LEGEND -->
+  <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 18px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:14px;align-items:center">
+    <span style="font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px">Color guide:</span>
+    ${[['#16A34A','≥ 75% — On target'],['#D97706','50–74% — Needs attention'],['#DC2626','< 50% — Below standard']].map(([c,l])=>`<span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-600)"><span style="width:10px;height:10px;border-radius:50%;background:${c};display:inline-block;flex-shrink:0"></span>${l}</span>`).join('')}
+    <span style="font-size:11.5px;color:var(--gray-400);margin-left:auto">Contact % = Outbound ÷ Dials · Called % = Outbound ÷ New Leads · Reply % = Texts Received ÷ Sent</span>
+  </div>
+
   ${_actLogHTML}`;
 }
 
@@ -9018,8 +9193,9 @@ function renderCarriersPanel() {
       <td style="color:var(--gray-600)">${c.commRenewal}%</td>
       <td style="font-size:12.5px;color:var(--gray-500)">${c.apptType}</td>
       <td style="font-size:12.5px">${c.contactPhone||'—'}</td>
-      <td>
+      <td style="white-space:nowrap">
         <button class="btn btn-ghost" style="font-size:12px;padding:5px 14px" onclick="window._editingCarrier=${i};refreshAdminPage()">Edit</button>
+        <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;color:#EF4444;border-color:transparent" onclick="deleteCarrier(${i})" title="Remove carrier">✕ Remove</button>
       </td>
     </tr>`;
   }).join('');
@@ -9030,6 +9206,7 @@ function renderCarriersPanel() {
         <div class="card-title">Carrier Management</div>
         <div style="font-size:13px;color:var(--gray-500);margin-top:2px">Appointed carriers — comp rates, contacts &amp; underwriting info</div>
       </div>
+      <button class="btn btn-primary" style="font-size:13px;padding:9px 20px" onclick="window._editingCarrier=-1;refreshAdminPage()">+ Add Carrier</button>
     </div>
     <div style="overflow-x:auto">
       <table class="data-table" style="min-width:760px">
@@ -9041,8 +9218,9 @@ function renderCarriersPanel() {
 }
 
 function renderCarrierEditForm(idx) {
-  const c = (window.CARRIER_DATA || [])[idx];
-  if (!c) return '<div class="card"><div class="card-body">Carrier not found.</div></div>';
+  const isNew = idx === -1;
+  const c = isNew ? {} : (window.CARRIER_DATA || [])[idx];
+  if (!isNew && !c) return '<div class="card"><div class="card-body">Carrier not found.</div></div>';
   const v = (id, val) => `id="${id}" value="${escAttr(String(val||''))}"`;
   const fld = (label, inp) => `<div class="form-group"><div class="form-label">${label}</div>${inp}</div>`;
   const sel = (id, opts, cur) => `<select id="${id}" class="form-control">${opts.map(o=>`<option ${o===cur?'selected':''}>${o}</option>`).join('')}</select>`;
@@ -9052,11 +9230,11 @@ function renderCarrierEditForm(idx) {
       <div style="display:flex;align-items:center;gap:10px">
         <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px" onclick="window._editingCarrier=null;refreshAdminPage()">← Back to Carriers</button>
         <div>
-          <div class="card-title">Edit Carrier — ${escAttr(c.name)}</div>
-          <div style="font-size:12px;color:var(--gray-500);margin-top:1px">Update comp rates, contacts, and underwriting details</div>
+          <div class="card-title">${isNew ? 'Add New Carrier' : 'Edit Carrier — ' + escAttr(c.name)}</div>
+          <div style="font-size:12px;color:var(--gray-500);margin-top:1px">${isNew ? 'Fill in the carrier details below and click Save' : 'Update comp rates, contacts, and underwriting details'}</div>
         </div>
       </div>
-      <button class="btn btn-primary" style="font-size:13px;padding:9px 22px" onclick="saveCarrier(${idx})">Save Carrier</button>
+      <button class="btn btn-primary" style="font-size:13px;padding:9px 22px" onclick="saveCarrier(${idx})">${isNew ? 'Add Carrier' : 'Save Carrier'}</button>
     </div>
     <div class="card-body" style="padding:20px 24px">
 
@@ -9100,7 +9278,7 @@ function renderCarrierEditForm(idx) {
       <textarea id="ced_notes" class="form-control" rows="3" style="margin-bottom:20px;font-size:13px;resize:vertical">${escAttr(c.notes||'')}</textarea>
 
       <div style="display:flex;gap:10px;padding-top:16px;border-top:1px solid var(--border)">
-        <button class="btn btn-primary" style="padding:9px 26px;font-size:13px" onclick="saveCarrier(${idx})">Save Carrier</button>
+        <button class="btn btn-primary" style="padding:9px 26px;font-size:13px" onclick="saveCarrier(${idx})">${isNew ? 'Add Carrier' : 'Save Carrier'}</button>
         <button class="btn btn-ghost" onclick="window._editingCarrier=null;refreshAdminPage()">Cancel</button>
       </div>
     </div>
@@ -9111,7 +9289,7 @@ function saveCarrier(idx) {
   const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
   const n = id => { const el = document.getElementById(id); return el ? (parseFloat(el.value)||0) : 0; };
   if (!window.CARRIER_DATA) window.CARRIER_DATA = [];
-  window.CARRIER_DATA[idx] = Object.assign({}, window.CARRIER_DATA[idx], {
+  const record = {
     name:         g('ced_name'),
     active:       g('ced_status') === 'Active',
     apptType:     g('ced_appt'),
@@ -9133,9 +9311,24 @@ function saveCarrier(idx) {
     uwTat:        g('ced_uwTat'),
     bindAuth:     g('ced_bind'),
     notes:        g('ced_notes'),
-  });
+  };
+  if (!record.name) { alert('Please enter a carrier name.'); return; }
+  if (idx === -1) {
+    window.CARRIER_DATA.push(record);
+  } else {
+    window.CARRIER_DATA[idx] = Object.assign({}, window.CARRIER_DATA[idx], record);
+  }
   window._editingCarrier = null;
-  window.ADMIN_STATE.successMsg = (window.CARRIER_DATA[idx].name || 'Carrier') + ' saved.';
+  window.ADMIN_STATE.successMsg = (record.name || 'Carrier') + (idx === -1 ? ' added.' : ' saved.');
+  refreshAdminPage();
+}
+
+function deleteCarrier(idx) {
+  const c = (window.CARRIER_DATA || [])[idx];
+  if (!c) return;
+  if (!confirm('Remove ' + c.name + ' from Carrier Management? This cannot be undone.')) return;
+  window.CARRIER_DATA.splice(idx, 1);
+  window.ADMIN_STATE.successMsg = c.name + ' removed.';
   refreshAdminPage();
 }
 
