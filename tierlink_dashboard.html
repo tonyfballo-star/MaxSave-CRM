@@ -93,6 +93,9 @@
   .kpi .delta { font-size: 12px; margin-top: 4px; color: var(--ink-muted); }
   .kpi .delta.up   { color: var(--good); }
   .kpi .delta.down { color: var(--critical); }
+  .kpi[data-action] { cursor: pointer; transition: border-color .12s, background .12s; }
+  .kpi[data-action]:hover { border-color: var(--accent); background: #20201f; }
+  .kpi .hint { font-size: 11px; color: var(--accent); margin-top: 6px; }
 
   .two-col { grid-template-columns: 1.6fr 1fr; margin-bottom: 16px; }
   @media (max-width: 980px) { .two-col { grid-template-columns: 1fr; } .sidebar { width: 64px; } .logo, .nav-item span, .sidebar-foot { display: none; } .nav-item { justify-content: center; } .sidebar { padding-top: 16px; } }
@@ -215,6 +218,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M16 5h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h3"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
         <span>Orders</span>
       </div>
+      <div class="nav-item" data-page="sales">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M15 8.5a3 3 0 0 0-2.5-1.2c-1.7 0-2.9.9-2.9 2.2 0 2.9 5.8 1.6 5.8 4.6 0 1.3-1.3 2.3-3 2.3a3.4 3.4 0 0 1-2.8-1.3"/><path d="M12 5.5v13"/></svg>
+        <span>Sales</span>
+      </div>
       <div class="nav-item" data-page="brands">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v5.5L5.5 14a4.5 4.5 0 0 0 3.9 6.8h5.2a4.5 4.5 0 0 0 3.9-6.8L14 7.5V2"/><path d="M8.5 2h7"/></svg>
         <span>Brands</span>
@@ -291,11 +298,40 @@
           <option>Shipped</option>
           <option>Delivered</option>
           <option>On Hold</option>
+          <option value="__open">Open only (Processing + Hold)</option>
           <option value="__late">Late only</option>
         </select>
       </div>
       <div class="card">
         <div class="table-scroll"><table id="orders-full-table"></table></div>
+      </div>
+    </section>
+
+    <!-- ========== SALES ========== -->
+    <section class="page" id="page-sales">
+      <div class="page-head">
+        <h1>Sales</h1>
+        <div class="sub">Month to date · all brands</div>
+      </div>
+      <div class="grid kpi-row" id="sales-kpis"></div>
+      <div class="grid two-col">
+        <div class="card">
+          <h3>Sales by Brand — MTD Revenue</h3>
+          <div class="chart-wrap" id="sales-brand-chart"></div>
+        </div>
+        <div class="card">
+          <h3>Sales by State — MTD</h3>
+          <div class="table-scroll"><table id="sales-state-table"></table></div>
+        </div>
+      </div>
+      <div class="card mb" id="sku-sales-card">
+        <h3>Sales by SKU — Ranked by Units Sold (MTD)</h3>
+        <div class="table-scroll"><table id="sku-sales-table"></table></div>
+        <div class="section-note">Units = bottles. Share bar shows each SKU's slice of total MTD revenue.</div>
+      </div>
+      <div class="card">
+        <h3>Monthly Sales — $ Thousands</h3>
+        <div class="chart-wrap" id="sales-trend-chart"></div>
       </div>
     </section>
 
@@ -323,6 +359,7 @@
           <option>In Stock</option>
           <option>Low Stock</option>
           <option>Reorder Now</option>
+          <option value="__low">Needs Reorder (Low + Reorder Now)</option>
         </select>
       </div>
       <div class="card">
@@ -453,22 +490,36 @@ const ORDERS = [
   { id: "SO-2834", distributor: "Blue Ridge Wholesale", brand: "Oakhaven Bourbon",   state: "NC", cases: 220, total: 63800,  placed: "Jul 23, 2026", shipBy: "Jul 27, 2026", status: "Delivered" },
 ];
 
+/* soldMtd = cases sold month-to-date; casePrice = wholesale $ per case.
+   These feed the Sales page (sales by SKU, ranked by units sold). */
 const INVENTORY = [
-  { sku: "NLV-750",  product: "Northlight Vodka 750ml",        brand: "Northlight Vodka",     wh: "NJ", onHand: 4200, allocated: 900,  reorder: 1500 },
-  { sku: "NLV-1750", product: "Northlight Vodka 1.75L",        brand: "Northlight Vodka",     wh: "NJ", onHand: 2100, allocated: 380,  reorder: 800  },
-  { sku: "NLV-750W", product: "Northlight Vodka 750ml",        brand: "Northlight Vodka",     wh: "CA", onHand: 1750, allocated: 420,  reorder: 700  },
-  { sku: "OHB-750",  product: "Oakhaven Bourbon 750ml",        brand: "Oakhaven Bourbon",     wh: "NJ", onHand: 3100, allocated: 760,  reorder: 1200 },
-  { sku: "OHB-SB",   product: "Oakhaven Single Barrel 750ml",  brand: "Oakhaven Bourbon",     wh: "NJ", onHand: 640,  allocated: 120,  reorder: 300  },
-  { sku: "OHB-750T", product: "Oakhaven Bourbon 750ml",        brand: "Oakhaven Bourbon",     wh: "TX", onHand: 1450, allocated: 510,  reorder: 600  },
-  { sku: "SSP-V12",  product: "Solora Spritz Variety 12pk",    brand: "Solora Spritz",        wh: "NJ", onHand: 820,  allocated: 640,  reorder: 1000 },
-  { sku: "SSP-P12",  product: "Solora Spritz Peach 12pk",      brand: "Solora Spritz",        wh: "NJ", onHand: 1900, allocated: 450,  reorder: 800  },
-  { sku: "SSP-V12T", product: "Solora Spritz Variety 12pk",    brand: "Solora Spritz",        wh: "TX", onHand: 1150, allocated: 610,  reorder: 700  },
-  { sku: "CAT-BL",   product: "Cerro Azul Blanco 750ml",       brand: "Cerro Azul Tequila",   wh: "CA", onHand: 2300, allocated: 380,  reorder: 900  },
-  { sku: "CAT-RP",   product: "Cerro Azul Reposado 750ml",     brand: "Cerro Azul Tequila",   wh: "CA", onHand: 690,  allocated: 260,  reorder: 500  },
-  { sku: "VMP-750",  product: "Villa Marea Prosecco 750ml",    brand: "Villa Marea Prosecco", wh: "NJ", onHand: 2750, allocated: 310,  reorder: 900  },
-  { sku: "VMP-187",  product: "Villa Marea 187ml 4pk",         brand: "Villa Marea Prosecco", wh: "TX", onHand: 980,  allocated: 60,   reorder: 300  },
-  { sku: "CLR-750",  product: "Copperline Rye 750ml",          brand: "Copperline Rye",       wh: "NJ", onHand: 1100, allocated: 150,  reorder: 400  },
+  { sku: "NLV-750",  product: "Northlight Vodka 750ml",        brand: "Northlight Vodka",     wh: "NJ", onHand: 4200, allocated: 900,  reorder: 1500, soldMtd: 1600, casePrice: 180 },
+  { sku: "NLV-1750", product: "Northlight Vodka 1.75L",        brand: "Northlight Vodka",     wh: "NJ", onHand: 2100, allocated: 380,  reorder: 800,  soldMtd: 750,  casePrice: 252 },
+  { sku: "NLV-750W", product: "Northlight Vodka 750ml",        brand: "Northlight Vodka",     wh: "CA", onHand: 1750, allocated: 420,  reorder: 700,  soldMtd: 600,  casePrice: 180 },
+  { sku: "OHB-750",  product: "Oakhaven Bourbon 750ml",        brand: "Oakhaven Bourbon",     wh: "NJ", onHand: 3100, allocated: 760,  reorder: 1200, soldMtd: 1200, casePrice: 185 },
+  { sku: "OHB-SB",   product: "Oakhaven Single Barrel 750ml",  brand: "Oakhaven Bourbon",     wh: "NJ", onHand: 640,  allocated: 120,  reorder: 300,  soldMtd: 310,  casePrice: 403 },
+  { sku: "OHB-750T", product: "Oakhaven Bourbon 750ml",        brand: "Oakhaven Bourbon",     wh: "TX", onHand: 1450, allocated: 510,  reorder: 600,  soldMtd: 800,  casePrice: 185 },
+  { sku: "SSP-V12",  product: "Solora Spritz Variety 12pk",    brand: "Solora Spritz",        wh: "NJ", onHand: 820,  allocated: 640,  reorder: 1000, soldMtd: 1500, casePrice: 82  },
+  { sku: "SSP-P12",  product: "Solora Spritz Peach 12pk",      brand: "Solora Spritz",        wh: "NJ", onHand: 1900, allocated: 450,  reorder: 800,  soldMtd: 1300, casePrice: 80  },
+  { sku: "SSP-V12T", product: "Solora Spritz Variety 12pk",    brand: "Solora Spritz",        wh: "TX", onHand: 1150, allocated: 610,  reorder: 700,  soldMtd: 1320, casePrice: 82  },
+  { sku: "CAT-BL",   product: "Cerro Azul Blanco 750ml",       brand: "Cerro Azul Tequila",   wh: "CA", onHand: 2300, allocated: 380,  reorder: 900,  soldMtd: 1150, casePrice: 155 },
+  { sku: "CAT-RP",   product: "Cerro Azul Reposado 750ml",     brand: "Cerro Azul Tequila",   wh: "CA", onHand: 690,  allocated: 260,  reorder: 500,  soldMtd: 690,  casePrice: 198 },
+  { sku: "VMP-750",  product: "Villa Marea Prosecco 750ml",    brand: "Villa Marea Prosecco", wh: "NJ", onHand: 2750, allocated: 310,  reorder: 900,  soldMtd: 900,  casePrice: 205 },
+  { sku: "VMP-187",  product: "Villa Marea 187ml 4pk",         brand: "Villa Marea Prosecco", wh: "TX", onHand: 980,  allocated: 60,   reorder: 300,  soldMtd: 220,  casePrice: 139 },
+  { sku: "CLR-750",  product: "Copperline Rye 750ml",          brand: "Copperline Rye",       wh: "NJ", onHand: 1100, allocated: 150,  reorder: 400,  soldMtd: 640,  casePrice: 184 },
 ];
+
+/* Sales page: MTD revenue and cases by state, and monthly sales in $ thousands */
+const STATE_SALES = [
+  { state: "New Jersey", cases: 2600, revenue: 415000 },
+  { state: "Texas",      cases: 2450, revenue: 390000 },
+  { state: "California", cases: 2100, revenue: 345000 },
+  { state: "New York",   cases: 1900, revenue: 320000 },
+  { state: "Florida",    cases: 1500, revenue: 245000 },
+  { state: "Illinois",   cases: 950,  revenue: 150000 },
+  { state: "All others", cases: 1480, revenue: 198000 },
+];
+const MONTHLY_SALES_K = { labels: MONTHS, values: [1580, 1690, 1795, 1900, 1985, 2063] };
 
 const CHANNELS = [
   { name: "Distributor / Wholesale", cases: 48200 },
@@ -496,13 +547,15 @@ const SERIES_COLORS = ["var(--series-1)", "var(--series-2)", "var(--series-3)", 
 const SERIES_HEX = ["#3987e5", "#d95926", "#199e70", "#c98500"];
 
 /* ----- Navigation ----- */
+function gotoPage(name, scrollToId) {
+  document.querySelectorAll(".nav-item").forEach((n) => n.classList.toggle("active", n.dataset.page === name));
+  document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
+  $("page-" + name).classList.add("active");
+  window.scrollTo(0, 0);
+  if (scrollToId) $(scrollToId).scrollIntoView({ behavior: "smooth", block: "start" });
+}
 document.querySelectorAll(".nav-item").forEach((el) => {
-  el.addEventListener("click", () => {
-    document.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
-    document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
-    el.classList.add("active");
-    $("page-" + el.dataset.page).classList.add("active");
-  });
+  el.addEventListener("click", () => gotoPage(el.dataset.page));
 });
 
 /* ----- Tooltip ----- */
@@ -520,11 +573,25 @@ function showTip(html, x, y) {
 }
 function hideTip() { tip.style.display = "none"; }
 
-/* ----- KPI tile helper ----- */
-function kpi(label, value, delta, dir) {
-  return `<div class="card kpi"><div class="label">${label}</div><div class="value">${value}</div>` +
-    (delta ? `<div class="delta ${dir || ""}">${delta}</div>` : "") + `</div>`;
+/* ----- KPI tile helper (pass an action key to make the tile clickable) ----- */
+function kpi(label, value, delta, dir, action) {
+  return `<div class="card kpi"${action ? ` data-action="${action}"` : ""}><div class="label">${label}</div><div class="value">${value}</div>` +
+    (delta ? `<div class="delta ${dir || ""}">${delta}</div>` : "") +
+    (action ? `<div class="hint">View →</div>` : "") + `</div>`;
 }
+
+/* What each clickable Home tile does */
+const KPI_ACTIONS = {
+  "open-orders":  () => { $("ord-status").value = "__open"; renderOrders(); gotoPage("orders"); },
+  "late-orders":  () => { $("ord-status").value = "__late"; renderOrders(); gotoPage("orders"); },
+  "sales-sku":    () => gotoPage("sales", "sku-sales-card"),
+  "sales-all":    () => gotoPage("sales"),
+  "inv-reorder":  () => { $("inv-status").value = "__low"; renderInventory(); gotoPage("inventory"); },
+};
+$("home-kpis").addEventListener("click", (e) => {
+  const tile = e.target.closest("[data-action]");
+  if (tile && KPI_ACTIONS[tile.dataset.action]) KPI_ACTIONS[tile.dataset.action]();
+});
 
 /* ----- HOME ----- */
 $("today-label").textContent = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
@@ -555,11 +622,11 @@ function renderHomeKpis() {
   const sales = rows.reduce((s, o) => s + o.total, 0);
 
   $("home-kpis").innerHTML =
-    kpi("Open Orders", open, held ? held + " on hold" : "none on hold", open ? "down" : "") +
-    kpi("Bottles Ordered", fmt(bottles), rows.length + (rows.length === 1 ? " order" : " orders") + " in range", "") +
-    kpi("Sales Total", sales ? money(sales) : "$0", "orders placed in range", "") +
-    kpi("Late Orders", late, late ? "past ship-by date" : "all on time", late ? "down" : "up") +
-    kpi("SKUs Needing Reorder", lowSkus, "current inventory", lowSkus ? "down" : "");
+    kpi("Open Orders", open, held ? held + " on hold" : "none on hold", open ? "down" : "", "open-orders") +
+    kpi("Bottles Ordered", fmt(bottles), rows.length + (rows.length === 1 ? " order" : " orders") + " in range", "", "sales-sku") +
+    kpi("Sales Total", sales ? money(sales) : "$0", "orders placed in range", "", "sales-all") +
+    kpi("Late Orders", late, late ? "past ship-by date" : "all on time", late ? "down" : "up", "late-orders") +
+    kpi("SKUs Needing Reorder", lowSkus, "current inventory", lowSkus ? "down" : "", "inv-reorder");
 }
 
 const todayISO = localISO(new Date());
@@ -663,7 +730,9 @@ function renderOrders() {
   const rows = ORDERS.filter((o) =>
     (!q || o.id.toLowerCase().includes(q) || o.distributor.toLowerCase().includes(q)) &&
     (!fb || o.brand === fb) &&
-    (!fs || (fs === "__late" ? isLate(o) : o.status === fs))
+    (!fs || (fs === "__late" ? isLate(o) :
+             fs === "__open" ? (o.status === "Processing" || o.status === "On Hold") :
+             o.status === fs))
   );
   $("order-count").textContent = rows.length + " of " + ORDERS.length + " orders" + (lateOrders ? " · " + lateOrders + " late" : "");
   $("orders-full-table").innerHTML =
@@ -675,6 +744,71 @@ function renderOrders() {
 }
 ["ord-search", "ord-brand", "ord-status"].forEach((id) => $(id).addEventListener("input", renderOrders));
 renderOrders();
+
+/* ----- SALES PAGE ----- */
+(function salesPage() {
+  const mtdRev = BRANDS.reduce((s, b) => s + b.mtdRevenue, 0);
+  const mtdCases = BRANDS.reduce((s, b) => s + b.mtdCases, 0);
+  const topBrand = [...BRANDS].sort((a, b) => b.mtdRevenue - a.mtdRevenue)[0];
+
+  $("sales-kpis").innerHTML =
+    kpi("Sales Total (MTD)", money(mtdRev), "▲ 3.9% vs July", "up") +
+    kpi("Bottles Sold (MTD)", fmt(mtdCases * BOTTLES_PER_CASE), fmt(mtdCases) + " cases") +
+    kpi("Avg Revenue / Case", "$" + Math.round(mtdRev / mtdCases), "blended, all SKUs") +
+    kpi("Top Brand", topBrand.name.split(" ")[0], money(topBrand.mtdRevenue) + " MTD") +
+    kpi("YTD Revenue", money(BRANDS.reduce((s, b) => s + b.ytdRevenue, 0)), "▲ 14% vs last year", "up");
+
+  /* Sales by brand — horizontal bars, single hue, direct labels */
+  const bData = [...BRANDS].sort((a, b) => b.mtdRevenue - a.mtdRevenue);
+  const W = 640, rowH = 40, padL = 170, padR = 70, padT = 6;
+  const H = padT + bData.length * rowH + 6;
+  const iw = W - padL - padR;
+  const maxV = Math.max(...bData.map((d) => d.mtdRevenue));
+  let g = "";
+  bData.forEach((d, i) => {
+    const yy = padT + i * rowH + 7;
+    const bw = Math.max(8, (d.mtdRevenue / maxV) * iw);
+    const bh = rowH - 16;
+    g += `<text x="${padL - 10}" y="${yy + bh / 2 + 4}" text-anchor="end" font-size="12" fill="var(--ink-2)">${d.name}</text>`;
+    g += `<path class="sb-bar" data-i="${i}" d="M${padL},${yy} h${bw - 4} a4,4 0 0 1 4,4 v${bh - 8} a4,4 0 0 1 -4,4 h-${bw - 4} z" fill="var(--series-1)"/>`;
+    g += `<text x="${padL + bw + 8}" y="${yy + bh / 2 + 4}" font-size="12" font-weight="600" fill="var(--ink)">${money(d.mtdRevenue)}</text>`;
+  });
+  g += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - 6}" stroke="var(--baseline)" stroke-width="1"/>`;
+  $("sales-brand-chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sales by brand">${g}</svg>`;
+  $("sales-brand-chart").querySelectorAll(".sb-bar").forEach((bar) => {
+    bar.addEventListener("mousemove", (e) => {
+      const d = bData[+bar.dataset.i];
+      showTip(`<b>${d.name}</b><br>MTD Revenue: <b>${money(d.mtdRevenue)}</b><br>Units Sold: <b>${fmt(d.mtdCases * BOTTLES_PER_CASE)}</b>`, e.clientX, e.clientY);
+      bar.setAttribute("opacity", "0.85");
+    });
+    bar.addEventListener("mouseleave", () => { hideTip(); bar.removeAttribute("opacity"); });
+  });
+
+  /* Sales by state */
+  const maxState = Math.max(...STATE_SALES.map((s) => s.revenue));
+  $("sales-state-table").innerHTML =
+    `<thead><tr><th>State</th><th class="num">Cases</th><th class="num">Revenue</th><th style="width:34%">Share</th></tr></thead><tbody>` +
+    STATE_SALES.map((s) =>
+      `<tr><td><b>${s.state}</b></td><td class="num">${fmt(s.cases)}</td><td class="num"><b>${money(s.revenue)}</b></td>
+       <td><div style="height:8px;border-radius:4px;background:var(--series-1);width:${Math.max(4, (s.revenue / maxState) * 100)}%"></div></td></tr>`
+    ).join("") + `</tbody>`;
+
+  /* Sales by SKU — ranked by units sold */
+  const skus = INVENTORY.map((r) => ({ ...r, units: r.soldMtd * BOTTLES_PER_CASE, revenue: r.soldMtd * r.casePrice }))
+    .sort((a, b) => b.units - a.units);
+  const skuRevTotal = skus.reduce((s, r) => s + r.revenue, 0);
+  $("sku-sales-table").innerHTML =
+    `<thead><tr><th>#</th><th>SKU</th><th>Product</th><th>Brand</th><th>WH</th><th class="num">Cases Sold</th><th class="num">Units Sold</th><th class="num">Revenue</th><th style="width:16%">Share of Sales</th></tr></thead><tbody>` +
+    skus.map((r, i) => {
+      const pct = (r.revenue / skuRevTotal) * 100;
+      return `<tr><td style="color:var(--ink-muted)">${i + 1}</td><td><b>${r.sku}</b></td><td>${r.product}</td><td>${r.brand}</td><td>${r.wh}</td>
+        <td class="num">${fmt(r.soldMtd)}</td><td class="num"><b>${fmt(r.units)}</b></td><td class="num">${money(r.revenue)}</td>
+        <td><div style="display:flex;align-items:center;gap:6px"><div style="height:8px;border-radius:4px;background:var(--series-1);width:${Math.max(4, pct * 3)}%;max-width:70%"></div><span style="font-size:11px;color:var(--ink-muted)">${pct.toFixed(1)}%</span></div></td></tr>`;
+    }).join("") + `</tbody>`;
+
+  /* Monthly sales trend */
+  lineChart("sales-trend-chart", MONTHLY_SALES_K.labels, [{ name: "Sales ($K)", values: MONTHLY_SALES_K.values }]);
+})();
 
 /* ----- BRANDS ----- */
 $("brand-count").textContent = BRANDS.length + " brands in portfolio";
@@ -720,7 +854,8 @@ function renderInventory() {
   const rows = INVENTORY.filter((r) => {
     const st = invStatus(r);
     return (!q || r.sku.toLowerCase().includes(q) || r.product.toLowerCase().includes(q)) &&
-           (!fb || r.brand === fb) && (!fs || st === fs);
+           (!fb || r.brand === fb) &&
+           (!fs || (fs === "__low" ? st !== "In Stock" : st === fs));
   });
   $("inv-table").innerHTML =
     `<thead><tr><th>SKU</th><th>Product</th><th>Brand</th><th>WH</th><th class="num">On Hand</th><th class="num">Allocated</th><th class="num">Available</th><th class="num">Reorder Pt</th><th>Status</th></tr></thead><tbody>` +
