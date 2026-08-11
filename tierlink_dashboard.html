@@ -150,6 +150,14 @@
   input[type="date"] { color-scheme: dark; }
   .filter-row .lbl { font-size: 12px; color: var(--ink-muted); align-self: center; }
   input[type="text"] { min-width: 220px; }
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .chip {
+    padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--ink-2);
+    font-size: 13px; font-weight: 600; cursor: pointer; user-select: none;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--ink); }
+  .chip.active { background: rgba(57,135,229,0.18); border-color: var(--accent); color: #8db9f0; }
 
   /* ---------- Charts ---------- */
   .chart-wrap { position: relative; }
@@ -311,27 +319,50 @@
     <section class="page" id="page-sales">
       <div class="page-head">
         <h1>Sales</h1>
-        <div class="sub">Month to date · all brands</div>
+        <div class="sub" id="sales-range-label"></div>
+      </div>
+      <div class="filter-row">
+        <div class="chip-row" id="sales-presets">
+          <div class="chip" data-preset="today">Today</div>
+          <div class="chip" data-preset="week">This Week</div>
+          <div class="chip active" data-preset="mtd">MTD</div>
+          <div class="chip" data-preset="30d">Last 30 Days</div>
+          <div class="chip" data-preset="90d">Last 90 Days</div>
+          <div class="chip" data-preset="custom">Custom</div>
+        </div>
+        <span id="sales-custom" style="display:none; align-items:center; gap:8px;">
+          <input type="date" id="sales-from">
+          <span class="lbl">to</span>
+          <input type="date" id="sales-to">
+        </span>
+        <select id="sales-brand-filter"><option value="">All brands</option></select>
+        <button class="btn ghost" id="sales-export">Export CSV</button>
       </div>
       <div class="grid kpi-row" id="sales-kpis"></div>
       <div class="grid two-col">
         <div class="card">
-          <h3>Sales by Brand — MTD Revenue</h3>
+          <h3>Sales by Brand — Revenue</h3>
           <div class="chart-wrap" id="sales-brand-chart"></div>
         </div>
         <div class="card">
-          <h3>Sales by State — MTD</h3>
+          <h3>Sales by State</h3>
           <div class="table-scroll"><table id="sales-state-table"></table></div>
         </div>
       </div>
       <div class="card mb" id="sku-sales-card">
-        <h3>Sales by SKU — Ranked by Units Sold (MTD)</h3>
+        <h3>Sales by SKU — Ranked by Units Sold</h3>
         <div class="table-scroll"><table id="sku-sales-table"></table></div>
-        <div class="section-note">Units = bottles. Share bar shows each SKU's slice of total MTD revenue.</div>
+        <div class="section-note">Units = bottles. Share bar shows each SKU's slice of revenue in the selected range.</div>
       </div>
-      <div class="card">
-        <h3>Monthly Sales — $ Thousands</h3>
-        <div class="chart-wrap" id="sales-trend-chart"></div>
+      <div class="grid two-col">
+        <div class="card">
+          <h3>Sales Trend — $ Thousands</h3>
+          <div class="chart-wrap" id="sales-trend-chart"></div>
+        </div>
+        <div class="card">
+          <h3>Top Distributors</h3>
+          <div class="table-scroll"><table id="sales-dist-table"></table></div>
+        </div>
       </div>
     </section>
 
@@ -509,17 +540,53 @@ const INVENTORY = [
   { sku: "CLR-750",  product: "Copperline Rye 750ml",          brand: "Copperline Rye",       wh: "NJ", onHand: 1100, allocated: 150,  reorder: 400,  soldMtd: 640,  casePrice: 184 },
 ];
 
-/* Sales page: MTD revenue and cases by state, and monthly sales in $ thousands */
-const STATE_SALES = [
-  { state: "New Jersey", cases: 2600, revenue: 415000 },
-  { state: "Texas",      cases: 2450, revenue: 390000 },
-  { state: "California", cases: 2100, revenue: 345000 },
-  { state: "New York",   cases: 1900, revenue: 320000 },
-  { state: "Florida",    cases: 1500, revenue: 245000 },
-  { state: "Illinois",   cases: 950,  revenue: 150000 },
-  { state: "All others", cases: 1480, revenue: 198000 },
-];
-const MONTHLY_SALES_K = { labels: MONTHS, values: [1580, 1690, 1795, 1900, 1985, 2063] };
+/* ---- SAMPLE SALES LEDGER -----------------------------------------
+   The Sales page filters individual sales rows by date. Until real
+   data is connected, the rows are AUTO-GENERATED sample sales for
+   the last 120 days, paced off each SKU's soldMtd above. When you
+   have real data, replace SALES_TXNS with an array of rows like:
+     { date: "2026-08-10", sku: "NLV-750", state: "NJ",
+       distributor: "Garden State Bev Co.", cases: 40, revenue: 7200 }
+   (brand and product are filled in automatically from the SKU code)
+   ------------------------------------------------------------------ */
+const DISTRIBUTOR_BY_STATE = {
+  NJ: "Garden State Bev Co.",  TX: "Lone Star Distributing",
+  CA: "Pacific Crest Wine & Spirits", NY: "Empire Metro Beverage",
+  FL: "Sunbelt Beverage Group", IL: "Great Lakes Spirits",
+  NC: "Blue Ridge Wholesale",  CO: "High Plains Beverage",
+};
+const STATE_WEIGHTS = [["NJ",0.20],["TX",0.19],["CA",0.16],["NY",0.15],["FL",0.12],["IL",0.07],["NC",0.06],["CO",0.05]];
+
+const SALES_TXNS = (function generateSampleSales() {
+  /* small seeded random generator so the sample numbers stay the
+     same every time the page is opened */
+  let seed = 42;
+  const rng = () => {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const txns = [];
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const DAYS = 120;
+  for (let d = DAYS - 1; d >= 0; d--) {
+    const day = new Date(today); day.setDate(day.getDate() - d);
+    const dow = day.getDay();
+    const weekend = (dow === 0 || dow === 6) ? 0.35 : 1;
+    const growth = 1 + 0.25 * ((DAYS - 1 - d) / DAYS);
+    const iso = day.getFullYear() + "-" + String(day.getMonth() + 1).padStart(2, "0") + "-" + String(day.getDate()).padStart(2, "0");
+    INVENTORY.forEach((sk) => {
+      if (rng() < 0.25) return; /* not every SKU sells every day */
+      const cases = Math.round((sk.soldMtd / 22) * weekend * growth * (0.5 + rng()));
+      if (cases <= 0) return;
+      let r = rng(), st = "NJ";
+      for (const [s, w] of STATE_WEIGHTS) { if ((r -= w) <= 0) { st = s; break; } }
+      txns.push({ date: iso, sku: sk.sku, state: st, distributor: DISTRIBUTOR_BY_STATE[st], cases: cases, revenue: cases * sk.casePrice });
+    });
+  }
+  return txns;
+})();
 
 const CHANNELS = [
   { name: "Distributor / Wholesale", cases: 48200 },
@@ -542,9 +609,33 @@ const TOP_STATES = [
 
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => n.toLocaleString("en-US");
-const money = (n) => n >= 1e6 ? "$" + (n / 1e6).toFixed(1) + "M" : "$" + Math.round(n / 1e3) + "K";
+const money = (n) => n >= 1e6 ? "$" + (n / 1e6).toFixed(1) + "M" : n >= 1000 ? "$" + Math.round(n / 1e3) + "K" : "$" + Math.round(n);
 const SERIES_COLORS = ["var(--series-1)", "var(--series-2)", "var(--series-3)", "var(--series-4)"];
 const SERIES_HEX = ["#3987e5", "#d95926", "#199e70", "#c98500"];
+
+/* ----- Sales ledger helpers ----- */
+const SKU_INFO = Object.fromEntries(INVENTORY.map((r) => [r.sku, r]));
+SALES_TXNS.forEach((t) => {
+  const info = SKU_INFO[t.sku] || {};
+  if (!t.brand) t.brand = info.brand || "Unknown";
+  if (!t.product) t.product = info.product || t.sku;
+  t._d = new Date(t.date + "T00:00:00");
+});
+function startOfDay(d) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+function txnsIn(from, to, brand) {
+  return SALES_TXNS.filter((t) => t._d >= from && t._d <= to && (!brand || t.brand === brand));
+}
+/* group rows and total cases + revenue per key, sorted by revenue */
+function aggTxns(rows, keyFn) {
+  const m = new Map();
+  rows.forEach((r) => {
+    const k = keyFn(r);
+    const e = m.get(k) || { key: k, cases: 0, revenue: 0 };
+    e.cases += r.cases; e.revenue += r.revenue;
+    m.set(k, e);
+  });
+  return [...m.values()].sort((a, b) => b.revenue - a.revenue);
+}
 
 /* ----- Navigation ----- */
 function gotoPage(name, scrollToId) {
@@ -640,12 +731,16 @@ $("home-today").addEventListener("click", () => {
 });
 renderHomeKpis();
 
-/* Sales by Brand — ranked by MTD revenue */
-$("brand-sales-table").innerHTML =
-  `<thead><tr><th>#</th><th>Brand</th><th class="num">Units Sold</th><th class="num">Revenue</th></tr></thead><tbody>` +
-  [...BRANDS].sort((a, b) => b.mtdRevenue - a.mtdRevenue).map((b, i) =>
-    `<tr><td style="color:var(--ink-muted)">${i + 1}</td><td><b>${b.name}</b></td><td class="num">${fmt(b.mtdCases * BOTTLES_PER_CASE)}</td><td class="num"><b>${money(b.mtdRevenue)}</b></td></tr>`
-  ).join("") + `</tbody>`;
+/* Sales by Brand — ranked by MTD revenue, from the sales ledger */
+(function homeBrandSales() {
+  const now = startOfDay(new Date());
+  const rows = txnsIn(new Date(now.getFullYear(), now.getMonth(), 1), now, "");
+  $("brand-sales-table").innerHTML =
+    `<thead><tr><th>#</th><th>Brand</th><th class="num">Units Sold</th><th class="num">Revenue</th></tr></thead><tbody>` +
+    aggTxns(rows, (r) => r.brand).map((b, i) =>
+      `<tr><td style="color:var(--ink-muted)">${i + 1}</td><td><b>${b.key}</b></td><td class="num">${fmt(b.cases * BOTTLES_PER_CASE)}</td><td class="num"><b>${money(b.revenue)}</b></td></tr>`
+    ).join("") + `</tbody>`;
+})();
 
 const ORDER_BADGE = { "Delivered": "b-good", "Shipped": "b-accent", "Processing": "b-warning", "On Hold": "b-critical" };
 $("orders-table").innerHTML =
@@ -659,7 +754,7 @@ function lineChart(containerId, labels, seriesList, opts = {}) {
   const W = 640, H = 280, padL = 52, padR = 16, padT = 14, padB = 30;
   const iw = W - padL - padR, ih = H - padT - padB;
   const allVals = seriesList.flatMap((s) => s.values);
-  const maxV = Math.max(...allVals) * 1.12;
+  const maxV = (Math.max(...allVals) * 1.12) || 1;
   const x = (i) => padL + (i / (labels.length - 1)) * iw;
   const y = (v) => padT + ih - (v / maxV) * ih;
 
@@ -670,7 +765,9 @@ function lineChart(containerId, labels, seriesList, opts = {}) {
     g += `<line x1="${padL}" y1="${yy}" x2="${W - padR}" y2="${yy}" stroke="var(--grid)" stroke-width="1"/>`;
     g += `<text x="${padL - 8}" y="${yy + 4}" text-anchor="end" font-size="11" fill="var(--ink-muted)">${fmt(Math.round(v))}</text>`;
   }
+  const lblSkip = Math.ceil(labels.length / 10);
   labels.forEach((lb, i) => {
+    if (i % lblSkip !== 0 && i !== labels.length - 1) return;
     g += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="var(--ink-muted)">${lb}</text>`;
   });
   g += `<line x1="${padL}" y1="${padT + ih}" x2="${W - padR}" y2="${padT + ih}" stroke="var(--baseline)" stroke-width="1"/>`;
@@ -745,70 +842,184 @@ function renderOrders() {
 ["ord-search", "ord-brand", "ord-status"].forEach((id) => $(id).addEventListener("input", renderOrders));
 renderOrders();
 
-/* ----- SALES PAGE ----- */
-(function salesPage() {
-  const mtdRev = BRANDS.reduce((s, b) => s + b.mtdRevenue, 0);
-  const mtdCases = BRANDS.reduce((s, b) => s + b.mtdCases, 0);
-  const topBrand = [...BRANDS].sort((a, b) => b.mtdRevenue - a.mtdRevenue)[0];
+/* ----- SALES PAGE (filtered by date range + brand) ----- */
+let salesPreset = "mtd";
 
-  $("sales-kpis").innerHTML =
-    kpi("Sales Total (MTD)", money(mtdRev), "▲ 3.9% vs July", "up") +
-    kpi("Bottles Sold (MTD)", fmt(mtdCases * BOTTLES_PER_CASE), fmt(mtdCases) + " cases") +
-    kpi("Avg Revenue / Case", "$" + Math.round(mtdRev / mtdCases), "blended, all SKUs") +
-    kpi("Top Brand", topBrand.name.split(" ")[0], money(topBrand.mtdRevenue) + " MTD") +
-    kpi("YTD Revenue", money(BRANDS.reduce((s, b) => s + b.ytdRevenue, 0)), "▲ 14% vs last year", "up");
+function salesRange() {
+  const today = startOfDay(new Date());
+  let from, to = today;
+  if (salesPreset === "today") { from = today; }
+  else if (salesPreset === "week") { from = new Date(today); from.setDate(from.getDate() - ((from.getDay() + 6) % 7)); }
+  else if (salesPreset === "mtd") { from = new Date(today.getFullYear(), today.getMonth(), 1); }
+  else if (salesPreset === "30d") { from = new Date(today); from.setDate(from.getDate() - 29); }
+  else if (salesPreset === "90d") { from = new Date(today); from.setDate(from.getDate() - 89); }
+  else {
+    from = new Date($("sales-from").value + "T00:00:00");
+    to = new Date($("sales-to").value + "T00:00:00");
+    if (isNaN(from)) from = today;
+    if (isNaN(to)) to = today;
+    if (from > to) { const t = from; from = to; to = t; }
+  }
+  return { from, to };
+}
 
-  /* Sales by brand — horizontal bars, single hue, direct labels */
-  const bData = [...BRANDS].sort((a, b) => b.mtdRevenue - a.mtdRevenue);
+/* generic horizontal bar chart used for sales by brand */
+function hBars(containerId, data, tipFn) {
+  if (!data.length) {
+    $(containerId).innerHTML = `<div style="color:var(--ink-muted);padding:20px 0">No sales in this range.</div>`;
+    return;
+  }
   const W = 640, rowH = 40, padL = 170, padR = 70, padT = 6;
-  const H = padT + bData.length * rowH + 6;
+  const H = padT + data.length * rowH + 6;
   const iw = W - padL - padR;
-  const maxV = Math.max(...bData.map((d) => d.mtdRevenue));
+  const maxV = Math.max(...data.map((d) => d.revenue));
   let g = "";
-  bData.forEach((d, i) => {
+  data.forEach((d, i) => {
     const yy = padT + i * rowH + 7;
-    const bw = Math.max(8, (d.mtdRevenue / maxV) * iw);
+    const bw = Math.max(8, (d.revenue / maxV) * iw);
     const bh = rowH - 16;
-    g += `<text x="${padL - 10}" y="${yy + bh / 2 + 4}" text-anchor="end" font-size="12" fill="var(--ink-2)">${d.name}</text>`;
-    g += `<path class="sb-bar" data-i="${i}" d="M${padL},${yy} h${bw - 4} a4,4 0 0 1 4,4 v${bh - 8} a4,4 0 0 1 -4,4 h-${bw - 4} z" fill="var(--series-1)"/>`;
-    g += `<text x="${padL + bw + 8}" y="${yy + bh / 2 + 4}" font-size="12" font-weight="600" fill="var(--ink)">${money(d.mtdRevenue)}</text>`;
+    g += `<text x="${padL - 10}" y="${yy + bh / 2 + 4}" text-anchor="end" font-size="12" fill="var(--ink-2)">${d.key}</text>`;
+    g += `<path class="hb-bar" data-i="${i}" d="M${padL},${yy} h${bw - 4} a4,4 0 0 1 4,4 v${bh - 8} a4,4 0 0 1 -4,4 h-${bw - 4} z" fill="var(--series-1)"/>`;
+    g += `<text x="${padL + bw + 8}" y="${yy + bh / 2 + 4}" font-size="12" font-weight="600" fill="var(--ink)">${money(d.revenue)}</text>`;
   });
   g += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - 6}" stroke="var(--baseline)" stroke-width="1"/>`;
-  $("sales-brand-chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sales by brand">${g}</svg>`;
-  $("sales-brand-chart").querySelectorAll(".sb-bar").forEach((bar) => {
+  $(containerId).innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Bar chart">${g}</svg>`;
+  $(containerId).querySelectorAll(".hb-bar").forEach((bar) => {
     bar.addEventListener("mousemove", (e) => {
-      const d = bData[+bar.dataset.i];
-      showTip(`<b>${d.name}</b><br>MTD Revenue: <b>${money(d.mtdRevenue)}</b><br>Units Sold: <b>${fmt(d.mtdCases * BOTTLES_PER_CASE)}</b>`, e.clientX, e.clientY);
+      showTip(tipFn(data[+bar.dataset.i]), e.clientX, e.clientY);
       bar.setAttribute("opacity", "0.85");
     });
     bar.addEventListener("mouseleave", () => { hideTip(); bar.removeAttribute("opacity"); });
   });
+}
 
-  /* Sales by state */
-  const maxState = Math.max(...STATE_SALES.map((s) => s.revenue));
+function renderSales() {
+  const { from, to } = salesRange();
+  const brand = $("sales-brand-filter").value;
+  const rows = txnsIn(from, to, brand);
+
+  const fdate = (d) => d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  $("sales-range-label").textContent =
+    (+from === +to ? fdate(from) : fdate(from) + " – " + fdate(to)) + " · " + (brand || "All brands");
+
+  const rev = rows.reduce((s, r) => s + r.revenue, 0);
+  const cases = rows.reduce((s, r) => s + r.cases, 0);
+
+  /* compare against the previous period of the same length */
+  const len = Math.round((to - from) / 864e5) + 1;
+  const pFrom = new Date(from); pFrom.setDate(pFrom.getDate() - len);
+  const pTo = new Date(from); pTo.setDate(pTo.getDate() - 1);
+  const prev = txnsIn(pFrom, pTo, brand);
+  const pRev = prev.reduce((s, r) => s + r.revenue, 0);
+  const pCases = prev.reduce((s, r) => s + r.cases, 0);
+  const delta = (cur, p) => (p ? ((cur - p) / p) * 100 : null);
+  const dTxt = (d) => d === null ? "no prior-period data" : (d >= 0 ? "▲ " : "▼ ") + Math.abs(d).toFixed(1) + "% vs prior " + (len === 1 ? "day" : len + " days");
+  const dDir = (d) => (d === null ? "" : d >= 0 ? "up" : "down");
+  const dRev = delta(rev, pRev), dCases = delta(cases, pCases);
+
+  const byBrand = aggTxns(rows, (r) => r.brand);
+  const byState = aggTxns(rows, (r) => r.state);
+  const topB = byBrand[0], topS = byState[0];
+
+  $("sales-kpis").innerHTML =
+    kpi("Sales Total", rev >= 1e6 ? money(rev) : "$" + fmt(Math.round(rev)), dTxt(dRev), dDir(dRev)) +
+    kpi("Bottles Sold", fmt(cases * BOTTLES_PER_CASE), dTxt(dCases), dDir(dCases)) +
+    kpi("Cases Sold", fmt(cases), rows.length + " sales lines") +
+    kpi("Avg Revenue / Case", cases ? "$" + Math.round(rev / cases) : "—", "blended, all SKUs") +
+    kpi("Top Brand", topB ? topB.key.split(" ")[0] : "—", topB ? money(topB.revenue) + (topS ? " · best state " + topS.key : "") : "no sales in range");
+
+  /* sales by brand bars */
+  hBars("sales-brand-chart", byBrand, (d) =>
+    `<b>${d.key}</b><br>Revenue: <b>${money(d.revenue)}</b><br>Units Sold: <b>${fmt(d.cases * BOTTLES_PER_CASE)}</b>`);
+
+  /* sales by state table */
+  const stateName = { NJ: "New Jersey", TX: "Texas", CA: "California", NY: "New York", FL: "Florida", IL: "Illinois", NC: "North Carolina", CO: "Colorado" };
+  const maxState = byState.length ? byState[0].revenue : 1;
   $("sales-state-table").innerHTML =
     `<thead><tr><th>State</th><th class="num">Cases</th><th class="num">Revenue</th><th style="width:34%">Share</th></tr></thead><tbody>` +
-    STATE_SALES.map((s) =>
-      `<tr><td><b>${s.state}</b></td><td class="num">${fmt(s.cases)}</td><td class="num"><b>${money(s.revenue)}</b></td>
+    (byState.length ? byState.map((s) =>
+      `<tr><td><b>${stateName[s.key] || s.key}</b></td><td class="num">${fmt(s.cases)}</td><td class="num"><b>${money(s.revenue)}</b></td>
        <td><div style="height:8px;border-radius:4px;background:var(--series-1);width:${Math.max(4, (s.revenue / maxState) * 100)}%"></div></td></tr>`
-    ).join("") + `</tbody>`;
+    ).join("") : `<tr><td colspan="4" style="text-align:center;color:var(--ink-muted);padding:24px">No sales in this range</td></tr>`) + `</tbody>`;
 
-  /* Sales by SKU — ranked by units sold */
-  const skus = INVENTORY.map((r) => ({ ...r, units: r.soldMtd * BOTTLES_PER_CASE, revenue: r.soldMtd * r.casePrice }))
-    .sort((a, b) => b.units - a.units);
-  const skuRevTotal = skus.reduce((s, r) => s + r.revenue, 0);
+  /* sales by SKU — ranked by units sold */
+  const bySku = aggTxns(rows, (r) => r.sku).sort((a, b) => b.cases - a.cases);
+  const skuRevTotal = bySku.reduce((s, r) => s + r.revenue, 0) || 1;
   $("sku-sales-table").innerHTML =
-    `<thead><tr><th>#</th><th>SKU</th><th>Product</th><th>Brand</th><th>WH</th><th class="num">Cases Sold</th><th class="num">Units Sold</th><th class="num">Revenue</th><th style="width:16%">Share of Sales</th></tr></thead><tbody>` +
-    skus.map((r, i) => {
+    `<thead><tr><th>#</th><th>SKU</th><th>Product</th><th>Brand</th><th class="num">Cases Sold</th><th class="num">Units Sold</th><th class="num">Revenue</th><th style="width:16%">Share of Sales</th></tr></thead><tbody>` +
+    (bySku.length ? bySku.map((r, i) => {
+      const info = SKU_INFO[r.key] || {};
       const pct = (r.revenue / skuRevTotal) * 100;
-      return `<tr><td style="color:var(--ink-muted)">${i + 1}</td><td><b>${r.sku}</b></td><td>${r.product}</td><td>${r.brand}</td><td>${r.wh}</td>
-        <td class="num">${fmt(r.soldMtd)}</td><td class="num"><b>${fmt(r.units)}</b></td><td class="num">${money(r.revenue)}</td>
+      return `<tr><td style="color:var(--ink-muted)">${i + 1}</td><td><b>${r.key}</b></td><td>${info.product || ""}</td><td>${info.brand || ""}</td>
+        <td class="num">${fmt(r.cases)}</td><td class="num"><b>${fmt(r.cases * BOTTLES_PER_CASE)}</b></td><td class="num">${money(r.revenue)}</td>
         <td><div style="display:flex;align-items:center;gap:6px"><div style="height:8px;border-radius:4px;background:var(--series-1);width:${Math.max(4, pct * 3)}%;max-width:70%"></div><span style="font-size:11px;color:var(--ink-muted)">${pct.toFixed(1)}%</span></div></td></tr>`;
-    }).join("") + `</tbody>`;
+    }).join("") : `<tr><td colspan="8" style="text-align:center;color:var(--ink-muted);padding:24px">No sales in this range</td></tr>`) + `</tbody>`;
 
-  /* Monthly sales trend */
-  lineChart("sales-trend-chart", MONTHLY_SALES_K.labels, [{ name: "Sales ($K)", values: MONTHLY_SALES_K.values }]);
+  /* top distributors table */
+  const byDist = aggTxns(rows, (r) => r.distributor || "Unknown");
+  const maxDist = byDist.length ? byDist[0].revenue : 1;
+  $("sales-dist-table").innerHTML =
+    `<thead><tr><th>#</th><th>Distributor</th><th class="num">Cases</th><th class="num">Revenue</th><th style="width:28%">Share</th></tr></thead><tbody>` +
+    (byDist.length ? byDist.map((d, i) =>
+      `<tr><td style="color:var(--ink-muted)">${i + 1}</td><td><b>${d.key}</b></td><td class="num">${fmt(d.cases)}</td><td class="num"><b>${money(d.revenue)}</b></td>
+       <td><div style="height:8px;border-radius:4px;background:var(--series-1);width:${Math.max(4, (d.revenue / maxDist) * 100)}%"></div></td></tr>`
+    ).join("") : `<tr><td colspan="5" style="text-align:center;color:var(--ink-muted);padding:24px">No sales in this range</td></tr>`) + `</tbody>`;
+
+  /* trend chart — daily buckets, weekly when the range is long */
+  const dayCount = len;
+  if (dayCount < 2) {
+    $("sales-trend-chart").innerHTML = `<div style="color:var(--ink-muted);padding:20px 0">Pick a range of 2+ days to see the trend.</div>`;
+  } else {
+    const weekly = dayCount > 45;
+    const buckets = new Map();
+    for (let i = 0; i < dayCount; i++) {
+      const d = new Date(from); d.setDate(d.getDate() + i);
+      const b = new Date(d);
+      if (weekly) b.setDate(b.getDate() - ((b.getDay() + 6) % 7));
+      buckets.set(+b, { label: b.toLocaleDateString("en-US", { month: "numeric", day: "numeric" }), v: 0 });
+    }
+    rows.forEach((r) => {
+      const b = new Date(r._d);
+      if (weekly) b.setDate(b.getDate() - ((b.getDay() + 6) % 7));
+      const e = buckets.get(+b);
+      if (e) e.v += r.revenue;
+    });
+    const bs = [...buckets.values()];
+    lineChart("sales-trend-chart", bs.map((b) => b.label), [{ name: weekly ? "Weekly sales ($K)" : "Daily sales ($K)", values: bs.map((b) => Math.round(b.v / 1000)) }]);
+  }
+}
+
+/* filter wiring */
+BRANDS.forEach((b) => $("sales-brand-filter").insertAdjacentHTML("beforeend", `<option>${b.name}</option>`));
+(function initSalesDates() {
+  const today = startOfDay(new Date());
+  const back = new Date(today); back.setDate(back.getDate() - 29);
+  $("sales-to").value = localISO(today);
+  $("sales-from").value = localISO(back);
 })();
+$("sales-presets").addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  salesPreset = chip.dataset.preset;
+  document.querySelectorAll("#sales-presets .chip").forEach((c) => c.classList.toggle("active", c === chip));
+  $("sales-custom").style.display = salesPreset === "custom" ? "inline-flex" : "none";
+  renderSales();
+});
+["sales-from", "sales-to"].forEach((id) => $(id).addEventListener("input", () => { if (salesPreset === "custom") renderSales(); }));
+$("sales-brand-filter").addEventListener("input", renderSales);
+$("sales-export").addEventListener("click", () => {
+  const { from, to } = salesRange();
+  const brand = $("sales-brand-filter").value;
+  const rows = txnsIn(from, to, brand);
+  const csv = "Date,SKU,Product,Brand,State,Distributor,Cases,Bottles,Revenue\n" +
+    rows.map((r) => [r.date, r.sku, `"${r.product}"`, `"${r.brand}"`, r.state, `"${r.distributor || ""}"`, r.cases, r.cases * BOTTLES_PER_CASE, r.revenue].join(",")).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  a.download = "tierlink_sales_" + localISO(from) + "_to_" + localISO(to) + ".csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+renderSales();
 
 /* ----- BRANDS ----- */
 $("brand-count").textContent = BRANDS.length + " brands in portfolio";
