@@ -754,15 +754,6 @@ function _showNotifCard(id, opts) {
 function showNewLeadAlert(lead) {
   lead = lead || { name:'Amanda Foster', phone:'(760) 555-0311', source:'Everquote', coverage:'Full Coverage' };
   clearBanner('newlead');
-  // Compact top-right card
-  _showNotifCard('newLeadNotifCard', {
-    hdrBg: 'linear-gradient(135deg,#22C55E,#16A34A)', icon: '🟢', type: 'New Lead', name: lead.name,
-    lines: [['Phone', lead.phone], ['Source', lead.source||'—'], ['Coverage', lead.coverage||'—']],
-    btns: [
-      { label:'Answer', bg:'#1A6ED0', color:'#fff', fn:"nav('leads',null);_dismissNotifCard('newLeadNotifCard');dismissBanner('newlead')" },
-      { label:'Ignore', bg:'#F3F4F6', color:'#374151', fn:"_dismissNotifCard('newLeadNotifCard');dismissBanner('newlead')" }
-    ]
-  });
   const el = document.createElement('div');
   el.id = 'newLeadBanner';
   el.className = 'notif-banner new-lead-banner';
