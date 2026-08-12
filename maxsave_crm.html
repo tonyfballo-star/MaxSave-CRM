@@ -1131,7 +1131,7 @@ body.dark-mode .text-thread { background:#1E1E1E; }
         <div id="textThreadName" style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--navy-900);margin:0">Maria Gonzalez</div>
         <div id="textThreadPhone" style="font-size:11.5px;color:var(--gray-500)">(619) 555-0124 · iMessage / SMS</div>
       </div>
-      <button class="btn btn-ghost" style="font-size:11.5px" title="Call" onclick="alert('Calling…')">📞</button>
+      <button class="btn btn-ghost" style="font-size:11.5px" title="Call" onclick="doCall(window._currentLeadName||'')">📞</button>
       <button class="btn btn-ghost" style="font-size:11.5px" title="View Profile" onclick="closeTextThread();nav('leaddetail',null)">👁 Profile</button>
       <div class="tbl-icon-btn" style="cursor:pointer;font-size:14px" onclick="closeTextThread()">✕</div>
     </div>
@@ -1283,6 +1283,7 @@ function sendTextReply() {
     let todayBucket = window.CONVERSATIONS[phone].find(d => d.date === 'Today');
     if (!todayBucket) { todayBucket = { date:'Today', msgs:[] }; window.CONVERSATIONS[phone].push(todayBucket); }
     todayBucket.msgs.push({ from:'us', time, author:'Sarah Kim', text });
+    logText({ direction:'outbound', leadName: (window.CURRENT_THREAD_CONTACT&&window.CURRENT_THREAD_CONTACT.name)||window._currentLeadName||'', content: text });
   }
 
   let attachHTML = '';
@@ -2043,11 +2044,86 @@ function submitTaskModal() {
 // ==================== DASHBOARD (REDESIGNED) ====================
 PAGES.dashboard = '';
 window.SALES           = window.SALES           || [];
+window.CALL_LOG        = window.CALL_LOG        || [];
+window.TEXT_LOG        = window.TEXT_LOG        || [];
 window.DASH_ADMIN_STATE= window.DASH_ADMIN_STATE || { range: 'period', customStart: '', customEnd: '' };
 window.CURRENT_USER    = window.CURRENT_USER    || { name: 'Tony Ballo', role: 'Admin' };
 window.PENDING_PAYMENT = window.PENDING_PAYMENT || null;
 window.PAYMENT_STATE   = window.PAYMENT_STATE   || { step: 'entry', last4: '', cardBrand: '' };
 window.ESIGN_STATE     = window.ESIGN_STATE     || { step: 'prepare' };
+
+// ---- Activity tracking ----
+function logCall(opts) {
+  const now = new Date();
+  window.CALL_LOG.push({
+    id: Date.now(), date: now.toISOString().slice(0,10), timestamp: now.toISOString(),
+    agentName: (opts&&opts.agentName) || (window.CURRENT_USER||{}).name || '',
+    leadName:  (opts&&opts.leadName)  || window._currentLeadName || '',
+    direction: (opts&&opts.direction) || 'outbound',
+    missed:    !!(opts&&opts.missed),
+    duration:  (opts&&opts.duration)  || 0
+  });
+}
+function logText(opts) {
+  const now = new Date();
+  window.TEXT_LOG.push({
+    id: Date.now(), date: now.toISOString().slice(0,10), timestamp: now.toISOString(),
+    agentName: (opts&&opts.agentName) || (window.CURRENT_USER||{}).name || '',
+    leadName:  (opts&&opts.leadName)  || window._currentLeadName || '',
+    direction: (opts&&opts.direction) || 'outbound',
+    content:   (opts&&opts.content)   || ''
+  });
+}
+function doCall(leadName, phone) {
+  logCall({ agentName: (window.CURRENT_USER||{}).name||'', leadName: leadName||window._currentLeadName||'', direction:'outbound' });
+  alert('Calling ' + (leadName||phone||'lead') + '…');
+}
+
+// ---- Report data helpers — read from actual SALES/CALL_LOG/TEXT_LOG ----
+function getReportsSales() {
+  const s = window.REPORTS_STATE || {};
+  const allSales = window.SALES || [];
+  const start = s.startDate || '', end = s.endDate || '';
+  if (!start && !end) return allSales;
+  return allSales.filter(x => (!start || x.date >= start) && (!end || x.date <= end));
+}
+function getAgentSalesData(name) {
+  const s = window.REPORTS_STATE || {};
+  const start = s.startDate || '', end = s.endDate || '';
+  const sales = (window.SALES||[]).filter(x => x.agentName===name && (!start||x.date>=start) && (!end||x.date<=end));
+  return {
+    apps:         sales.reduce((t,x)=>t+(x.totalPolicies||1),0),
+    feeCollected: sales.reduce((t,x)=>t+(x.feeCollected||0),0),
+    feeExtended:  sales.reduce((t,x)=>t+(x.feeExtended||0),0),
+    feeTotal:     sales.reduce((t,x)=>t+(x.feeTotal||0),0),
+    premium:      sales.reduce((t,x)=>t+(x.premium||0)+(x.towingPremium||0),0)
+  };
+}
+function getAgentActivityData(name) {
+  const s  = window.REPORTS_STATE || {};
+  const start = s.startDate || '', end = s.endDate || '';
+  const calls = (window.CALL_LOG||[]).filter(c=>c.agentName===name&&(!start||c.date>=start)&&(!end||c.date<=end));
+  const texts = (window.TEXT_LOG||[]).filter(t=>t.agentName===name&&(!start||t.date>=start)&&(!end||t.date<=end));
+  const ext   = (typeof AGENT_EXTENDED_DATA!=='undefined'?AGENT_EXTENDED_DATA:{})[name]||{};
+  const sc    = (typeof rptScale==='function'&&window.REPORTS_STATE)?rptScale(window.REPORTS_STATE):1;
+  const hasC  = calls.length>0, hasT = texts.length>0;
+  const rV    = (v)=>typeof rptVal==='function'?rptVal(v,sc):Math.round(v*sc);
+  const oc    = hasC ? calls.filter(c=>c.direction==='outbound'&&!c.missed).length : rV(ext.outboundCalls||0);
+  const ic    = hasC ? calls.filter(c=>c.direction==='inbound').length              : rV(ext.inboundCalls||0);
+  const mc    = hasC ? calls.filter(c=>c.missed).length                             : rV(ext.missedCalls||0);
+  const ts    = hasT ? texts.filter(t=>t.direction==='outbound').length             : rV(ext.textsSent||0);
+  const tr2   = hasT ? texts.filter(t=>t.direction==='inbound').length              : rV(ext.textsRecv||0);
+  return {
+    outboundCalls:oc, inboundCalls:ic, missedCalls:mc, dials:oc+mc, totalCalls:oc+ic+mc,
+    textsSent:ts, textsRecv:tr2,
+    newLeads:     rV(ext.newLeads||0),
+    leadsMissed:  rV(ext.leadsMissed||0),
+    inboundClose: ext.inboundClose||'0%',
+    outboundClose:ext.outboundClose||'0%',
+    avgCallDur:   ext.avgCallDur||0,
+    revenuePerLead:ext.revenuePerLead||0
+  };
+}
 
 // ==================== LEADS ====================
 // State for filters/pagination/view
@@ -2541,6 +2617,8 @@ function sendBulkText() {
       alert('📅 Scheduled — ' + count + ' text' + (count===1?'':'s') + ' will send on ' + date + ' at ' + time + '.');
     } else {
       alert('✅ Bulk text sent to ' + count + ' recipient' + (count===1?'':'s') + '.');
+      // Log one outbound text entry per recipient for activity tracking
+      for (let i = 0; i < count; i++) logText({ direction:'outbound', content: msg });
     }
     if (leadCount > 0 && typeof clearSelection === 'function') clearSelection();
     if (custCount > 0 && typeof clearCustomerSelection === 'function') clearCustomerSelection();
@@ -2634,7 +2712,7 @@ PAGES.leaddetail = `
     <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:3px">Lead ID: MSI-2026-04841 &middot; Source: Everquote &middot; Received 10 days ago &middot; Agent: Sarah Kim</div>
   </div>
   <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex-shrink:0">
-    <button onclick="alert('Calling (619) 555-0124…')" style="display:flex;align-items:center;gap:5px;background:#2563EB;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📞 Call</button>
+    <button onclick="doCall(window._currentLeadName||'')" style="display:flex;align-items:center;gap:5px;background:#2563EB;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📞 Call</button>
     <div style="position:relative">
       <button onclick="openTextThread()" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">💬 Text</button>
       <span class="text-unread-badge" id="textUnreadBadge">2</span>
@@ -3003,7 +3081,7 @@ body.dark-mode .text-thread { background:#1E1E1E; }
         <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--navy-900);margin:0">Maria Gonzalez</div>
         <div style="font-size:11.5px;color:var(--gray-500)">(619) 555-0124 · iMessage / SMS</div>
       </div>
-      <button class="btn btn-ghost" style="font-size:11.5px" title="Call" onclick="alert('Calling Maria…')">📞</button>
+      <button class="btn btn-ghost" style="font-size:11.5px" title="Call" onclick="doCall(window._currentLeadName||'')">📞</button>
       <div class="tbl-icon-btn" style="cursor:pointer;font-size:14px" onclick="closeTextThread()">✕</div>
     </div>
 
@@ -4923,7 +5001,7 @@ function renderLiveView() {
             <td><span style="font-size:11.5px;font-weight:700;color:${statusCol}">${h.outcome}</span></td>
             <td>${h.recording?'<button type="button" class="btn btn-ghost" style="font-size:11px;padding:4px 9px" onclick="alert(\'▶ Playing recording…\')">▶ Play</button>':'<span style="color:var(--gray-300);font-size:11px">—</span>'}</td>
             <td><div style="display:flex;gap:5px">
-              <button type="button" title="Call back" onclick="alert('Calling ${safeC}…')" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--green-200);background:var(--green-50);cursor:pointer;font-size:12px">📞</button>
+              <button type="button" title="Call back" onclick="doCall('${safeC}')" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--green-200);background:var(--green-50);cursor:pointer;font-size:12px">📞</button>
               <button type="button" title="Text" onclick="window.LIVEVIEW_STATE.historyTab='Texts';window.LIVEVIEW_STATE.textThread='${h.phone}';refreshLiveView()" style="width:28px;height:28px;border-radius:6px;border:1px solid #C3D6E8;background:var(--blue-light);cursor:pointer;font-size:12px">💬</button>
             </div></td>
           </tr>`;
@@ -4966,7 +5044,7 @@ function renderLiveView() {
             <div style="font-size:12px;color:var(--gray-500);margin-top:1px">${selectedThread.phone}</div>
           </div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="alert('Calling ${selectedThread.contact}…')">📞 Call</button>
+            <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="doCall('${selectedThread.contact}')">📞 Call</button>
             <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="nav('leaddetail',null)">View Lead →</button>
           </div>
         </div>
@@ -5237,7 +5315,7 @@ function renderInboxCalls(calls, callFilter) {
             <td>${h.recording?`<button type="button" class="btn btn-ghost" style="font-size:11px;padding:4px 11px" onclick="viewTranscript('${safeName}')">📄 View</button>`:'<span style="color:var(--gray-300);font-size:11px">—</span>'}</td>
             <td>
               <div style="display:flex;gap:5px">
-                <button type="button" title="Call back" onclick="alert('Calling ${safeName}…')" style="width:30px;height:30px;border-radius:6px;border:1px solid var(--green-200);background:var(--green-50);cursor:pointer;font-size:13px">📞</button>
+                <button type="button" title="Call back" onclick="doCall('${safeName}')" style="width:30px;height:30px;border-radius:6px;border:1px solid var(--green-200);background:var(--green-50);cursor:pointer;font-size:13px">📞</button>
                 <button type="button" title="Text" onclick="openTextThread('${safeName}','${h.phone}')" style="width:30px;height:30px;border-radius:6px;border:1px solid #C3D6E8;background:var(--blue-light);cursor:pointer;font-size:13px">💬</button>
                 <button type="button" title="View profile" onclick="nav('leaddetail',null)" style="width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;font-size:13px">👁</button>
               </div>
@@ -5315,7 +5393,7 @@ function renderInboxTexts(threads, textFilter, selectedPhone) {
             <div style="font-size:12px;color:var(--gray-500);margin-top:1px">${selectedContact.phone} · SMS / MMS</div>
           </div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="alert('Calling ${selectedContact.name.replace(/'/g,"\\'")}…')">📞 Call</button>
+            <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="doCall('${selectedContact.name.replace(/'/g,"\\'")}')">📞 Call</button>
             <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px" onclick="nav('leaddetail',null)">View Lead →</button>
           </div>
         </div>
@@ -5367,6 +5445,7 @@ function inboxSendText(phone) {
   if (!bucket) { bucket = { date:'Today', msgs:[] }; window.CONVERSATIONS[phone].push(bucket); }
   const time = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
   bucket.msgs.push({ from:'us', time, text: v });
+  logText({ direction:'outbound', content: v });
   inp.value = '';
   refreshInbox();
 }
@@ -5394,7 +5473,7 @@ function renderInboxEmails(emails) {
             <div style="display:flex;gap:6px;margin-top:9px" onclick="event.stopPropagation()">
               <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 11px" onclick="alert('Reply to ${e.from.replace(/'/g,"\\'")} composer opening…')">↩ Reply</button>
               <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 11px">↪ Forward</button>
-              ${e.phone?`<button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 11px" onclick="alert('Calling ${e.from.replace(/'/g,"\\'")}…')">📞 Call</button><button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 11px" onclick="openTextThread('${e.from.replace(/'/g,"\\'")}','${e.phone}')">💬 Text</button>`:''}
+              ${e.phone?`<button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 11px" onclick="doCall('${e.from.replace(/'/g,"\\'")}')">📞 Call</button><button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 11px" onclick="openTextThread('${e.from.replace(/'/g,"\\'")}','${e.phone}')">💬 Text</button>`:''}
               <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 11px">⏰ Snooze</button>
               <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 11px">📁 Archive</button>
               ${e.phone?`<button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 11px" onclick="nav('leaddetail',null)">👁 Profile</button>`:''}
@@ -6353,11 +6432,13 @@ function renderReportsPage() {
   const sc = rptScale(s);
   const label = rptDateLabel(s);
 
-  const totalApps         = AGENTS.reduce((sum,a) => sum + rptVal(a.apps, sc), 0);
-  const totalFeeCollected = AGENTS.reduce((sum,a) => sum + rptFee(a.fee, sc), 0);
-  const totalFeeExtended  = AGENTS.reduce((sum,a) => sum + rptFee((AGENT_EXTENDED_DATA[a.name]||{}).feeExtended||0, sc), 0);
-  const totalPremium      = AGENTS.reduce((sum,a) => sum + rptVal(a.premium, sc), 0);
-  const avgClose = (AGENTS.reduce((sum,a) => sum + parseFloat(a.close), 0) / AGENTS.length).toFixed(1);
+  const _rptSales       = getReportsSales();
+  const totalApps         = _rptSales.reduce((sum,x)=>sum+(x.totalPolicies||1),0);
+  const totalFeeCollected = _rptSales.reduce((sum,x)=>sum+(x.feeCollected||0),0);
+  const totalFeeExtended  = _rptSales.reduce((sum,x)=>sum+(x.feeExtended||0),0);
+  const totalPremium      = _rptSales.reduce((sum,x)=>sum+(x.premium||0)+(x.towingPremium||0),0);
+  const _agentsClose = AGENTS.filter(a=>parseFloat(a.close)>0);
+  const avgClose = _agentsClose.length ? (_agentsClose.reduce((sum,a)=>sum+parseFloat(a.close),0)/_agentsClose.length).toFixed(1) : '0.0';
 
   const chipStyle = (active) => `padding:5px 14px;border-radius:var(--radius-full);border:none;cursor:pointer;font-size:12.5px;font-weight:600;font-family:var(--font-body);transition:all 0.15s;background:${active?'#1A6ED0':'var(--gray-100)'};color:${active?'#fff':'var(--gray-600)'}`;
 
@@ -6597,12 +6678,15 @@ function renderRptAgents(sc) {
   const s = window.REPORTS_STATE;
   const tierFilter = s.agentTierFilter || 'All';
   const filteredAgents = tierFilter === 'All' ? AGENTS : AGENTS.filter(a => a.tier === tierFilter);
-  const totApps    = filteredAgents.reduce((sum,a)=>sum+rptVal(a.apps,sc),0);
+  // Per-agent sales data from actual SALES records filtered to the selected date range
+  const _agSalesMap = {};
+  filteredAgents.forEach(a => { _agSalesMap[a.name] = getAgentSalesData(a.name); });
+  const totApps    = filteredAgents.reduce((sum,a)=>sum+(_agSalesMap[a.name].apps||0),0);
   const totGoal    = filteredAgents.reduce((sum,a)=>sum+a.goal,0);
   const totPct     = totGoal ? Math.round(totApps/totGoal*100) : 0;
-  const totFee     = filteredAgents.reduce((sum,a)=>sum+rptFee(a.fee,sc),0);
-  const totExtFee  = filteredAgents.reduce((sum,a)=>sum+rptFee((AGENT_EXTENDED_DATA[a.name]||{}).feeExtended||0,sc),0);
-  const totPrem    = filteredAgents.reduce((sum,a)=>sum+rptVal(a.premium,sc),0);
+  const totFee     = filteredAgents.reduce((sum,a)=>sum+(_agSalesMap[a.name].feeCollected||0),0);
+  const totExtFee  = filteredAgents.reduce((sum,a)=>sum+(_agSalesMap[a.name].feeExtended||0),0);
+  const totPrem    = filteredAgents.reduce((sum,a)=>sum+(_agSalesMap[a.name].premium||0),0);
   const totLeads   = filteredAgents.reduce((sum,a)=>sum+a.leads,0);
   const avgClose   = filteredAgents.length ? (filteredAgents.reduce((sum,a)=>sum+parseFloat(a.close),0)/filteredAgents.length).toFixed(1) : 0;
   const avgContact = filteredAgents.length ? (filteredAgents.reduce((sum,a)=>sum+parseFloat(a.contact),0)/filteredAgents.length).toFixed(1) : 0;
@@ -6634,10 +6718,11 @@ function renderRptAgents(sc) {
         <tbody>
           ${filteredAgents.map(a => {
             const ext    = AGENT_EXTENDED_DATA[a.name] || {};
-            const apps   = rptVal(a.apps, sc);
-            const fee    = rptFee(a.fee, sc);
-            const extFee = rptFee(ext.feeExtended || 0, sc);
-            const prem   = rptVal(a.premium, sc);
+            const sd     = _agSalesMap[a.name];
+            const apps   = sd.apps;
+            const fee    = sd.feeCollected;
+            const extFee = sd.feeExtended;
+            const prem   = sd.premium;
             const p      = pct(apps, a.goal);
             return `<tr>
               <td>
@@ -7122,13 +7207,14 @@ function renderRptPayroll(sc) {
   const BASE_PAY = 2500;
   let totPayroll=0, totCommission=0, totBase=0;
   const rows = AGENTS.map(a => {
-    const fee  = rptFee(a.fee, sc);
+    const sd   = getAgentSalesData(a.name);
+    const fee  = sd.feeCollected;
     const rate = COMMISSION_RATES[a.tier] || 0.25;
     const comm = Math.round(fee * rate);
     const base = BASE_PAY;
     const total= comm + base;
     totCommission += comm; totBase += base; totPayroll += total;
-    return { a, fee, rate, comm, base, total, apps: rptVal(a.apps, sc) };
+    return { a, fee, rate, comm, base, total, apps: sd.apps };
   });
   const highEarner = rows.reduce((m,r)=>r.total>m.total?r:m, rows[0]);
   const avgEarnings = AGENTS.length ? Math.round(totPayroll/AGENTS.length) : 0;
@@ -7182,15 +7268,19 @@ function renderRptActivity(sc) {
 
   const agents  = (typeof AGENTS!=='undefined'?AGENTS:[]).filter(a=>!a._archived);
 
+  // Build per-agent activity data from live logs (with AGENT_EXTENDED_DATA fallback for demo agents)
+  const _actMap = {};
+  agents.forEach(a => { _actMap[a.name] = getAgentActivityData(a.name); });
+
   // Team-level aggregates
-  const totOut   = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).outboundCalls||0,sc),0);
-  const totIn    = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).inboundCalls||0,sc),0);
-  const totMiss  = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).missedCalls||0,sc),0);
-  const totDials = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).dials||0,sc),0);
-  const totTS    = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).textsSent||0,sc),0);
-  const totTR    = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).textsRecv||0,sc),0);
-  const totNL    = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).newLeads||0,sc),0);
-  const totLM    = agents.reduce((s,a)=>s+rptVal((AGENT_EXTENDED_DATA[a.name]||{}).leadsMissed||0,sc),0);
+  const totOut   = agents.reduce((s,a)=>s+(_actMap[a.name].outboundCalls||0),0);
+  const totIn    = agents.reduce((s,a)=>s+(_actMap[a.name].inboundCalls||0),0);
+  const totMiss  = agents.reduce((s,a)=>s+(_actMap[a.name].missedCalls||0),0);
+  const totDials = agents.reduce((s,a)=>s+(_actMap[a.name].dials||0),0);
+  const totTS    = agents.reduce((s,a)=>s+(_actMap[a.name].textsSent||0),0);
+  const totTR    = agents.reduce((s,a)=>s+(_actMap[a.name].textsRecv||0),0);
+  const totNL    = agents.reduce((s,a)=>s+(_actMap[a.name].newLeads||0),0);
+  const totLM    = agents.reduce((s,a)=>s+(_actMap[a.name].leadsMissed||0),0);
   const totCalls = totOut + totIn;
   const ansRate  = pct2(totIn - totMiss, totIn||1);
   const contactR = pct2(totOut, totDials||1);
@@ -7199,14 +7289,14 @@ function renderRptActivity(sc) {
 
   // Team avg close rate
   const closeNums = agents.map(a=>{
-    const ext=AGENT_EXTENDED_DATA[a.name]||{};
-    const ic=parseFloat(ext.inboundClose)||0;
-    const oc=parseFloat(ext.outboundClose)||0;
+    const act=_actMap[a.name];
+    const ic=parseFloat(act.inboundClose)||0;
+    const oc=parseFloat(act.outboundClose)||0;
     return ic||oc ? (ic+oc)/(ic&&oc?2:1) : null;
   }).filter(x=>x!==null);
   const teamClose = closeNums.length ? Math.round(closeNums.reduce((a,b)=>a+b,0)/closeNums.length*10)/10 : 0;
 
-  const avgDur = agents.length ? Math.round(agents.reduce((s,a)=>s+((AGENT_EXTENDED_DATA[a.name]||{}).avgCallDur||0),0)/agents.length) : 0;
+  const avgDur = agents.length ? Math.round(agents.reduce((s,a)=>s+(_actMap[a.name].avgCallDur||0),0)/agents.length) : 0;
 
   // Mini progress bar helper
   const miniBar = (val, max, color) => {
@@ -7277,17 +7367,17 @@ function renderRptActivity(sc) {
         </thead>
         <tbody>
           ${agents.map((a,i) => {
-            const ext  = AGENT_EXTENDED_DATA[a.name] || {};
-            const oc   = rptVal(ext.outboundCalls||0, sc);
-            const ic   = rptVal(ext.inboundCalls||0, sc);
-            const mc   = rptVal(ext.missedCalls||0, sc);
-            const d    = rptVal(ext.dials||0, sc);
-            const ts   = rptVal(ext.textsSent||0, sc);
-            const tr2  = rptVal(ext.textsRecv||0, sc);
-            const nl   = rptVal(ext.newLeads||0, sc);
-            const lm   = rptVal(ext.leadsMissed||0, sc);
-            const ibC  = parseFloat(ext.inboundClose)||0;
-            const obC  = parseFloat(ext.outboundClose)||0;
+            const act  = _actMap[a.name];
+            const oc   = act.outboundCalls;
+            const ic   = act.inboundCalls;
+            const mc   = act.missedCalls;
+            const d    = act.dials;
+            const ts   = act.textsSent;
+            const tr2  = act.textsRecv;
+            const nl   = act.newLeads;
+            const lm   = act.leadsMissed;
+            const ibC  = parseFloat(act.inboundClose)||0;
+            const obC  = parseFloat(act.outboundClose)||0;
             const ovC  = ibC||obC ? Math.round(((ibC+(obC||ibC))/2)*10)/10 : 0;
             const contPct  = pct2(oc, d||1);
             const replPct  = pct2(tr2, ts||1);
@@ -7329,8 +7419,8 @@ function renderRptActivity(sc) {
                 <div style="font-size:13.5px;font-weight:800;color:${clrPct(ovC)}">${ovC}%</div>
                 ${miniBar(ovC,100,clrPct(ovC))}
               </td>
-              ${statCell(fmtDur(ext.avgCallDur||0), 'var(--gray-700)')}
-              ${statCell(ext.revenuePerLead ? fmt$(ext.revenuePerLead) : '—', '#16A34A')}
+              ${statCell(fmtDur(act.avgCallDur||0), 'var(--gray-700)')}
+              ${statCell(act.revenuePerLead ? fmt$(act.revenuePerLead) : '—', '#16A34A')}
             </tr>`;
           }).join('')}
         </tbody>
@@ -7461,25 +7551,28 @@ function renderRptNewBusiness(sc) {
 }
 
 function renderRptFees(sc, totalFeeCollected, totalFeeExtended) {
-  // PP = current pay period (Jul 16–31), MTD = full month (Jul 1–31)
-  const scPP  = 1.0;
-  const scMTD = 1.94;
+  // PP = currently selected date range; MTD = current calendar month
+  const today = new Date().toISOString().slice(0,10);
+  const mtdStart = today.slice(0,7) + '-01';
+  const ppSales  = getReportsSales();
+  const mtdSales = (window.SALES||[]).filter(x=>x.date>=mtdStart&&x.date<=today);
 
-  const ppCollected  = AGENTS.reduce((s,a)=>s+rptFee(a.fee,scPP),0);
-  const ppExtended   = AGENTS.reduce((s,a)=>s+rptFee((AGENT_EXTENDED_DATA[a.name]||{}).feeExtended||0,scPP),0);
+  const ppCollected  = ppSales.reduce((s,x)=>s+(x.feeCollected||0),0);
+  const ppExtended   = ppSales.reduce((s,x)=>s+(x.feeExtended||0),0);
   const ppBooked     = ppCollected + ppExtended;
   const ppRate       = ppBooked ? Math.round(ppCollected/ppBooked*100) : 0;
 
-  const mtdCollected = AGENTS.reduce((s,a)=>s+rptFee(a.fee,scMTD),0);
-  const mtdExtended  = AGENTS.reduce((s,a)=>s+rptFee((AGENT_EXTENDED_DATA[a.name]||{}).feeExtended||0,scMTD),0);
+  const mtdCollected = mtdSales.reduce((s,x)=>s+(x.feeCollected||0),0);
+  const mtdExtended  = mtdSales.reduce((s,x)=>s+(x.feeExtended||0),0);
   const mtdBooked    = mtdCollected + mtdExtended;
   const mtdRate      = mtdBooked ? Math.round(mtdCollected/mtdBooked*100) : 0;
 
   const outstanding      = FEE_AGING_DATA.reduce((s,r)=>s+r.amount,0);
   const outstandingCount = FEE_AGING_DATA.reduce((s,r)=>s+r.count,0);
 
-  const ppTag  = `<div style="font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px">Pay Period · Jul 16–31</div>`;
-  const mtdRow = (val, color) => `<div style="margin-top:8px;padding-top:7px;border-top:1px solid rgba(0,0,0,0.07)"><div style="font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:2px">MTD · Jul</div><div style="font-size:15px;font-weight:800;color:${color}">${val}</div></div>`;
+  const _s = window.REPORTS_STATE||{}; const _ppLabel = _s.startDate&&_s.endDate ? _s.startDate.slice(5)+' – '+_s.endDate.slice(5) : 'Selected Period';
+  const ppTag  = `<div style="font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px">${_ppLabel}</div>`;
+  const mtdRow = (val, color) => `<div style="margin-top:8px;padding-top:7px;border-top:1px solid rgba(0,0,0,0.07)"><div style="font-size:9px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:2px">MTD · ${today.slice(0,7)}</div><div style="font-size:15px;font-weight:800;color:${color}">${val}</div></div>`;
 
   return `
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px">
@@ -7855,7 +7948,7 @@ function openFeeAgingModal(bucket) {
             <td style="font-weight:800;color:${color}">${fmt$(a.amount)}</td>
             <td>
               <div style="display:flex;gap:5px">
-                <button onclick="alert('Calling ${a.name}…')" style="background:#2563EB;color:#fff;border:none;border-radius:6px;padding:4px 11px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📞 Call</button>
+                <button onclick="doCall('${a.name}')" style="background:#2563EB;color:#fff;border:none;border-radius:6px;padding:4px 11px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📞 Call</button>
                 <button onclick="alert('Texting ${a.name}…')" style="background:var(--gray-100);color:var(--navy-900);border:1px solid var(--border);border-radius:6px;padding:4px 11px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font-body)">💬 Text</button>
               </div>
             </td>
@@ -10430,9 +10523,13 @@ function buildAgentDashboard() {
   const goal    = ag.apps    !== undefined ? ag.apps    : (me.goal    || 1);
   const feeGoal = ag.fee     !== undefined ? ag.fee     : (me.feeGoal || 0);
   const premGoal= ag.premium !== undefined ? ag.premium : 0;
-  const apps    = me.apps    || 0;
-  const fee     = me.fee     || 0;
-  const prem    = me.premium || 0;
+  // Derive KPI values directly from window.SALES so new sales appear immediately
+  const { start: _agDrStart, end: _agDrEnd } = getDashRange();
+  const _myPPSales = (window.SALES||[]).filter(s=>s.agentName===cu.name&&s.date>=_agDrStart&&s.date<=_agDrEnd);
+  const _myAllSales= (window.SALES||[]).filter(s=>s.agentName===cu.name);
+  const apps    = _myAllSales.reduce((t,s)=>t+(s.totalPolicies||1),0);
+  const fee     = _myAllSales.reduce((t,s)=>t+(s.feeCollected||0),0);
+  const prem    = _myAllSales.reduce((t,s)=>t+(s.premium||0)+(s.towingPremium||0),0);
   const pct     = Math.min(150, Math.round(apps / (goal||1) * 100));
   const feePct  = feeGoal ? Math.min(100, Math.round(fee / feeGoal * 100)) : 0;
   const status      = pct >= 100 ? 'ON TRACK' : pct >= 75 ? 'CLOSE' : 'BEHIND';
@@ -10448,7 +10545,9 @@ function buildAgentDashboard() {
   const lbBars = sortedA.map((a, i) => {
     const ag_ = (window.AGENT_GOALS || {})[a.name] || {};
     const g   = ag_.apps !== undefined ? ag_.apps : (a.goal || 1);
-    const p   = Math.min(100, Math.round((a.apps||0) / (g||1) * 100));
+    const _aSales = (window.SALES||[]).filter(s=>s.agentName===a.name);
+    const _aApps  = _aSales.reduce((t,s)=>t+(s.totalPolicies||1),0);
+    const p   = Math.min(100, Math.round(_aApps / (g||1) * 100));
     const ini = a.name.split(' ').map(w=>w[0]).join('').slice(0,2);
     const isMe    = a.name === cu.name;
     const rankBg  = i < 3 ? rankColorsA[i] : '#E5E7EB';
@@ -10459,7 +10558,7 @@ function buildAgentDashboard() {
       <div style="flex:1;min-width:0">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px">
           <span style="font-size:13px;font-weight:${isMe?'800':'700'};color:${isMe?'#1A6ED0':'var(--navy-900)'}">${a.name}${isMe?' (You)':''}</span>
-          <span style="font-size:12px;font-weight:700;color:${p>=100?'#16A34A':p>=75?'#B45309':'var(--navy-700)'}">${a.apps||0} / ${g} &nbsp;<span style="color:${p>=100?'#16A34A':p>=75?'#F59E0B':'#1A6ED0'}">${p}%</span></span>
+          <span style="font-size:12px;font-weight:700;color:${p>=100?'#16A34A':p>=75?'#B45309':'var(--navy-700)'}">${_aApps} / ${g} &nbsp;<span style="color:${p>=100?'#16A34A':p>=75?'#F59E0B':'#1A6ED0'}">${p}%</span></span>
         </div>
         <div style="height:7px;background:#F3F4F6;border-radius:99px;overflow:hidden">
           <div style="height:100%;width:${p}%;background:${p>=100?'#16A34A':p>=75?'#F59E0B':'#1A6ED0'};border-radius:99px;transition:width 0.4s ease"></div>
@@ -10651,13 +10750,17 @@ function buildAdminDashboard() {
     </div>`;
   }).join('') : `<div style="padding:40px;text-align:center;color:var(--gray-400);font-size:13px">No sales recorded yet.</div>`;
 
-  // Goal progress leaderboard — sorted by apps descending
-  const sortedGoalAgents = allAgents.slice().sort((a,b)=>(b.apps||0)-(a.apps||0));
+  // Goal progress leaderboard — sorted by apps from actual SALES records
+  const _allSalesForLb = window.SALES || [];
+  const _agentAppsLb = {};
+  _allSalesForLb.forEach(s => { _agentAppsLb[s.agentName] = (_agentAppsLb[s.agentName]||0) + (s.totalPolicies||1); });
+  const sortedGoalAgents = allAgents.slice().sort((a,b)=>(_agentAppsLb[b.name]||0)-(_agentAppsLb[a.name]||0));
   const rankColors = ['#F59E0B','#94A3B8','#CD7F32'];
   const goalBars = sortedGoalAgents.map((a, i) => {
     const _ag  = (window.AGENT_GOALS || {})[a.name] || {};
     const goal = _ag.apps !== undefined ? _ag.apps : (a.goal || 1);
-    const pct  = Math.min(100, Math.round((a.apps||0) / (goal||1) * 100));
+    const _lbApps = _agentAppsLb[a.name] || 0;
+    const pct  = Math.min(100, Math.round(_lbApps / (goal||1) * 100));
     const ini  = a.name.split(' ').map(w=>w[0]).join('').slice(0,2);
     const rankBg  = i < 3 ? rankColors[i] : '#E5E7EB';
     const rankClr = i < 3 ? '#fff' : '#374151';
@@ -10667,7 +10770,7 @@ function buildAdminDashboard() {
       <div style="flex:1;min-width:0">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px">
           <span style="font-size:13px;font-weight:700;color:var(--navy-900)">${a.name}</span>
-          <span style="font-size:12px;font-weight:700;color:${pct>=100?'#16A34A':pct>=75?'#B45309':'var(--navy-700)'}">${a.apps||0} / ${goal} apps &nbsp; <span style="color:${pct>=100?'#16A34A':pct>=75?'#F59E0B':'#1A6ED0'}">${pct}%</span></span>
+          <span style="font-size:12px;font-weight:700;color:${pct>=100?'#16A34A':pct>=75?'#B45309':'var(--navy-700)'}">${_lbApps} / ${goal} apps &nbsp; <span style="color:${pct>=100?'#16A34A':pct>=75?'#F59E0B':'#1A6ED0'}">${pct}%</span></span>
         </div>
         <div style="height:7px;background:#F3F4F6;border-radius:99px;overflow:hidden">
           <div style="height:100%;width:${pct}%;background:${pct>=100?'#16A34A':pct>=75?'#F59E0B':'#1A6ED0'};border-radius:99px;transition:width 0.4s ease"></div>
