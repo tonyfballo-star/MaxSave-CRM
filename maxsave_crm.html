@@ -299,7 +299,7 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .notif-banner { position:fixed; top:56px; left:138px; right:0; z-index:9900; display:flex; align-items:center; gap:16px; padding:13px 22px; box-shadow:0 6px 24px rgba(0,0,0,0.30); animation:notifSlideDown 0.32s cubic-bezier(0.34,1.56,0.64,1); font-family:var(--font-body); }
 .notif-banner.new-lead-banner { background:linear-gradient(135deg,#22C55E 0%,#16A34A 100%); color:#fff; }
 @keyframes textPopupSlide { from { opacity:0;transform:translateY(24px); } to { opacity:1;transform:translateY(0); } }
-.notif-banner.inbound-call-banner { background:linear-gradient(135deg,#0A1824 0%,#0E2340 60%,#122840 100%); color:#fff; }
+.notif-banner.inbound-call-banner { background:linear-gradient(135deg,#1A55C0 0%,#1347A8 55%,#0F3E94 100%); color:#fff; }
 .notif-divider { width:1px; height:42px; background:rgba(255,255,255,0.20); flex-shrink:0; }
 .notif-chip { background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); padding:5px 12px; border-radius:var(--radius-full); font-size:11.5px; font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
 .notif-chip:hover { background:rgba(255,255,255,0.25); }
@@ -714,9 +714,55 @@ body.dark-mode .logout-modal h2 { color: #C8C8C8; }
 // ===== NOTIFICATION BANNERS =====
 window._notifTimers = {};
 
+// ---- Top-right notification card stack ----
+function _dismissNotifCard(id) {
+  var c = document.getElementById(id);
+  if (!c) return;
+  c.style.transition = 'opacity 0.25s,transform 0.25s';
+  c.style.opacity = '0'; c.style.transform = 'translateX(40px)';
+  setTimeout(function() { if (c && c.parentNode) c.parentNode.removeChild(c); }, 270);
+}
+function _showNotifCard(id, opts) {
+  _dismissNotifCard(id);
+  var card = document.createElement('div');
+  card.id = id;
+  // Stack below the text popup (top:74px, ~110px tall) — positioned at top:200px
+  card.style.cssText = 'position:fixed;top:200px;right:24px;width:310px;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,0.20);z-index:9988;overflow:hidden;font-family:var(--font-body);animation:textPopupSlide 0.32s cubic-bezier(0.34,1.56,0.64,1)';
+  var lines = opts.lines.map(function(l) {
+    return '<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11.5px;font-weight:700;color:#9CA3AF">' + l[0] + '</span><span style="font-size:12px;font-weight:700;color:#111827">' + l[1] + '</span></div>';
+  }).join('');
+  var btns = opts.btns.map(function(b) {
+    return '<button onclick="' + b.fn + '" style="flex:1;padding:7px 0;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);background:' + b.bg + ';color:' + b.color + '">' + b.label + '</button>';
+  }).join('');
+  card.innerHTML =
+    '<div style="background:' + opts.hdrBg + ';padding:9px 12px;display:flex;align-items:center;gap:9px">' +
+      '<div style="font-size:19px;animation:notifPulse 1s ease-in-out infinite">' + opts.icon + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:1px">' + opts.type + '</div>' +
+        '<div style="font-size:15px;font-weight:800;color:#fff;font-family:var(--font-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + opts.name + '</div>' +
+      '</div>' +
+      '<button onclick="_dismissNotifCard(\'' + id + '\')" style="background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:6px;padding:4px 9px;cursor:pointer;font-size:14px;line-height:1">✕</button>' +
+    '</div>' +
+    '<div style="background:#fff;padding:11px 13px">' +
+      lines +
+      (btns ? '<div style="display:flex;gap:7px;margin-top:9px">' + btns + '</div>' : '') +
+    '</div>';
+  document.body.appendChild(card);
+  window._notifTimers[id] = setTimeout(function() { _dismissNotifCard(id); }, 20000);
+}
+
 function showNewLeadAlert(lead) {
   lead = lead || { name:'Amanda Foster', phone:'(760) 555-0311', source:'Everquote', coverage:'Full Coverage' };
   clearBanner('newlead');
+  // Compact top-right card
+  _showNotifCard('newLeadNotifCard', {
+    hdrBg: 'linear-gradient(135deg,#22C55E,#16A34A)', icon: '🟢', type: 'New Lead', name: lead.name,
+    lines: [['Phone', lead.phone], ['Source', lead.source||'—'], ['Coverage', lead.coverage||'—']],
+    btns: [
+      { label:'Answer', bg:'#1A6ED0', color:'#fff', fn:"nav('leads',null);_dismissNotifCard('newLeadNotifCard');dismissBanner('newlead')" },
+      { label:'Ignore', bg:'#F3F4F6', color:'#374151', fn:"_dismissNotifCard('newLeadNotifCard');dismissBanner('newlead')" }
+    ]
+  });
   const el = document.createElement('div');
   el.id = 'newLeadBanner';
   el.className = 'notif-banner new-lead-banner';
@@ -743,6 +789,15 @@ function showNewLeadAlert(lead) {
 function showInboundCallAlert(call) {
   call = call || { name:'Maria Gonzalez', phone:'(619) 555-0124', isCustomer:true };
   clearBanner('inbound');
+  // Compact top-right card (blue for inbound)
+  _showNotifCard('inboundCallNotifCard', {
+    hdrBg: 'linear-gradient(135deg,#1A55C0,#0F3E94)', icon: '📞', type: 'Inbound Call', name: call.name,
+    lines: [['Phone', call.phone], ['Type', call.isCustomer?'Existing Customer':'New Caller']],
+    btns: [
+      { label:'View Profile', bg:'#1A6ED0', color:'#fff', fn:"nav('customers',null);_dismissNotifCard('inboundCallNotifCard');dismissBanner('inbound')" },
+      { label:'End Call', bg:'#FEE2E2', color:'#DC2626', fn:"_dismissNotifCard('inboundCallNotifCard');dismissBanner('inbound')" }
+    ]
+  });
   const el = document.createElement('div');
   el.id = 'inboundCallBanner';
   el.className = 'notif-banner inbound-call-banner';
@@ -819,7 +874,7 @@ function showTextPopup(contact, phone, preview) {
   if (old && old.parentNode) old.parentNode.removeChild(old);
   var popup = document.createElement('div');
   popup.id = 'textNotifPopup';
-  popup.style.cssText = 'position:fixed;bottom:24px;right:24px;width:310px;border-radius:12px;box-shadow:0 10px 36px rgba(0,0,0,0.20);z-index:9990;overflow:hidden;cursor:pointer;animation:textPopupSlide 0.32s cubic-bezier(0.34,1.56,0.64,1);font-family:var(--font-body)';
+  popup.style.cssText = 'position:fixed;top:74px;right:24px;width:310px;border-radius:12px;box-shadow:0 10px 36px rgba(0,0,0,0.20);z-index:9990;overflow:hidden;cursor:pointer;animation:textPopupSlide 0.32s cubic-bezier(0.34,1.56,0.64,1);font-family:var(--font-body)';
   popup.onclick = function() {
     if (window.INBOX_STATE) window.INBOX_STATE.tab = 'Texts';
     nav('inbox', document.querySelector('.nav-item[onclick*="inbox"]'));
@@ -840,7 +895,7 @@ function showTextPopup(contact, phone, preview) {
     if (popup.parentNode) {
       popup.style.transition = 'opacity 0.3s,transform 0.3s';
       popup.style.opacity = '0';
-      popup.style.transform = 'translateY(20px)';
+      popup.style.transform = 'translateY(-20px)';
       setTimeout(function() { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 320);
     }
   }, 8000);
@@ -11028,6 +11083,133 @@ function toggleDark() {
   localStorage.setItem('maxsave-dark', isDark ? '1' : '0');
 }
 
+// ===== AGENT TEAM CHAT =====
+window.AGENT_MESSAGES   = window.AGENT_MESSAGES   || { all: [] };
+window.AGENT_CHAT_STATE = window.AGENT_CHAT_STATE || { open: false, thread: null };
+window.AGENT_CHAT_UNREAD= window.AGENT_CHAT_UNREAD|| 0;
+
+function toggleAgentChat() {
+  window.AGENT_CHAT_STATE.open = !window.AGENT_CHAT_STATE.open;
+  if (window.AGENT_CHAT_STATE.open) window.AGENT_CHAT_UNREAD = 0;
+  renderAgentChat();
+}
+function openChatThread(thread) {
+  window.AGENT_CHAT_STATE.thread = thread;
+  renderAgentChat();
+  setTimeout(function(){ var m=document.getElementById('agentChatMsgs'); if(m) m.scrollTop=m.scrollHeight; }, 40);
+}
+function backToChatList() { window.AGENT_CHAT_STATE.thread = null; renderAgentChat(); }
+function sendAgentMsg() {
+  var inp = document.getElementById('agentChatInput');
+  if (!inp) return;
+  var text = inp.value.trim(); if (!text) return;
+  var thread = window.AGENT_CHAT_STATE.thread || 'all';
+  if (!window.AGENT_MESSAGES[thread]) window.AGENT_MESSAGES[thread] = [];
+  var now = new Date();
+  window.AGENT_MESSAGES[thread].push({
+    from: (window.CURRENT_USER||{}).name || 'You',
+    text: text,
+    time: now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})
+  });
+  inp.value = '';
+  renderAgentChat();
+  setTimeout(function(){ var m=document.getElementById('agentChatMsgs'); if(m) m.scrollTop=m.scrollHeight; }, 30);
+}
+function agentChatIncoming(fromName, toThread, text) {
+  // Simulate a received DM or group message (call this to demo/future backend push)
+  toThread = toThread || 'all';
+  if (!window.AGENT_MESSAGES[toThread]) window.AGENT_MESSAGES[toThread] = [];
+  var now = new Date();
+  window.AGENT_MESSAGES[toThread].push({ from: fromName, text: text, time: now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) });
+  if (!(window.AGENT_CHAT_STATE.open && window.AGENT_CHAT_STATE.thread === toThread)) {
+    window.AGENT_CHAT_UNREAD = (window.AGENT_CHAT_UNREAD||0) + 1;
+  }
+  renderAgentChat();
+}
+
+function renderAgentChat() {
+  var root = document.getElementById('agentChatRoot');
+  if (!root) { root = document.createElement('div'); root.id = 'agentChatRoot'; document.body.appendChild(root); }
+  var state   = window.AGENT_CHAT_STATE;
+  var me      = (window.CURRENT_USER||{}).name || 'You';
+  var agents  = (typeof AGENTS !== 'undefined' ? AGENTS : []).filter(function(a){ return !a._archived && a.name !== me; });
+  var unread  = window.AGENT_CHAT_UNREAD || 0;
+
+  // Chat bubble button
+  var bubbleHtml = '<button onclick="toggleAgentChat()" style="position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:var(--navy-900);border:none;cursor:pointer;box-shadow:0 4px 18px rgba(28,43,75,0.45);z-index:9975;display:flex;align-items:center;justify-content:center;font-size:22px;transition:transform 0.15s" title="Team Chat" onmouseenter="this.style.transform=\'scale(1.1)\'" onmouseleave="this.style.transform=\'scale(1)\'">'
+    + (state.open ? '<span style="color:#fff;font-size:18px">✕</span>' : '<span style="font-size:22px">💬</span>')
+    + ((!state.open && unread > 0) ? '<span style="position:absolute;top:-3px;right:-3px;background:#EF4444;color:#fff;border-radius:50%;min-width:18px;height:18px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;font-family:var(--font-body);padding:0 3px">' + unread + '</span>' : '')
+    + '</button>';
+
+  if (!state.open) { root.innerHTML = bubbleHtml; return; }
+
+  // Panel HTML
+  var headerTitle, headerSub, backBtn = '';
+  if (state.thread) {
+    headerTitle = state.thread === 'all' ? '📢 Message All' : state.thread;
+    headerSub   = state.thread === 'all' ? 'Sent to all online agents' : 'Direct message';
+    backBtn     = '<button onclick="backToChatList()" style="background:rgba(255,255,255,0.12);border:none;color:#fff;border-radius:7px;padding:5px 11px;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font-body);margin-right:6px">← Back</button>';
+  } else {
+    headerTitle = '💬 Team Chat';
+    headerSub   = agents.length + ' agent' + (agents.length !== 1 ? 's' : '') + ' online';
+  }
+
+  var bodyHtml = '';
+  if (!state.thread) {
+    // Thread list
+    var allLast = (window.AGENT_MESSAGES['all']||[]);
+    allLast = allLast.length ? allLast[allLast.length-1] : null;
+    var allRow = '<div onclick="openChatThread(\'all\')" style="display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;background:var(--green-50);border-bottom:2px solid var(--border)" onmouseenter="this.style.background=\'#dcfce7\'" onmouseleave="this.style.background=\'var(--green-50)\'">'
+      + '<div style="width:36px;height:36px;border-radius:50%;background:var(--green-500);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">📢</div>'
+      + '<div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:800;color:var(--navy-900)">Message All</div>'
+      + '<div style="font-size:11.5px;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (allLast ? allLast.from+': '+allLast.text : 'Send to everyone online') + '</div></div>'
+      + '<span style="font-size:12px;color:var(--gray-400)">›</span></div>';
+    var agentRows = agents.map(function(a) {
+      var msgs = window.AGENT_MESSAGES[a.name] || [];
+      var last = msgs.length ? msgs[msgs.length-1] : null;
+      var ini  = a.name.split(' ').map(function(w){return w[0];}).join('').slice(0,2);
+      return '<div onclick="openChatThread(\'' + a.name.replace(/'/g,"\\'") + '\')" style="display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border)" onmouseenter="this.style.background=\'var(--gray-50)\'" onmouseleave="this.style.background=\'\'">'
+        + '<div style="width:36px;height:36px;border-radius:50%;background:#1A6ED0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">' + ini + '</div>'
+        + '<div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:700;color:var(--navy-900)">' + a.name + '</div>'
+        + '<div style="font-size:11.5px;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (last ? last.from+': '+last.text : 'No messages yet') + '</div></div>'
+        + '<span style="font-size:12px;color:var(--gray-400)">›</span></div>';
+    }).join('');
+    bodyHtml = '<div style="overflow-y:auto;flex:1">' + allRow + (agents.length ? agentRows : '<div style="padding:30px;text-align:center;color:var(--gray-400);font-size:13px">No other agents online</div>') + '</div>';
+  } else {
+    // Conversation view
+    var msgs = window.AGENT_MESSAGES[state.thread] || [];
+    var msgsHtml = msgs.map(function(m) {
+      var isMe = m.from === me;
+      return '<div style="display:flex;flex-direction:column;align-items:' + (isMe?'flex-end':'flex-start') + ';margin-bottom:10px;padding:0 12px">'
+        + '<div style="font-size:10px;color:var(--gray-400);margin-bottom:2px">' + m.from + ' · ' + m.time + '</div>'
+        + '<div style="max-width:85%;padding:9px 12px;border-radius:' + (isMe?'14px 14px 4px 14px':'14px 14px 14px 4px') + ';background:' + (isMe?'#1A6ED0':'var(--gray-100)') + ';color:' + (isMe?'#fff':'var(--navy-900)') + ';font-size:13px;line-height:1.45;word-break:break-word">' + m.text.replace(/</g,'&lt;') + '</div>'
+        + '</div>';
+    }).join('');
+    bodyHtml = '<div id="agentChatMsgs" style="flex:1;overflow-y:auto;padding:10px 0">'
+      + (msgs.length ? msgsHtml : '<div style="text-align:center;padding:40px 16px;color:var(--gray-400);font-size:13px">Say hello 👋</div>')
+      + '</div>'
+      + '<div style="padding:9px 10px;border-top:1px solid var(--border);display:flex;gap:7px;align-items:center;background:#fff;flex-shrink:0">'
+      + '<input id="agentChatInput" type="text" placeholder="Message ' + (state.thread==='all'?'everyone':''+state.thread.split(' ')[0]) + '…" style="flex:1;border:1.5px solid var(--border);border-radius:20px;padding:8px 14px;font-size:13px;font-family:var(--font-body);outline:none;background:var(--gray-50)" onkeydown="if(event.key===\'Enter\')sendAgentMsg()">'
+      + '<button onclick="sendAgentMsg()" style="width:35px;height:35px;border-radius:50%;background:#1A6ED0;border:none;color:#fff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0">➤</button>'
+      + '</div>';
+  }
+
+  root.innerHTML = bubbleHtml
+    + '<div style="position:fixed;bottom:86px;right:24px;width:318px;height:460px;background:#fff;border-radius:16px;box-shadow:0 12px 44px rgba(0,0,0,0.22);z-index:9974;display:flex;flex-direction:column;overflow:hidden;font-family:var(--font-body)">'
+      + '<div style="background:linear-gradient(135deg,#0A1624,#163D6B);padding:13px 14px;display:flex;align-items:center;gap:8px;color:#fff;flex-shrink:0">'
+        + backBtn
+        + '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + headerTitle + '</div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,0.50)">' + headerSub + '</div></div>'
+      + '</div>'
+      + '<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">' + bodyHtml + '</div>'
+    + '</div>';
+
+  if (state.thread) {
+    setTimeout(function(){ var m=document.getElementById('agentChatMsgs'); if(m) m.scrollTop=m.scrollHeight; }, 30);
+    setTimeout(function(){ var inp=document.getElementById('agentChatInput'); if(inp) inp.focus(); }, 50);
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   nav('dashboard', document.querySelector('.nav-item'));
   if (localStorage.getItem('maxsave-dark') === '1') {
@@ -11035,6 +11217,8 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('darkToggle').classList.add('on');
     document.getElementById('darkKnob').textContent = '🌙';
   }
+  // Initialize agent chat bubble
+  renderAgentChat();
 });
 </script>
 </body>
