@@ -726,8 +726,8 @@ function _showNotifCard(id, opts) {
   _dismissNotifCard(id);
   var card = document.createElement('div');
   card.id = id;
-  // Stack below the text popup (top:74px, ~110px tall) — positioned at top:200px
-  card.style.cssText = 'position:fixed;top:200px;right:24px;width:310px;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,0.20);z-index:9988;overflow:hidden;font-family:var(--font-body);animation:textPopupSlide 0.32s cubic-bezier(0.34,1.56,0.64,1)';
+  // Positioned below the banner (~116px) with a small gap
+  card.style.cssText = 'position:fixed;top:120px;right:24px;width:310px;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,0.20);z-index:9988;overflow:hidden;font-family:var(--font-body);animation:textPopupSlide 0.32s cubic-bezier(0.34,1.56,0.64,1)';
   var lines = opts.lines.map(function(l) {
     return '<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11.5px;font-weight:700;color:#9CA3AF">' + l[0] + '</span><span style="font-size:12px;font-weight:700;color:#111827">' + l[1] + '</span></div>';
   }).join('');
@@ -789,15 +789,6 @@ function showNewLeadAlert(lead) {
 function showInboundCallAlert(call) {
   call = call || { name:'Maria Gonzalez', phone:'(619) 555-0124', isCustomer:true };
   clearBanner('inbound');
-  // Compact top-right card (blue for inbound)
-  _showNotifCard('inboundCallNotifCard', {
-    hdrBg: 'linear-gradient(135deg,#1A55C0,#0F3E94)', icon: '📞', type: 'Inbound Call', name: call.name,
-    lines: [['Phone', call.phone], ['Type', call.isCustomer?'Existing Customer':'New Caller']],
-    btns: [
-      { label:'View Profile', bg:'#1A6ED0', color:'#fff', fn:"nav('customers',null);_dismissNotifCard('inboundCallNotifCard');dismissBanner('inbound')" },
-      { label:'End Call', bg:'#FEE2E2', color:'#DC2626', fn:"_dismissNotifCard('inboundCallNotifCard');dismissBanner('inbound')" }
-    ]
-  });
   const el = document.createElement('div');
   el.id = 'inboundCallBanner';
   el.className = 'notif-banner inbound-call-banner';
@@ -874,7 +865,7 @@ function showTextPopup(contact, phone, preview) {
   if (old && old.parentNode) old.parentNode.removeChild(old);
   var popup = document.createElement('div');
   popup.id = 'textNotifPopup';
-  popup.style.cssText = 'position:fixed;top:74px;right:24px;width:310px;border-radius:12px;box-shadow:0 10px 36px rgba(0,0,0,0.20);z-index:9990;overflow:hidden;cursor:pointer;animation:textPopupSlide 0.32s cubic-bezier(0.34,1.56,0.64,1);font-family:var(--font-body)';
+  popup.style.cssText = 'position:fixed;top:300px;right:24px;width:310px;border-radius:12px;box-shadow:0 10px 36px rgba(0,0,0,0.20);z-index:9990;overflow:hidden;cursor:pointer;animation:textPopupSlide 0.32s cubic-bezier(0.34,1.56,0.64,1);font-family:var(--font-body)';
   popup.onclick = function() {
     if (window.INBOX_STATE) window.INBOX_STATE.tab = 'Texts';
     nav('inbox', document.querySelector('.nav-item[onclick*="inbox"]'));
