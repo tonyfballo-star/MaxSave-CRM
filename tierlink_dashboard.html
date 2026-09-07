@@ -191,6 +191,46 @@
 
   .section-note { font-size: 12px; color: var(--ink-muted); margin-top: 14px; }
   .mb { margin-bottom: 16px; }
+
+  /* ---------- Order detail modal ---------- */
+  .order-row { cursor: pointer; }
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100; display: none;
+    background: rgba(0,0,0,0.6);
+    align-items: flex-start; justify-content: center;
+    padding: 6vh 16px 40px; overflow-y: auto;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; width: 100%; max-width: 640px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .modal-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 18px 22px 14px; border-bottom: 1px solid var(--grid);
+  }
+  .modal-head h2 { font-size: 18px; font-weight: 700; margin-right: auto; }
+  .modal-close {
+    background: transparent; border: none; color: var(--ink-muted);
+    font-size: 22px; line-height: 1; cursor: pointer; padding: 2px 6px;
+    border-radius: 6px; font-family: inherit;
+  }
+  .modal-close:hover { color: var(--ink); background: rgba(255,255,255,0.07); }
+  .modal-body { padding: 18px 22px 22px; }
+  .detail-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px 18px; margin-bottom: 18px;
+  }
+  .detail-grid .dg .l { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-muted); margin-bottom: 3px; }
+  .detail-grid .dg .v { font-size: 14px; font-weight: 600; }
+  .modal-note {
+    font-size: 13px; color: var(--warning);
+    background: rgba(250,178,25,0.08); border: 1px solid rgba(250,178,25,0.25);
+    border-radius: 8px; padding: 10px 12px; margin-bottom: 18px;
+  }
+  .modal-body h4 { font-size: 12px; font-weight: 600; color: var(--ink-2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+  .modal-total-row td { border-top: 1px solid var(--baseline); border-bottom: none; color: var(--ink); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -473,6 +513,18 @@
   </main>
 </div>
 
+<!-- ================= ORDER DETAIL MODAL ================= -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="om-title">
+    <div class="modal-head">
+      <h2 id="om-title"></h2>
+      <span id="om-badges"></span>
+      <button class="modal-close" id="om-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" id="om-body"></div>
+  </div>
+</div>
+
 <script>
 /* ============================================================
    SAMPLE DATA — edit everything in this block.
@@ -510,15 +562,38 @@ const TOTAL_MONTHLY = { labels: MONTHS, values: [9800, 10400, 11350, 12300, 1275
    show under the default "today" filter — replace with real dates. */
 const TODAY = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
+/* Order numbers start at TL-1000 (the first order ever placed) and
+   count up from there. Newest orders are listed first.
+   Extra fields feed the click-to-open order detail view:
+     wh = fulfillment warehouse · po = distributor PO number
+     carrier/tracking = only once shipped · items = SKU line items
+     note = shows as a highlighted callout in the detail view */
 const ORDERS = [
-  { id: "SO-2841", distributor: "Garden State Bev Co.", brand: "Northlight Vodka",   state: "NJ", cases: 420, total: 92400,  placed: TODAY,          shipBy: "Aug 4, 2026",  status: "Shipped" },
-  { id: "SO-2840", distributor: "Lone Star Distributing", brand: "Solora Spritz",    state: "TX", cases: 610, total: 97600,  placed: TODAY,          shipBy: "Aug 3, 2026",  status: "Processing" },
-  { id: "SO-2839", distributor: "Pacific Crest Wine & Spirits", brand: "Cerro Azul Tequila", state: "CA", cases: 260, total: 66300,  placed: "Aug 3, 2026",  shipBy: "Aug 6, 2026",  status: "Shipped" },
-  { id: "SO-2838", distributor: "Empire Metro Beverage", brand: "Oakhaven Bourbon",  state: "NY", cases: 380, total: 110200, placed: "Jul 28, 2026", shipBy: "Jul 30, 2026", status: "Delivered" },
-  { id: "SO-2837", distributor: "Sunbelt Beverage Group", brand: "Villa Marea Prosecco", state: "FL", cases: 190, total: 45600,  placed: "Jul 27, 2026", shipBy: "Jul 29, 2026", status: "Delivered" },
-  { id: "SO-2836", distributor: "Great Lakes Spirits", brand: "Copperline Rye",      state: "IL", cases: 85,  total: 21250,  placed: "Jul 27, 2026", shipBy: "Aug 1, 2026",  status: "On Hold" },
-  { id: "SO-2835", distributor: "Garden State Bev Co.", brand: "Solora Spritz",      state: "NJ", cases: 540, total: 86400,  placed: "Jul 24, 2026", shipBy: "Jul 28, 2026", status: "Delivered" },
-  { id: "SO-2834", distributor: "Blue Ridge Wholesale", brand: "Oakhaven Bourbon",   state: "NC", cases: 220, total: 63800,  placed: "Jul 23, 2026", shipBy: "Jul 27, 2026", status: "Delivered" },
+  { id: "TL-1007", distributor: "Garden State Bev Co.", brand: "Northlight Vodka",   state: "NJ", cases: 420, total: 92400,  placed: TODAY,          shipBy: "Aug 4, 2026",  status: "Shipped",
+    wh: "Bayonne, NJ", po: "GSB-20488", terms: "Net 30", carrier: "XPO Freight", tracking: "XPO-448210443",
+    items: [{ sku: "NLV-750", cases: 300 }, { sku: "NLV-1750", cases: 120 }] },
+  { id: "TL-1006", distributor: "Lone Star Distributing", brand: "Solora Spritz",    state: "TX", cases: 610, total: 97600,  placed: TODAY,          shipBy: "Aug 3, 2026",  status: "Processing",
+    wh: "Dallas, TX", po: "LSD-77211", terms: "Net 30", carrier: "", tracking: "",
+    items: [{ sku: "SSP-V12T", cases: 360 }, { sku: "SSP-P12", cases: 250 }] },
+  { id: "TL-1005", distributor: "Pacific Crest Wine & Spirits", brand: "Cerro Azul Tequila", state: "CA", cases: 260, total: 66300,  placed: "Aug 3, 2026",  shipBy: "Aug 6, 2026",  status: "Shipped",
+    wh: "Ontario, CA", po: "PCW-33107", terms: "Net 45", carrier: "Old Dominion", tracking: "OD-90218837",
+    items: [{ sku: "CAT-BL", cases: 180 }, { sku: "CAT-RP", cases: 80 }] },
+  { id: "TL-1004", distributor: "Empire Metro Beverage", brand: "Oakhaven Bourbon",  state: "NY", cases: 380, total: 110200, placed: "Jul 28, 2026", shipBy: "Jul 30, 2026", status: "Delivered",
+    wh: "Bayonne, NJ", po: "EMB-55930", terms: "Net 30", carrier: "XPO Freight", tracking: "XPO-447106221",
+    items: [{ sku: "OHB-750", cases: 320 }, { sku: "OHB-SB", cases: 60 }] },
+  { id: "TL-1003", distributor: "Sunbelt Beverage Group", brand: "Villa Marea Prosecco", state: "FL", cases: 190, total: 45600,  placed: "Jul 27, 2026", shipBy: "Jul 29, 2026", status: "Delivered",
+    wh: "Bayonne, NJ", po: "SBG-14002", terms: "Net 30", carrier: "Estes Express", tracking: "EE-2201158374",
+    items: [{ sku: "VMP-750", cases: 150 }, { sku: "VMP-187", cases: 40 }] },
+  { id: "TL-1002", distributor: "Great Lakes Spirits", brand: "Copperline Rye",      state: "IL", cases: 85,  total: 21250,  placed: "Jul 27, 2026", shipBy: "Aug 1, 2026",  status: "On Hold",
+    wh: "Bayonne, NJ", po: "GLS-88214", terms: "Net 30", carrier: "", tracking: "",
+    note: "On credit hold — distributor invoice #GLS-1192 past due. Release requires ownership approval.",
+    items: [{ sku: "CLR-750", cases: 85 }] },
+  { id: "TL-1001", distributor: "Garden State Bev Co.", brand: "Solora Spritz",      state: "NJ", cases: 540, total: 86400,  placed: "Jul 24, 2026", shipBy: "Jul 28, 2026", status: "Delivered",
+    wh: "Bayonne, NJ", po: "GSB-20401", terms: "Net 30", carrier: "XPO Freight", tracking: "XPO-446892100",
+    items: [{ sku: "SSP-V12", cases: 320 }, { sku: "SSP-P12", cases: 220 }] },
+  { id: "TL-1000", distributor: "Blue Ridge Wholesale", brand: "Oakhaven Bourbon",   state: "NC", cases: 220, total: 63800,  placed: "Jul 23, 2026", shipBy: "Jul 27, 2026", status: "Delivered",
+    wh: "Bayonne, NJ", po: "BRW-61550", terms: "Net 45", carrier: "Estes Express", tracking: "EE-2200917465",
+    items: [{ sku: "OHB-750", cases: 160 }, { sku: "OHB-SB", cases: 60 }] },
 ];
 
 /* soldMtd = cases sold month-to-date; casePrice = wholesale $ per case.
@@ -746,7 +821,7 @@ const ORDER_BADGE = { "Delivered": "b-good", "Shipped": "b-accent", "Processing"
 $("orders-table").innerHTML =
   `<thead><tr><th>Order</th><th>Distributor</th><th>Brand</th><th>State</th><th class="num">Cases</th><th>Status</th></tr></thead><tbody>` +
   ORDERS.map((o) =>
-    `<tr><td><b>${o.id}</b></td><td>${o.distributor}</td><td>${o.brand}</td><td>${o.state}</td><td class="num">${fmt(o.cases)}</td><td><span class="badge ${ORDER_BADGE[o.status]}">${o.status}</span></td></tr>`
+    `<tr class="order-row" data-oid="${o.id}"><td><b>${o.id}</b></td><td>${o.distributor}</td><td>${o.brand}</td><td>${o.state}</td><td class="num">${fmt(o.cases)}</td><td><span class="badge ${ORDER_BADGE[o.status]}">${o.status}</span></td></tr>`
   ).join("") + `</tbody>`;
 
 /* ----- Line chart (shared by Home + Analytics) ----- */
@@ -831,16 +906,68 @@ function renderOrders() {
              fs === "__open" ? (o.status === "Processing" || o.status === "On Hold") :
              o.status === fs))
   );
-  $("order-count").textContent = rows.length + " of " + ORDERS.length + " orders" + (lateOrders ? " · " + lateOrders + " late" : "");
+  $("order-count").textContent = rows.length + " of " + ORDERS.length + " orders" + (lateOrders ? " · " + lateOrders + " late" : "") + " · click any order for details";
   $("orders-full-table").innerHTML =
     `<thead><tr><th>Order</th><th>Distributor</th><th>Brand</th><th>State</th><th class="num">Cases</th><th class="num">Bottles</th><th>Ship By</th><th>Status</th></tr></thead><tbody>` +
     (rows.length ? rows.map((o) =>
-      `<tr><td><b>${o.id}</b></td><td>${o.distributor}</td><td>${o.brand}</td><td>${o.state}</td><td class="num">${fmt(o.cases)}</td><td class="num">${fmt(o.cases * BOTTLES_PER_CASE)}</td><td style="white-space:nowrap">${o.shipBy}</td><td><span class="badge ${ORDER_BADGE[o.status]}">${o.status}</span>${isLate(o) ? ' <span class="badge b-critical">Late</span>' : ""}</td></tr>`
+      `<tr class="order-row" data-oid="${o.id}"><td><b>${o.id}</b></td><td>${o.distributor}</td><td>${o.brand}</td><td>${o.state}</td><td class="num">${fmt(o.cases)}</td><td class="num">${fmt(o.cases * BOTTLES_PER_CASE)}</td><td style="white-space:nowrap">${o.shipBy}</td><td><span class="badge ${ORDER_BADGE[o.status]}">${o.status}</span>${isLate(o) ? ' <span class="badge b-critical">Late</span>' : ""}</td></tr>`
     ).join("") : `<tr><td colspan="8" style="text-align:center;color:var(--ink-muted);padding:24px">No orders match these filters</td></tr>`) +
     `</tbody>`;
 }
 ["ord-search", "ord-brand", "ord-status"].forEach((id) => $(id).addEventListener("input", renderOrders));
 renderOrders();
+
+/* ----- ORDER DETAIL MODAL ----- */
+function openOrder(id) {
+  const o = ORDERS.find((x) => x.id === id);
+  if (!o) return;
+
+  $("om-title").textContent = "Order " + o.id;
+  $("om-badges").innerHTML =
+    `<span class="badge ${ORDER_BADGE[o.status]}">${o.status}</span>` +
+    (isLate(o) ? ' <span class="badge b-critical">Late</span>' : "");
+
+  const dg = (label, value) => value ? `<div class="dg"><div class="l">${label}</div><div class="v">${value}</div></div>` : "";
+  const shipped = o.status === "Shipped" || o.status === "Delivered";
+
+  const itemRows = (o.items || []).map((it) => {
+    const info = SKU_INFO[it.sku] || {};
+    return `<tr><td><b>${it.sku}</b></td><td>${info.product || ""}</td><td>${info.wh || o.wh || ""}</td><td class="num">${fmt(it.cases)}</td><td class="num">${fmt(it.cases * BOTTLES_PER_CASE)}</td></tr>`;
+  }).join("");
+
+  $("om-body").innerHTML =
+    (o.note ? `<div class="modal-note">${o.note}</div>` : "") +
+    `<div class="detail-grid">` +
+      dg("Distributor", o.distributor) +
+      dg("Brand", o.brand) +
+      dg("Ship-to State", o.state) +
+      dg("Fulfillment Warehouse", o.wh) +
+      dg("Distributor PO #", o.po) +
+      dg("Payment Terms", o.terms) +
+      dg("Order Placed", o.placed) +
+      dg("Ship By", o.shipBy) +
+      dg("Carrier", shipped ? o.carrier : "Not yet assigned") +
+      dg("Tracking #", shipped ? o.tracking : "—") +
+    `</div>` +
+    `<h4>Line Items</h4>` +
+    `<div class="table-scroll"><table>` +
+      `<thead><tr><th>SKU</th><th>Product</th><th>WH</th><th class="num">Cases</th><th class="num">Bottles</th></tr></thead><tbody>` +
+      (itemRows || `<tr><td colspan="5" style="color:var(--ink-muted)">No line-item detail on file</td></tr>`) +
+      `<tr class="modal-total-row"><td colspan="3">Order Total · ${money(o.total)}</td><td class="num">${fmt(o.cases)}</td><td class="num">${fmt(o.cases * BOTTLES_PER_CASE)}</td></tr>` +
+    `</tbody></table></div>`;
+
+  $("order-modal").classList.add("open");
+}
+function closeOrder() { $("order-modal").classList.remove("open"); }
+
+/* any order row on any page opens the detail view */
+document.addEventListener("click", (e) => {
+  const row = e.target.closest("tr.order-row");
+  if (row) openOrder(row.dataset.oid);
+});
+$("om-close").addEventListener("click", closeOrder);
+$("order-modal").addEventListener("click", (e) => { if (e.target === $("order-modal")) closeOrder(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeOrder(); });
 
 /* ----- SALES PAGE (filtered by date range + brand) ----- */
 let salesPreset = "mtd";
