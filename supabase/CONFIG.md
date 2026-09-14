@@ -2,7 +2,7 @@
 
 Project ref: `xcwkkynxgojmabxdrngm`
 Project URL: `https://xcwkkynxgojmabxdrngm.supabase.co`
-Live site (Netlify): `https://stellular-cuchufli-1dd0d7.netlify.app/`  (site id ba46785b-f37b-4cc9-80c8-b92ddc7dd684; redeploy = drag `site/` or `msihub-site.zip` to app.netlify.com/drop, or Deploys > drag-and-drop on the site page)
+Live site (Netlify): `https://msihub-maxsave.netlify.app/` (renamed 2026-09-14; was stellular-cuchufli-1dd0d7)  (site id ba46785b-f37b-4cc9-80c8-b92ddc7dd684; redeploy = drag `site/` or `msihub-site.zip` to app.netlify.com/drop, or Deploys > drag-and-drop on the site page)
 
 Publishable key (safe to ship in the app):
 `sb_publishable__FNJF77rVOr5kbP2grko_w_0sIz3GDM`
