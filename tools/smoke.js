@@ -10,7 +10,7 @@ const FILE = process.argv[3] || 'file:///C:/Users/Tony%20Ballo/OneDrive/Desktop/
 
 const FAKE_CLIENT = `
 (function(){
-  const rows = { profiles: [{ id:'u1', email:'qa@test', full_name:'QA Admin', role:'admin', active:true, created_at:'2026-09-01T00:00:00Z' }],
+  const rows = { profiles: [{ id:'u1', email:'qa@test', full_name:'QA Admin', role:'admin', active:true, created_at:'2026-09-01T00:00:00Z', tier:'Tier 1', team:'Alpha', goal_apps:15, goal_fee:6000, goal_premium:20000, goal_close:25, goal_contact:55, perms:{} }],
     leads: [{ id:'L1', first_name:'Test', last_name:'Lead', phone:'6195550100', status:'New Lead', policy_type:'Auto', source:'Everquote', agent_id:null, received_at:'2026-09-10T10:00:00Z', created_at:'2026-09-10T10:00:00Z', fee:0, sr22:false, language:'English', details:{ vehicle:{year:'2020',make:'Honda',model:'Civic'} } }],
     customers: [{ id:'C1', customer_no:'C-2026-1000', first_name:'Test', last_name:'Customer', phone:'6195550101', status:'Active', dob:'1990-01-01', agent_id:'u1', sold_by_id:'u1', customer_since:'2026-09-01', created_at:'2026-09-01T00:00:00Z' }],
     policies: [{ id:'P1', customer_id:'C1', line:'Auto', carrier:'Progressive', policy_number:'PRG-1', sold_by_id:'u1', effective_date:'2026-09-01', expires_date:'2027-09-01', premium:1200, fee_total:300, fee_collected:150, fee_extended:150, hcc_collected:false, status:'Active' }],
@@ -24,6 +24,7 @@ const FAKE_CLIENT = `
     insert(row){ st.op='insert'; window.__writes.push([table,'insert',row]); const r=Object.assign({id:'new'+Date.now(), created_at:new Date().toISOString()}, row); (rows[table]=rows[table]||[]).push(r); st.result=r; return api; },
     update(patch){ st.op='update'; window.__writes.push([table,'update',patch]); st.patch=patch; return api; },
     delete(){ st.op='delete'; window.__writes.push([table,'delete']); return api; },
+    upsert(row){ st.op='insert'; window.__writes.push([table,'upsert',row]); const list=(rows[table]=rows[table]||[]); const i=list.findIndex(x=>x.key!==undefined && x.key===row.key); if(i>=0) list[i]=Object.assign(list[i],row); else list.push(Object.assign({id:'up'+Math.random().toString(36).slice(2,8)},row)); st.result=row; return api; },
     then(res){ let data;
       if(st.op==='insert') data=st.result;
       else if(st.op==='update'){ const id=(st.filters.find(f=>f[0]==='id')||[])[1]; const r=(rows[table]||[]).find(x=>x.id===id); if(r) Object.assign(r,st.patch); data=r||st.patch; }
@@ -93,7 +94,19 @@ async function run(mode) {
       ['reports', () => nav('reports', null)],
       ['inbox', () => nav('inbox', null)],
       ['tasks', () => nav('tasks', null)],
+      ['tasks-add', async () => { openTaskModal(); await new Promise(r=>setTimeout(r,100)); document.getElementById('tm_label').value='Smoke task'; document.getElementById('tm_date').value='2026-09-14'; await submitTaskModal(); if (!window.TASKS_DATA.length) throw new Error('task not added'); }],
+      ['tasks-toggle', () => toggleTaskDone(window.TASKS_DATA[0].id)],
+      ['tasks-delete', () => deleteTask(window.TASKS_DATA[0].id)],
+      ['goals', () => nav('goals', null)],
+      ['liveview', () => nav('liveview', null)],
+      ['reports-tabs', async () => { nav('reports', null); await new Promise(r=>setTimeout(r,200)); for (const t of ['overview','agents','carriers','leads','timeclock']) { window.REPORTS_STATE.tab=t; refreshReports(); } for (const m of ['payperiod','thismonth','lastmonth','ytd','custom']) { window.REPORTS_STATE.dateMode=m; refreshReports(); } window.REPORTS_STATE.tab='overview'; window.REPORTS_STATE.dateMode='payperiod'; }],
+      ['admin-panels', async () => { nav('admin', null); await new Promise(r=>setTimeout(r,200)); for (const p of ['agents','tiers','carriers','leadsources','lifecycle','goals','payperiods','pipelines','statuses','callsettings','dataexport']) { window.ADMIN_STATE.panel=p; refreshAdminPage(); } }],
+      ['admin-save-tiers', () => { window.ADMIN_STATE.panel='tiers'; refreshAdminPage(); return saveTierData(); }],
+      ['admin-save-goals', () => { window.ADMIN_STATE.panel='goals'; refreshAdminPage(); return saveAgentGoals(); }],
+      ['admin-lead-source', () => { window.ADMIN_STATE.panel='leadsources'; refreshAdminPage(); return toggleLeadSource(0); }],
       ['agency', () => nav('agency', null)],
+      ['agentprofile', () => nav('agentprofile', null)],
+      ['finance', () => nav('finance', null)],
       ['admin', () => nav('admin', null)],
     ];
     out.steps = [];

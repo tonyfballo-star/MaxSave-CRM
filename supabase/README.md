@@ -3,10 +3,12 @@
 | File | Purpose |
 |------|---------|
 | `schema.sql` | Database tables, access rules, storage bucket, default templates. Re-runnable. |
-| `patch-crm.js` | One-time script that wired `maxsave_crm.html` to the database (already applied). |
+| `schema-v2.sql` | Adds agent settings on profiles, the tasks table, and the agency_settings key/value store. Re-runnable. |
+| `patch-crm.js`, `patch-2-pdfs.js`, `patch-3-cleanup.js`, `patch-4-goals.js` | One-time scripts that rewired `maxsave_crm.html` (all applied, all idempotent). |
 | `CONFIG.md` | Project URL + publishable key, setup log. |
-| `../msihub-data.js` | Runtime data layer loaded by the CRM: login screen, loads data, saves changes, live updates. |
-| `../site/` | Deployable copy for Netlify (`index.html` + `msihub-data.js`). Rebuild with: `cp maxsave_crm.html site/index.html && cp msihub-data.js site/` |
+| `../msihub-data.js` | Runtime data layer: login screen, loads data, saves Leads/Customers/Sales/Notes/Texts/Files, live updates. |
+| `../msihub-data-2.js` | Settings lists, agent profiles, Tasks, Live View/Inbox history, Reports numbers — all from the database. |
+| `../site/` | Deployable copy for Netlify (`index.html` + `msihub-data.js`). Rebuild with: `cp maxsave_crm.html site/index.html && cp msihub-data.js msihub-data-2.js site/` |
 | `../tools/smoke.js` | Headless smoke test. See header comment. |
 
 ## Access rules (Row Level Security)
@@ -17,5 +19,8 @@
   `update public.profiles set role = 'admin' where email = 'agent@example.com';`
 - Deactivate someone (keeps their history): `update public.profiles set active = false where email = '...';`
 
-## Still in-memory (not saved yet)
-Tasks, Inbox/Live View sample data, Agent Management goals/tiers, Carriers, Vendors, Lead Sources, Lifecycle rules, Time cards. These come in a later step.
+## Still not connected
+Real calling/texting (Twilio), email inbox, e-sign delivery, payment terminal. Everything else reads and writes the database.
+
+## Adding an agent
+Logins are created in Supabase: Authentication → Users → Add user → Create new user (turn on Auto Confirm). The profile row is created automatically and the agent appears in the CRM. Deactivating from the CRM sets `active = false` (the login stays but can no longer sign in).

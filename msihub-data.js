@@ -13,8 +13,10 @@
   const M = window.MSIHub = {
     sb: null, user: null, profile: null, ready: false,
     currentLeadId: null,
+    hooks: { remap: [] },
+    missingTables: new Set(),
     data: { profiles: [], leads: [], customers: [], policies: [], vehicles: [], drivers: [], claims: [],
-            sales: [], appointments: [], notes: [], quotes: [], calls: [], messages: [], templates: [], files: [] },
+            sales: [], appointments: [], notes: [], quotes: [], calls: [], messages: [], templates: [], files: [], tasks: [], agency_settings: [] },
   };
 
   // ------------------------------------------------------------------
@@ -199,13 +201,19 @@
     messages:     (q) => q.order('created_at'),
     templates:    (q) => q.order('sort_order'),
     files:        (q) => q.order('created_at', { ascending: false }),
+    tasks:        (q) => q.order('due_date').order('id'),
+    agency_settings: (q) => q,
   };
   const TABLE_NAME = { calls: 'call_log' };
+  const OPTIONAL = new Set(['tasks', 'agency_settings']);   // added by schema-v2.sql
 
   async function fetchTable(key) {
     const name = TABLE_NAME[key] || key;
     const { data, error } = await TABLES[key](M.sb.from(name).select('*').limit(5000));
-    if (error) throw new Error(name + ': ' + error.message);
+    if (error) {
+      if (OPTIONAL.has(key) && /does not exist|schema cache|not found/i.test(error.message)) { M.missingTables.add(name); return []; }
+      throw new Error(name + ': ' + error.message);
+    }
     return data || [];
   }
 
@@ -216,6 +224,7 @@
       keys.forEach((k, i) => { M.data[k] = results[i]; });
     } catch (e) { fail('Loading data', e); }
     remapAll();
+    if (M.missingTables.size && isAdmin()) M.toast('Tasks & Settings are not synced yet — run supabase/schema-v2.sql in the Supabase SQL Editor.', 'warn');
   };
 
   M.reload = async function (keys) {
@@ -228,6 +237,7 @@
 
   function remapAll() {
     mapAgents(); mapLeads(); mapCustomers(); mapSales(); mapAppointments(); mapActivity(); mapTemplates();
+    (M.hooks.remap || []).forEach((fn) => { try { fn(); } catch (e) { console.warn('[MSIHub] remap hook failed', e); } });
   }
 
   function mapAgents() {
@@ -239,16 +249,28 @@
     const soldBy = {};
     D.leads.forEach((l) => { if (l.agent_id && l.status === 'Sold') soldBy[l.agent_id] = (soldBy[l.agent_id] || 0) + 1; });
     const active = D.profiles.filter((p) => p.active);
+    const g = (p, k, d) => (p[k] == null ? d : p[k]);
     const rows = active.map((p) => {
       const s = bySales[p.id] || { apps: 0, fee: 0, premium: 0 };
       const lc = leadsBy[p.id] || 0;
-      return { id: p.id, name: p.full_name, email: p.email, role: p.role, apps: s.apps, goal: 15, fee: s.fee, feeGoal: 6000, premium: s.premium, tier: 'Tier 1', close: (lc ? Math.round((soldBy[p.id] || 0) / lc * 100) : 0) + '%', contact: '0%', leads: lc, rank: 0 };
+      const perms = p.perms || {};
+      return { id: p.id, name: p.full_name, email: p.email, role: p.role, apps: s.apps, goal: g(p, 'goal_apps', 15), fee: s.fee, feeGoal: g(p, 'goal_fee', 6000), premium: s.premium,
+        tier: p.tier || 'Tier 4', close: (lc ? Math.round((soldBy[p.id] || 0) / lc * 100) : 0) + '%', contact: '0%', leads: lc, rank: 0,
+        _role: p.role === 'admin' ? 'Admin' : 'Agent', _agentType: p.agent_type || 'Licensed Producer', _archived: false, _email: p.email, _phone: p.phone || '', _team: p.team || '',
+        _startDate: p.start_date || (p.created_at || '').slice(0, 10), _2fa: !!perms.twoFa, _inboundDisabled: !!perms.inboundDisabled, _onboarded: (p.created_at || '').slice(0, 10) };
     }).sort((a, b) => b.apps - a.apps || b.fee - a.fee);
     rows.forEach((r, i) => { r.rank = i + 1; });
     if (typeof AGENTS !== 'undefined') { AGENTS.length = 0; rows.forEach((r) => AGENTS.push(r)); }
+    window.AGENT_GOALS = {};
     window.TEAM_MEMBERS = D.profiles.map((p) => {
       const parts = (p.full_name || '').split(' ');
-      return { id: p.id, name: p.full_name, first: parts[0] || '', last: parts.slice(1).join(' '), email: p.email, phone: p.phone || '', ext: '', role: p.role === 'admin' ? 'Admin' : 'Agent', tier: 'Tier 1', team: '', status: p.active ? 'Active' : 'Inactive', startDate: (p.created_at || '').slice(0, 10), goalApps: 15, goalFee: 6000, goalPremium: 20000, goalClose: 25, goalContact: 55, permViewAll: p.role === 'admin', permReports: p.role === 'admin', permPayments: true, permManage: p.role === 'admin', permAddRemove: p.role === 'admin' };
+      const perms = p.perms || {};
+      window.AGENT_GOALS[p.full_name] = { apps: g(p, 'goal_apps', 15), fee: g(p, 'goal_fee', 6000), premium: g(p, 'goal_premium', 20000), close: g(p, 'goal_close', 25), contact: g(p, 'goal_contact', 55) };
+      return { id: p.id, name: p.full_name, first: parts[0] || '', last: parts.slice(1).join(' '), email: p.email, phone: p.phone || '', ext: p.ext || '', role: p.role === 'admin' ? 'Admin' : 'Agent', tier: p.tier || 'Tier 4', team: p.team || '',
+        status: p.active ? 'Active' : 'Inactive', startDate: p.start_date || (p.created_at || '').slice(0, 10),
+        goalApps: g(p, 'goal_apps', 15), goalFee: g(p, 'goal_fee', 6000), goalPremium: g(p, 'goal_premium', 20000), goalClose: g(p, 'goal_close', 25), goalContact: g(p, 'goal_contact', 55),
+        permViewAll: perms.viewAll != null ? !!perms.viewAll : p.role === 'admin', permReports: perms.reports != null ? !!perms.reports : p.role === 'admin', permPayments: perms.payments != null ? !!perms.payments : true,
+        permManage: perms.manage != null ? !!perms.manage : p.role === 'admin', permAddRemove: perms.addRemove != null ? !!perms.addRemove : p.role === 'admin' };
     });
   }
 
@@ -361,7 +383,7 @@
   // ------------------------------------------------------------------
   // Realtime: keep every agent's screen current
   // ------------------------------------------------------------------
-  const RT = { leads: ['leads'], customers: ['customers'], policies: ['policies'], sales: ['sales'], appointments: ['appointments'], notes: ['notes'], call_log: ['calls'], messages: ['messages'] };
+  const RT = { leads: ['leads'], customers: ['customers'], policies: ['policies'], sales: ['sales'], appointments: ['appointments'], notes: ['notes'], call_log: ['calls'], messages: ['messages'], tasks: ['tasks'], agency_settings: ['agency_settings'], profiles: ['profiles'] };
   const pending = new Set();
   const flush = debounce(async () => {
     const keys = [...pending]; pending.clear();
@@ -398,8 +420,15 @@
       else if (p === 'calendar' && typeof refreshCalendar === 'function') refreshCalendar();
       else if (p === 'leaddetail' && window.PAGE_INIT && PAGE_INIT.leaddetail) PAGE_INIT.leaddetail();
       else if (p === 'customerdetail' && window.PAGE_INIT && PAGE_INIT.customerdetail) PAGE_INIT.customerdetail();
+      else if (p === 'tasks' && typeof refreshTasksPage === 'function') refreshTasksPage();
+      else if (p === 'admin' && typeof refreshAdminPage === 'function') refreshAdminPage();
+      else if (p === 'agency' && typeof renderAgencyPage === 'function') renderAgencyPage();
+      else if (p === 'reports' && typeof refreshReports === 'function') refreshReports();
+      else if (p === 'liveview' && typeof refreshLiveView === 'function') refreshLiveView();
+      else if (p === 'inbox' && typeof refreshInbox === 'function') refreshInbox();
     } catch (e) { console.warn('[MSIHub] refresh failed', e); }
   }
+  M.refreshCurrentPage = refreshCurrentPage;
 
   // ------------------------------------------------------------------
   // Generic DB write helpers
@@ -941,4 +970,7 @@
     try { const n = await insert('notes', { customer_id: c.id, author_id: myId(), body: input.value.trim() }); M.data.notes.unshift(n); input.value = ''; const el = $('cdNotesList'); if (el) el.innerHTML = M.customerNotesHTML(c); M.toast('Note saved'); }
     catch (e) { fail('Saving note', e); }
   };
+
+  // Shared helpers for msihub-data-2.js (settings, tasks, live view, reports)
+  M._h = { insert, update, remove, esc, num, money, fmtPhone, fmtTime, fmtDay, fmtStamp, localISODate, todayISO, isoToUS, usToISO, fmt12, agentName, profileById, profileByName, me, myId, isAdmin, fail, debounce };
 })();

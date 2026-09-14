@@ -779,7 +779,7 @@ function showNewLeadAlert(lead) {
 }
 
 function showInboundCallAlert(call) {
-  call = call || { name:'Maria Gonzalez', phone:'(619) 555-0124', isCustomer:true };
+  call = call || { name:'Unknown caller', phone:'', isCustomer:false };
   clearBanner('inbound');
   const el = document.createElement('div');
   el.id = 'inboundCallBanner';
@@ -1212,7 +1212,7 @@ function applyThreadTemplate(value) {
     input.value = value
       .replace(/\{\{name\}\}/g, firstName)
       .replace(/\{\{phone\}\}/g, (window.CURRENT_THREAD_CONTACT && window.CURRENT_THREAD_CONTACT.phone) || '')
-      .replace(/\{\{agent\}\}/g, 'Sarah Kim')
+      .replace(/\{\{agent\}\}/g, (window.CURRENT_USER||{}).name || '')
       .replace(/\{\{policy\}\}/g, 'Auto');
     input.focus();
   }
@@ -1256,7 +1256,7 @@ function sendTextReply() {
     if (!window.CONVERSATIONS[phone]) window.CONVERSATIONS[phone] = [];
     let todayBucket = window.CONVERSATIONS[phone].find(d => d.date === 'Today');
     if (!todayBucket) { todayBucket = { date:'Today', msgs:[] }; window.CONVERSATIONS[phone].push(todayBucket); }
-    todayBucket.msgs.push({ from:'us', time, author:'Sarah Kim', text });
+    todayBucket.msgs.push({ from:'us', time, author:(window.CURRENT_USER||{}).name||'', text });
     logText({ direction:'outbound', leadName: (window.CURRENT_THREAD_CONTACT&&window.CURRENT_THREAD_CONTACT.name)||window._currentLeadName||'', content: text });
   }
 
@@ -1819,17 +1819,9 @@ function ring(pctVal, size, stroke, color) {
 }
 
 // ==================== SHARED TASK STORE ====================
-window.TASKS_DATA = [
-  { id:1,  icon:'📞', label:'Follow-up call — Maria Gonzalez',  dueDate:'2026-05-01', dueTime:'3:00 PM',  priority:'high', assignedTo:'Admin',         done:false },
-  { id:2,  icon:'📋', label:'Submit application — Priya Patel', dueDate:'2026-05-01', dueTime:'5:00 PM',  priority:'high', assignedTo:'Admin',         done:false },
-  { id:3,  icon:'📧', label:'Send quote email — Kevin Nguyen',  dueDate:'2026-05-01', dueTime:'4:30 PM',  priority:'med',  assignedTo:'Admin',         done:false },
-  { id:4,  icon:'📞', label:'Call — Robert Chen',               dueDate:'2026-05-02', dueTime:'10:00 AM', priority:'med',  assignedTo:'Admin',         done:false },
-  { id:5,  icon:'📋', label:'Docs reminder — Amanda Foster',    dueDate:'2026-05-08', dueTime:'2:00 PM',  priority:'low',  assignedTo:'Admin',         done:false },
-  { id:6,  icon:'📅', label:'Monthly goal review',              dueDate:'2026-05-10', dueTime:'9:00 AM',  priority:'med',  assignedTo:'Admin',         done:false },
-  { id:7,  icon:'📧', label:'Renewal outreach batch',           dueDate:'2026-05-12', dueTime:'11:00 AM', priority:'low',  assignedTo:'Admin',         done:false },
-];
+window.TASKS_DATA = [];
 window._nextTaskId = 8;
-const TODAY_ISO = '2026-05-01';
+const TODAY_ISO = (function(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
 
 function getTodayTasks() {
   return window.TASKS_DATA.filter(t => t.dueDate === TODAY_ISO && !t.done);
@@ -1871,7 +1863,7 @@ function renderFocusTasks() {
 // ===== ADD TASK MODAL =====
 function openTaskModal(preAssignTo) {
   if (document.getElementById('taskModalOverlay')) return;
-  const agentOptions = ['Admin (Tony Ballo)', ...AGENTS.map(a => a.name)];
+  const agentOptions = ['Admin (' + ((window.CURRENT_USER||{}).name||'Admin') + ')', ...AGENTS.map(a => a.name)];
   const overlay = document.createElement('div');
   overlay.id = 'taskModalOverlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9998;display:flex;align-items:center;justify-content:center';
@@ -2522,7 +2514,7 @@ function togglePreview() {
   const isOpen = preview.style.display === 'block';
   if (isOpen) { preview.style.display = 'none'; return; }
   let msg = ta.value || '(empty message)';
-  let lead = { name:'Maria Gonzalez', phone:'(619) 555-0124', agent:'Sarah Kim', policy:'Auto' };
+  let lead = { name:'Customer', phone:'', agent:(window.CURRENT_USER||{}).name||'', policy:'Auto' };
   try {
     const firstPhone = Array.from(window.LEADS_SELECTED || [])[0];
     const found = (typeof LEADS !== 'undefined') ? LEADS.find(function(l){ return l.phone === firstPhone; }) : null;
@@ -2532,7 +2524,7 @@ function togglePreview() {
   msg = msg
     .replace(/\{\{name\}\}/g,  firstName)
     .replace(/\{\{phone\}\}/g, lead.phone || '')
-    .replace(/\{\{agent\}\}/g, lead.agent || 'Sarah Kim')
+    .replace(/\{\{agent\}\}/g, lead.agent || (window.CURRENT_USER||{}).name || '')
     .replace(/\{\{policy\}\}/g, lead.policy || 'Auto');
   const optOut = document.getElementById('bulkOptOutFooter');
   if (optOut && optOut.checked) msg += '\n\nReply STOP to opt out.';
@@ -2641,310 +2633,7 @@ function startPowerDial() {
 
 // ==================== LEAD DETAIL ====================
 PAGES.leaddetail = `
-<div id="leadDetailBody">
-<!-- BLUE NAME BAR -->
-<div style="background:linear-gradient(175deg,#0A1624 0%,#122B47 100%);border-radius:var(--radius-xl);padding:16px 24px;display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap">
-  <button onclick="nav('leads',document.querySelector('[onclick*=leads]'))" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:var(--radius-md);padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);white-space:nowrap;flex-shrink:0">← All Leads</button>
-  <div style="flex:1;min-width:180px">
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <span style="font-size:20px;font-weight:700;color:#fff">Maria Gonzalez</span>
-      <span style="background:rgba(239,68,68,0.30);color:#FCA5A5;border:1px solid rgba(252,165,165,0.40);padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:800;letter-spacing:0.4px">🔥 HOT LEAD</span>
-      <span class="badge b-quoted" style="font-size:11px;padding:3px 11px">Quoted</span>
-    </div>
-    <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:3px">Lead ID: MSI-2026-04841 &middot; Source: Everquote &middot; Received 10 days ago &middot; Agent: Sarah Kim</div>
-  </div>
-  <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex-shrink:0">
-    <button onclick="doCall(window._currentLeadName||'')" style="display:flex;align-items:center;gap:5px;background:#1A6ED0;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📞 Call</button>
-    <div style="position:relative">
-      <button onclick="openTextThread()" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">💬 Text</button>
-      <span class="text-unread-badge" id="textUnreadBadge">2</span>
-    </div>
-    <button onclick="alert('Email: maria.g@email.com')" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">✉️ Email</button>
-    <button onclick="openAppointment()" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📅 Appt</button>
-    <button onclick="openNewSale()" class="new-sale-btn" style="display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body)">🎉 Sale</button>
-    <button onclick="openQuoteExport('lead')" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">📤 Export</button>
-    <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:8px;padding:5px 10px">
-      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap">Disp</span>
-      <select id="dispositionSelect" style="background:transparent;color:#fff;border:none;font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;outline:none;min-width:110px" onchange="setDisposition(this.value)">
-        <option value="" style="color:#1C2B4B">— Select —</option>
-        <option style="color:#1C2B4B">Quoted</option>
-        <option style="color:#1C2B4B">Bad Lead</option>
-        <option style="color:#1C2B4B">Do Not Call</option>
-        <option style="color:#1C2B4B">Refund</option>
-        <option style="color:#1C2B4B">HR</option>
-        <option style="color:#1C2B4B">Already Sold</option>
-        <option style="color:#1C2B4B">Spanish</option>
-        <option style="color:#1C2B4B">Rewrite</option>
-        <option style="color:#1C2B4B">Cancelled</option>
-        <option style="color:#1C2B4B">Follow Up</option>
-      </select>
-    </div>
-  </div>
-</div>
-
-<!-- LEAD INFO CARD -->
-<div style="background:#fff;border-radius:var(--radius-xl);padding:22px 28px;margin-bottom:14px;border:1px solid #E5E7EB;box-shadow:0 1px 4px rgba(0,0,0,0.05)">
-
-  <!-- PRIMARY DRIVER -->
-  <div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#1C2B4B;padding:9px 14px;border-radius:6px;margin-bottom:14px">Primary Driver</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 36px;margin-bottom:24px">
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">First Name</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Maria</span><button onclick="copyToClipboard('Maria',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Last Name</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Gonzalez</span><button onclick="copyToClipboard('Gonzalez',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Date of Birth</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">03/14/1982</span><button onclick="copyToClipboard('03/14/1982',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Gender</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Female</span><button onclick="copyToClipboard('Female',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Phone</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">(619) 555-0124</span><button onclick="copyToClipboard('(619) 555-0124',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Email</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">maria.g@email.com</span><button onclick="copyToClipboard('maria.g@email.com',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Marital Status</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Married</span><button onclick="copyToClipboard('Married',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Language</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Spanish</span><button onclick="copyToClipboard('Spanish',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">License #</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">B1234567</span><button onclick="copyToClipboard('B1234567',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Violations</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#163350">1 minor speeding (2024)</span><button onclick="copyToClipboard('1 minor speeding (2024)',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">SR-22 Required</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#33953D">No</span><button onclick="copyToClipboard('No',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB;grid-column:span 2"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Address</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">1234 Main St, San Diego, CA 92101</span><button onclick="copyToClipboard('1234 Main St, San Diego, CA 92101',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-  </div>
-
-  <!-- DRIVER 2 — ADDITIONAL -->
-  <div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#1C2B4B;padding:9px 14px;border-radius:6px;margin-bottom:14px;margin-top:20px">Driver 2 — Additional</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 36px;margin-bottom:24px">
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Name</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Carlos Gonzalez</span><button onclick="copyToClipboard('Carlos Gonzalez',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Date of Birth</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">07/04/1980</span><button onclick="copyToClipboard('07/04/1980',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Gender</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Male</span><button onclick="copyToClipboard('Male',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">License #</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">C9876543</span><button onclick="copyToClipboard('C9876543',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Violations</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#33953D">None</span><button onclick="copyToClipboard('None',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">SR-22 Required</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#33953D">No</span><button onclick="copyToClipboard('No',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-  </div>
-
-  <!-- VEHICLE 1 -->
-  <div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#1C2B4B;padding:9px 14px;border-radius:6px;margin-bottom:14px;margin-top:20px">Vehicle 1</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 36px;margin-bottom:24px">
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Year</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">2021</span><button onclick="copyToClipboard('2021',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Make</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Honda</span><button onclick="copyToClipboard('Honda',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Model</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">CR-V EX</span><button onclick="copyToClipboard('CR-V EX',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">VIN</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px;font-weight:600;color:#1C2B4B;font-family:monospace">2HKRW2H58MH123456</span><button onclick="copyToClipboard('2HKRW2H58MH123456',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Annual Mileage</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">12,000 mi/yr</span><button onclick="copyToClipboard('12000',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Primary Use</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Commute</span><button onclick="copyToClipboard('Commute',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-  </div>
-
-  <!-- COVERAGE REQUESTED -->
-  <div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#1C2B4B;padding:9px 14px;border-radius:6px;margin-bottom:14px;margin-top:20px">Coverage Requested</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 36px">
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Coverage Type</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Liability + UM/UIM</span><button onclick="copyToClipboard('Liability + UM/UIM',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">CSL Limits</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">50/100</span><button onclick="copyToClipboard('50/100',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Prior Coverage</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">State Farm</span><button onclick="copyToClipboard('State Farm',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Insurance Status</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#DC2626">Uninsured — lapse 18d</span><button onclick="copyToClipboard('Uninsured - lapse 18 days',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">License State</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">California</span><button onclick="copyToClipboard('California',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-    <div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">Best Contact Time</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:600;color:#1C2B4B">Evenings</span><button onclick="copyToClipboard('Evenings',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button></div></div>
-  </div>
-</div>
-
-<div class="ld-layout">
-  <div>
-
-    <!-- NOTES -->
-    <div class="card" style="margin-bottom:14px">
-      <div class="card-header"><div class="card-title">Notes</div><button class="btn btn-primary" style="font-size:11.5px" onclick="addNote()">+ Add Note</button></div>
-      <div class="card-body">
-        <textarea id="noteInput" class="form-control" placeholder="Add a quick note about this lead… (visible to the team)" rows="3" style="width:100%;resize:vertical;font-family:var(--font-body);font-size:13px;margin-bottom:12px"></textarea>
-        <div id="notesList">
-          <div style="padding:11px 14px;background:var(--gray-50);border-radius:var(--radius-md);border-left:3px solid var(--green-500);margin-bottom:8px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div style="font-size:12px;font-weight:600;color:var(--navy-900)">Sarah Kim</div><div style="font-size:10.5px;color:var(--gray-400)">Apr 24, 2:15 PM</div></div>
-            <div style="font-size:12.5px;color:var(--gray-700);line-height:1.5">Maria is shopping around — State Farm quoted $1,380. Our rate is $140 cheaper. Wants comprehensive + roadside. Following up at 3pm today.</div>
-          </div>
-          <div style="padding:11px 14px;background:var(--gray-50);border-radius:var(--radius-md);border-left:3px solid var(--blue);margin-bottom:8px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div style="font-size:12px;font-weight:600;color:var(--navy-900)">Sarah Kim</div><div style="font-size:10.5px;color:var(--gray-400)">Apr 22, 9:30 AM</div></div>
-            <div style="font-size:12.5px;color:var(--gray-700);line-height:1.5">First contact. 2021 CR-V, no accidents in 5 yrs, qualifies for safe driver discount. Spanish-speaking preferred.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ACTIVITY TIMELINE -->
-    <div class="card">
-      <div class="card-header"><div class="card-title">Activity Timeline</div></div>
-      <div class="card-body">
-        <!-- Summary stats -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
-          <div style="background:var(--green-50);border:1px solid var(--green-200);border-radius:var(--radius-md);padding:9px 12px;text-align:center">
-            <div style="font-size:22px;font-weight:800;font-family:var(--font-display);color:var(--green-700)">3</div>
-            <div style="font-size:11px;font-weight:700;color:var(--green-700);margin-top:1px">📞 Calls</div>
-            <div style="font-size:10px;color:var(--gray-500);margin-top:3px">Sarah Kim: 2 · Marcus R: 1</div>
-          </div>
-          <div style="background:var(--blue-light);border:1px solid #C3D6E8;border-radius:var(--radius-md);padding:9px 12px;text-align:center">
-            <div style="font-size:22px;font-weight:800;font-family:var(--font-display);color:#0E2340">4</div>
-            <div style="font-size:11px;font-weight:700;color:#0E2340;margin-top:1px">💬 Texts</div>
-            <div style="font-size:10px;color:var(--gray-500);margin-top:3px">Sarah Kim: 4</div>
-          </div>
-          <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:9px 12px;text-align:center">
-            <div style="font-size:22px;font-weight:800;font-family:var(--font-display);color:var(--gray-400)">0</div>
-            <div style="font-size:11px;font-weight:700;color:var(--gray-500);margin-top:1px">📧 Emails</div>
-            <div style="font-size:10px;color:var(--gray-500);margin-top:3px">None sent</div>
-          </div>
-        </div>
-        <!-- Timeline entries -->
-        <div class="tl-item">
-          <div class="tl-icon tl-call">📞</div>
-          <div class="tl-body">
-            <div class="tl-title">Outbound Call — Reached <span style="font-size:10.5px;font-weight:600;color:var(--green-700);background:var(--green-50);padding:1px 7px;border-radius:var(--radius-full);margin-left:4px">4m 32s</span></div>
-            <div class="tl-meta">Today, 10:20 AM · <strong>Sarah Kim</strong></div>
-            <div class="tl-text">Discussed auto policy options. Quoted $1,240/yr with $350 broker fee. Client will review and call back tomorrow.</div>
-          </div>
-        </div>
-        <div class="tl-item">
-          <div class="tl-icon" style="background:var(--blue-light);border-color:#C3D6E8">💬</div>
-          <div class="tl-body">
-            <div class="tl-title">Outbound Text — Delivered</div>
-            <div class="tl-meta">Today, 9:45 AM · <strong>Sarah Kim</strong></div>
-            <div class="tl-text">"Hi Maria, this is Sarah at MaxSave. I have your quote ready — $1,240/yr with a $155 down. Call me when you get a chance!"</div>
-          </div>
-        </div>
-        <div class="tl-item">
-          <div class="tl-icon tl-call">📞</div>
-          <div class="tl-body">
-            <div class="tl-title">Outbound Call — No Answer <span style="font-size:10.5px;font-weight:600;color:var(--gray-500);background:var(--gray-100);padding:1px 7px;border-radius:var(--radius-full);margin-left:4px">Voicemail</span></div>
-            <div class="tl-meta">Apr 25, 3:05 PM · <strong>Marcus Rivera</strong></div>
-            <div class="tl-text">Left voicemail — asked Maria to call back to finalize the quote.</div>
-          </div>
-        </div>
-        <div class="tl-item">
-          <div class="tl-icon" style="background:var(--blue-light);border-color:#C3D6E8">💬</div>
-          <div class="tl-body">
-            <div class="tl-title">Inbound Text — Received</div>
-            <div class="tl-meta">Apr 24, 4:52 PM · <strong>Maria Gonzalez</strong></div>
-            <div class="tl-text">"Ok I will call you back tomorrow morning"</div>
-          </div>
-        </div>
-        <div class="tl-item">
-          <div class="tl-icon tl-call">📞</div>
-          <div class="tl-body">
-            <div class="tl-title">Outbound Call — Reached <span style="font-size:10.5px;font-weight:600;color:var(--green-700);background:var(--green-50);padding:1px 7px;border-radius:var(--radius-full);margin-left:4px">7m 14s</span></div>
-            <div class="tl-meta">Apr 24, 2:10 PM · <strong>Sarah Kim</strong></div>
-            <div class="tl-text">Went over coverage options. Maria is comparing with State Farm. Quoted Liability + UM/UIM.</div>
-          </div>
-        </div>
-        <div class="tl-item">
-          <div class="tl-icon" style="background:var(--blue-light);border-color:#C3D6E8">💬</div>
-          <div class="tl-body">
-            <div class="tl-title">Outbound Text — Delivered</div>
-            <div class="tl-meta">Apr 23, 11:30 AM · <strong>Sarah Kim</strong></div>
-            <div class="tl-text">"Hi Maria! Just checking in — do you have a few minutes today to go over your auto insurance options?"</div>
-          </div>
-        </div>
-        <div class="tl-item">
-          <div class="tl-icon" style="background:var(--blue-light);border-color:#C3D6E8">💬</div>
-          <div class="tl-body">
-            <div class="tl-title">Outbound Text — Delivered</div>
-            <div class="tl-meta">Apr 22, 10:05 AM · <strong>Sarah Kim</strong></div>
-            <div class="tl-text">"Hi Maria, this is Sarah from MaxSave Insurance Solutions. I received your quote request and would love to help you find the best rate!"</div>
-          </div>
-        </div>
-        <div class="tl-item"><div class="tl-icon tl-sys">🔔</div><div class="tl-body"><div class="tl-title">Lead Created &amp; Assigned to Sarah Kim</div><div class="tl-meta">Apr 22, 9:02 AM · System</div></div></div>
-      </div>
-    </div>
-  </div>
-
-  <div>
-    <!-- PIPELINE STAGE -->
-    <div class="card" style="margin-bottom:14px">
-      <div class="card-header"><div class="card-title">Pipeline Stage</div></div>
-      <div class="card-body">
-        ${[['New Lead',true,false],['Quoted',false,true],['Appointment Set',false,false],['Sold',false,false]].map(([st,done,curr])=>`
-        <div class="stage-step ${done?'done':curr?'current':'future'}">
-          <div class="stage-dot" style="background:${done?'var(--green-500)':curr?'var(--navy-600)':'var(--gray-300)'}"></div>
-          <div class="stage-label" style="color:${done?'var(--green-700)':curr?'var(--navy-900)':'var(--gray-400)'};font-weight:${curr?'600':'400'}">${st}</div>
-          ${curr?'<span style="margin-left:auto;font-size:10px;background:var(--navy-50);color:var(--navy-600);padding:1px 7px;border-radius:var(--radius-full);font-weight:700">Current</span>':''}
-        </div>`).join('')}
-      </div>
-    </div>
-
-    <!-- QUOTED SECTION (replaces Broker Fee Tracking) -->
-    <div class="card" style="margin-bottom:14px">
-      <div class="card-header"><div class="card-title">Quoted</div><button class="btn btn-ghost" style="font-size:11.5px" onclick="addQuote()">+ Add Quote</button></div>
-      <div class="card-body" id="quotesList">
-
-        <!-- existing quote -->
-        <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;margin-bottom:10px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <div style="font-weight:700;color:var(--navy-900);font-size:13px">Progressive Auto</div>
-            <span class="badge b-quoted" style="font-size:10.5px">Quote #1</span>
-          </div>
-          <div class="fee-row" style="padding:6px 0"><div class="fee-label" style="font-size:12px">6-Mo Premium</div><div class="fee-val" style="font-size:13px">$620.00</div></div>
-          <div class="fee-row" style="padding:6px 0"><div class="fee-label" style="font-size:12px">12-Mo Premium</div><div class="fee-val" style="font-size:13px">$1,240.00</div></div>
-          <div class="fee-row" style="padding:6px 0"><div class="fee-label" style="font-size:12px">Down Payment</div><div class="fee-val" style="font-size:13px">$155.00</div></div>
-          <div class="fee-row" style="padding:6px 0"><div class="fee-label" style="font-size:12px">Broker Fee</div><div class="fee-val" style="font-size:13px;color:var(--green-700)">$350.00</div></div>
-          <div class="fee-row" style="padding:6px 0;border-bottom:none"><div class="fee-label" style="font-size:12px">Quoted On</div><div class="fee-val" style="font-size:12px;font-weight:500;color:var(--gray-500)">Apr 24, 2026</div></div>
-        </div>
-
-        <!-- add-quote form (hidden by default) -->
-        <div id="quoteForm" style="display:none;border:1px dashed var(--border-strong);border-radius:var(--radius-md);padding:14px;background:var(--gray-50)">
-          <div style="font-weight:700;font-size:12px;color:var(--navy-900);margin-bottom:10px">Add Quote Details</div>
-          <div class="form-grid" style="grid-template-columns:1fr;gap:10px;margin-bottom:10px">
-            <div class="form-group"><div class="form-label">Carrier</div><select class="form-control"><option>Progressive</option><option>National General</option><option>Bristol West</option><option>Mercury</option><option>Kemper</option><option>InsureMax</option><option>Other</option></select></div>
-            <div class="form-group"><div class="form-label">Term</div><select class="form-control"><option>6 Months</option><option>12 Months</option></select></div>
-            <div class="form-group"><div class="form-label">Total Premium</div><input class="form-control" placeholder="$0.00"></div>
-            <div class="form-group"><div class="form-label">Down Payment</div><input class="form-control" placeholder="$0.00"></div>
-            <div class="form-group"><div class="form-label">Broker Fee</div><input class="form-control" placeholder="$0.00"></div>
-            <div class="form-group"><div class="form-label">SR-22 Required</div><select class="form-control"><option>No</option><option>Yes</option></select></div>
-            <div class="form-group"><div class="form-label">Notes</div><textarea class="form-control" rows="2" placeholder="Coverage, discounts, etc."></textarea></div>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="saveQuote()">Save Quote</button>
-            <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="document.getElementById('quoteForm').style.display='none'">Cancel</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CUSTOMER FILES -->
-    <div class="card">
-      <div class="card-header" style="background:#1C2B4B;border-radius:var(--radius-lg) var(--radius-lg) 0 0">
-        <div class="card-title" style="color:#fff">Customer Files</div>
-        <button class="btn btn-ghost" style="font-size:11.5px;color:rgba(255,255,255,0.75);border-color:rgba(255,255,255,0.22)" onclick="openCustomerFolder()">📁 Open Folder</button>
-      </div>
-      <div class="card-body">
-        <div id="customerFilesList">
-          <div class="customer-file" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--radius-md);background:var(--gray-50);border:1px solid var(--border);margin-bottom:7px">
-            <div style="font-size:18px">📄</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:12px;font-weight:600;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">DriversLicense_Maria.pdf</div>
-              <div style="font-size:10.5px;color:var(--gray-400)">412 KB · Apr 24</div>
-            </div>
-            <div class="tbl-icon-btn" title="Download">⬇</div>
-          </div>
-          <div class="customer-file" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--radius-md);background:var(--gray-50);border:1px solid var(--border);margin-bottom:7px">
-            <div style="font-size:18px">🖼️</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:12px;font-weight:600;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">VIN_Photo_CRV.jpg</div>
-              <div style="font-size:10.5px;color:var(--gray-400)">1.8 MB · Apr 26</div>
-            </div>
-            <div class="tbl-icon-btn" title="Download">⬇</div>
-          </div>
-          <div class="customer-file" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--radius-md);background:var(--gray-50);border:1px solid var(--border);margin-bottom:7px">
-            <div style="font-size:18px">📄</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:12px;font-weight:600;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">PriorDecPage_StateFarm.pdf</div>
-              <div style="font-size:10.5px;color:var(--gray-400)">285 KB · Apr 22</div>
-            </div>
-            <div class="tbl-icon-btn" title="Download">⬇</div>
-          </div>
-        </div>
-
-        <div id="customerFileDrop" style="border:2px dashed var(--border-strong);border-radius:var(--radius-md);padding:14px;text-align:center;cursor:pointer;margin-top:10px;transition:all 0.15s" onclick="document.getElementById('customerFileInput').click()" ondragover="event.preventDefault();this.style.borderColor='var(--green-500)';this.style.background='var(--green-50)'" ondragleave="this.style.borderColor='var(--border-strong)';this.style.background=''" ondrop="event.preventDefault();this.style.borderColor='var(--border-strong)';this.style.background='';handleCustomerFiles(event.dataTransfer.files)">
-          <div style="font-size:20px;margin-bottom:2px">📎</div>
-          <div style="font-size:12px;font-weight:600;color:var(--navy-900)">Add Files</div>
-          <div style="font-size:10.5px;color:var(--gray-400);margin-top:2px">Click or drag &amp; drop</div>
-        </div>
-        <input id="customerFileInput" type="file" multiple style="display:none" onchange="handleCustomerFiles(this.files)">
-
-        <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px;font-size:12px" onclick="openCustomerFolder()">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 16 16"><path d="M1 4a1 1 0 011-1h4l2 2h6a1 1 0 011 1v7a1 1 0 01-1 1H2a1 1 0 01-1-1V4z" stroke-linejoin="round"/></svg>
-          Open Files Folder
-        </button>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-</div>
+<div id="leadDetailBody"></div>
 <!-- QUOTE EXPORT MODAL -->
 <style>
 .qx-rater-card { display:flex; align-items:center; gap:12px; padding:12px 14px; border:2px solid var(--border); border-radius:var(--radius-md); cursor:pointer; transition:all 0.15s; background:var(--white); }
@@ -3357,7 +3046,7 @@ const _actLogHTML = (function(){
 
   return `
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
-    <span style="font-size:14px;color:var(--gray-500)">${today} · Sarah Kim · Real-time dialer + texting activity</span>
+    <span style="font-size:14px;color:var(--gray-500)">${today} · ${(window.CURRENT_USER||{}).name||''} · Real-time dialer + texting activity</span>
     <div class="btn-group">
       <select class="form-control" style="font-size:13px;width:auto">
         <option>Today</option><option>Yesterday</option><option>This Week</option><option>This Month</option>
@@ -3514,15 +3203,7 @@ const _actLogHTML = (function(){
   <div class="card" style="margin-top:14px">
     <div class="card-header"><div class="card-title">Activity Feed</div><a class="card-link">View Full Log →</a></div>
     <div class="card-body">
-      ${[
-        ['📞','Outbound call','Maria Gonzalez · 8 min 14 sec · Quoted','3:12 PM','tl-call'],
-        ['💬','Text sent','Robert Chen · "Hi Robert, following up on your auto quote…"','3:08 PM','tl-note'],
-        ['📲','Inbound answered','Carlos Ramirez · 4 min 32 sec · Booked appt','2:54 PM','tl-call'],
-        ['📞','Outbound call','David Park · No answer · Voicemail left','2:41 PM','tl-status'],
-        ['💬','Text sent','Sandra Lee · Confirmed appt for tomorrow','2:30 PM','tl-note'],
-        ['📲','Inbound missed','Unknown caller · (619) 555-9982','2:18 PM','tl-status'],
-        ['📞','Outbound call','Priya Patel · 6 min 02 sec · Quoted','1:55 PM','tl-call'],
-      ].map(([ico,title,sub,time,cls])=>`
+      ${(window.MSIHub && MSIHub.activityFeed ? MSIHub.activityFeed(8) : []).map(([ico,title,sub,time,cls])=>`
       <div class="tl-item">
         <div class="tl-icon ${cls}">${ico}</div>
         <div class="tl-body">
@@ -4444,7 +4125,7 @@ window.LIVEVIEW_STATE = {
   filterStatus: 'All',
   filterTeam:   'All',
   callHistoryFilter: 'All',
-  loggedInAgent: 'Tony Ballo',
+  loggedInAgent: '',
   historyTab: 'Calls',
   textThread: null,
   parkingLot: [
@@ -4453,37 +4134,11 @@ window.LIVEVIEW_STATE = {
 };
 
 // Live agent state — would come from DYL/dialer in production
-window.AGENT_LIVE = [
-  { name:'Tony Ballo',    ext:'100', status:'available',  callDuration: 0,   callDirection:null,        leadName:null,             leadPhone:null,             team:'Alpha' },
-  { name:'Sarah Kim',     ext:'101', status:'on-call',    callDuration: 247, callDirection:'outbound', leadName:'Megan Russo',    leadPhone:'(760) 555-1502', team:'Alpha' },
-  { name:'Marcus Rivera', ext:'102', status:'on-call',    callDuration: 89,  callDirection:'inbound',  leadName:'Carlos Ramirez', leadPhone:'(619) 555-1023', team:'Alpha' },
-  { name:'Jordan Torres', ext:'103', status:'available',  callDuration: 0,   callDirection:null,        leadName:null,             leadPhone:null,             team:'Alpha' },
-  { name:'Ashley Lee',    ext:'104', status:'on-call',    callDuration: 412, callDirection:'outbound', leadName:'Diane Walker',   leadPhone:'(619) 555-1377', team:'Beta' },
-  { name:'Chris Park',    ext:'105', status:'wrap-up',    callDuration: 0,   callDirection:null,        leadName:null,             leadPhone:null,             team:'Beta' },
-  { name:'Nina Reyes',    ext:'106', status:'available',  callDuration: 0,   callDirection:null,        leadName:null,             leadPhone:null,             team:'Beta' },
-  { name:'Brian Walsh',   ext:'107', status:'dnd',        callDuration: 0,   callDirection:null,        leadName:null,             leadPhone:null,             team:'Beta' },
-];
+window.AGENT_LIVE = [];
 
-window.CALL_HISTORY = [
-  { id:1,  agent:'Sarah Kim', time:'10:24 AM', date:'Today', contact:'Maria Gonzalez', phone:'(619) 555-0124', direction:'outbound', duration:494, status:'connected', recording:true,  outcome:'Quoted'  },
-  { id:2,  agent:'Sarah Kim', time:'10:08 AM', date:'Today', contact:'Robert Chen',    phone:'(858) 555-0198', direction:'outbound', duration:0,    status:'voicemail',  recording:false, outcome:'VM'      },
-  { id:3,  agent:'Sarah Kim', time:'9:52 AM',  date:'Today', contact:'David Park',     phone:'(619) 555-0477', direction:'inbound',  duration:312, status:'connected', recording:true,  outcome:'Booked appt' },
-  { id:4,  agent:'Sarah Kim', time:'9:18 AM',  date:'Today', contact:'Unknown',        phone:'(619) 555-9982', direction:'inbound',  duration:0,    status:'missed',     recording:false, outcome:'Missed'  },
-  { id:5,  agent:'Sarah Kim', time:'9:02 AM',  date:'Today', contact:'Priya Patel',    phone:'(760) 555-0719', direction:'outbound', duration:362, status:'connected', recording:true,  outcome:'Quoted' },
-  { id:6,  agent:'Sarah Kim', time:'8:44 AM',  date:'Today', contact:'Kelly White',    phone:'(619) 555-1944', direction:'outbound', duration:218, status:'connected', recording:true,  outcome:'Sold!' },
-  { id:7,  agent:'Sarah Kim', time:'8:31 AM',  date:'Today', contact:'Tom Bradley',    phone:'(760) 555-0047', direction:'outbound', duration:42,  status:'connected', recording:true,  outcome:'DNC' },
-  { id:8,  agent:'Sarah Kim', time:'5:48 PM',  date:'Yesterday', contact:'Sandra Lee', phone:'(858) 555-0913', direction:'inbound',  duration:178, status:'connected', recording:true,  outcome:'Renewal'},
-  { id:9,  agent:'Sarah Kim', time:'4:22 PM',  date:'Yesterday', contact:'Aaron Brooks',phone:'(858) 555-1481', direction:'outbound', duration:0,    status:'busy',       recording:false, outcome:'Busy'   },
-  { id:10, agent:'Sarah Kim', time:'2:14 PM',  date:'Yesterday', contact:'Lisa Martinez',phone:'(858) 555-0562', direction:'outbound', duration:541, status:'connected', recording:true,  outcome:'Quoted' },
-];
+window.CALL_HISTORY = [];
 
-window.TEXT_HISTORY = [
-  { id:1, agent:'Sarah Kim', time:'10:32 AM', contact:'Maria Gonzalez', phone:'(619) 555-0124', direction:'inbound',  preview:'Hi! Anytime today after 2pm works.' },
-  { id:2, agent:'Sarah Kim', time:'10:35 AM', contact:'Maria Gonzalez', phone:'(619) 555-0124', direction:'outbound', preview:'Perfect — I\'ll call you at 3pm. Could you send…' },
-  { id:3, agent:'Sarah Kim', time:'9:14 AM',  contact:'Robert Chen',    phone:'(858) 555-0198', direction:'outbound', preview:'Hi Robert, following up on your auto quote…' },
-  { id:4, agent:'Sarah Kim', time:'8:47 AM',  contact:'Sandra Lee',     phone:'(858) 555-0913', direction:'outbound', preview:'Confirming your appointment for Friday at 10am.' },
-  { id:5, agent:'Sarah Kim', time:'Yesterday',contact:'Megan Russo',    phone:'(760) 555-1502', direction:'inbound',  preview:'Yes ready to lock it in!' },
-];
+window.TEXT_HISTORY = [];
 
 window.TEXT_THREADS = {};
 
@@ -4527,7 +4182,7 @@ function renderLiveView() {
 
   const onCalls   = allAgents.filter(a => a.status === 'on-call').length;
   const available = allAgents.filter(a => a.status === 'available').length;
-  const inboundQ  = 2;
+  const inboundQ  = 0;
   const historyTab    = s.historyTab || 'Calls';
   const selectedPhone = s.textThread || null;
   const selectedThread = selectedPhone && window.TEXT_THREADS ? window.TEXT_THREADS[selectedPhone] : null;
@@ -4880,17 +4535,9 @@ window.PAGE_INIT = window.PAGE_INIT || {};
 window.PAGE_INIT.liveview = function(){ refreshLiveView(); };
 
 // ==================== INBOX (Calls · Texts · Emails) ====================
-window.INBOX_STATE = { tab:'Texts', search:'', dateRange:'Today', loggedInAgent:'Sarah Kim', callFilter:'All', textFilter:'All', textThread:null };
+window.INBOX_STATE = { tab:'Texts', search:'', dateRange:'Today', loggedInAgent:'', callFilter:'All', textFilter:'All', textThread:null };
 
-window.EMAILS = [
-  { id:1, from:'Maria Gonzalez', email:'maria.g@email.com',  phone:'(619) 555-0124', subject:'Re: Your Auto Quote — Progressive',          preview:'Thanks for the quote! Quick question on the deductible options before I sign…',           time:'2:14 PM',  date:'Today',     read:false, starred:true,  agent:'Sarah Kim',     priority:'high',   sentiment:'positive', attachments:0 },
-  { id:2, from:'Robert Chen',    email:'r.chen@email.com',   phone:'(858) 555-0198', subject:'Tesla VIN photos attached',                  preview:'Here are the photos of both VINs you asked for.',                                          time:'11:42 AM', date:'Today',     read:false, starred:false, agent:'Marcus Rivera', priority:'med',    sentiment:'neutral',  attachments:3 },
-  { id:3, from:'David Park',     email:'dpark@email.com',    phone:'(619) 555-0477', subject:'Re: Confirming today appointment',           preview:'Confirmed — see you at 3:45.',                                                            time:'10:08 AM', date:'Today',     read:true,  starred:false, agent:'Sarah Kim',     priority:'low',    sentiment:'positive', attachments:0 },
-  { id:4, from:'Sandra Lee',     email:'sandra.l@email.com', phone:'(858) 555-0913', subject:'Medicare renewal questions',                 preview:'I had a few questions about how prescription coverage works under the new plan…',          time:'9:16 AM',  date:'Today',     read:false, starred:false, agent:'Sarah Kim',     priority:'med',    sentiment:'neutral',  attachments:0 },
-  { id:5, from:'Priya Patel',    email:'priya.p@email.com',  phone:'(760) 555-0719', subject:'Cancelling — went with another carrier',     preview:'Hi, sorry to do this but I went with another agency. Please cancel my application.',       time:'Yesterday',date:'Yesterday', read:true,  starred:false, agent:'Jordan Torres', priority:'high',   sentiment:'negative', attachments:0 },
-  { id:6, from:'Kelly White',    email:'kw@email.com',       phone:'(619) 555-1944', subject:'Re: Welcome to MaxSave!',                    preview:'Thanks Sarah, autopay is set up and I have my dec page. Looking forward to working with you!',time:'Yesterday',date:'Yesterday', read:true,  starred:true,  agent:'Sarah Kim',     priority:'low',    sentiment:'positive', attachments:1 },
-  { id:7, from:'Underwriting — Progressive', email:'uw-team@progressive.com', phone:'',           subject:'Application MGRD-118247 — Additional info requested', preview:'We need clarification on the prior coverage lapse for Maria Gonzalez before we can bind…',  time:'Yesterday',date:'Yesterday', read:false, starred:false, agent:'Sarah Kim',     priority:'high',   sentiment:'neutral',  attachments:1 },
-];
+window.EMAILS = [];
 
 function refreshInbox() {
   const c = document.getElementById('content'); if (!c) return;
@@ -6420,101 +6067,19 @@ function confirmRemoveAgent(name) {
 // ==================== REPORTS ====================
 
 // Extended per-agent metrics for the reports section (pay-period baseline)
-const AGENT_EXTENDED_DATA = {
-  'Sarah Kim':     { feeExtended:4200, inboundClose:'51.2%', outboundClose:'37.4%', totalCalls:142, inboundCalls:49, outboundCalls:93, missedCalls:11, avgCallDur:428, dials:156, textsSent:74, textsRecv:102, avgResponse:'4m 12s', revenuePerLead:365, refunds:0, retention:'94.2%', newLeads:108, leadsMissed:6  },
-  'Marcus Rivera': { feeExtended:3100, inboundClose:'44.8%', outboundClose:'33.5%', totalCalls:121, inboundCalls:38, outboundCalls:83, missedCalls:15, avgCallDur:384, dials:134, textsSent:59, textsRecv:87,  avgResponse:'6m 45s', revenuePerLead:239, refunds:1, retention:'91.8%', newLeads:95,  leadsMissed:9  },
-  'Jordan Torres': { feeExtended:2550, inboundClose:'38.5%', outboundClose:'29.6%', totalCalls:99,  inboundCalls:27, outboundCalls:72, missedCalls:14, avgCallDur:356, dials:112, textsSent:45, textsRecv:71,  avgResponse:'8m 30s', revenuePerLead:147, refunds:0, retention:'89.4%', newLeads:88,  leadsMissed:11 },
-  'Ashley Lee':    { feeExtended:2150, inboundClose:'33.6%', outboundClose:'24.8%', totalCalls:94,  inboundCalls:25, outboundCalls:69, missedCalls:17, avgCallDur:312, dials:98,  textsSent:37, textsRecv:59,  avgResponse:'11m 18s',revenuePerLead:127, refunds:1, retention:'87.6%', newLeads:82,  leadsMissed:14 },
-  'Chris Park':    { feeExtended:1450, inboundClose:'27.4%', outboundClose:'19.2%', totalCalls:72,  inboundCalls:16, outboundCalls:56, missedCalls:21, avgCallDur:278, dials:79,  textsSent:26, textsRecv:42,  avgResponse:'14m 52s',revenuePerLead:100, refunds:1, retention:'82.3%', newLeads:74,  leadsMissed:18 },
-  'Nina Reyes':    { feeExtended:1200, inboundClose:'24.1%', outboundClose:'16.8%', totalCalls:69,  inboundCalls:14, outboundCalls:55, missedCalls:24, avgCallDur:261, dials:75,  textsSent:24, textsRecv:39,  avgResponse:'18m 04s',revenuePerLead:85,  refunds:1, retention:'79.1%', newLeads:70,  leadsMissed:21 },
-  'Brian Walsh':   { feeExtended:700,  inboundClose:'18.9%', outboundClose:'13.1%', totalCalls:56,  inboundCalls:10, outboundCalls:46, missedCalls:26, avgCallDur:234, dials:64,  textsSent:16, textsRecv:27,  avgResponse:'24m 37s',revenuePerLead:67,  refunds:2, retention:'71.4%', newLeads:60,  leadsMissed:24 },
-};
+const AGENT_EXTENDED_DATA = {};   // filled per agent by msihub-data-2.js
 
-const CARRIER_DATA = [
-  { name:'Progressive',    policies:68, premium:124800, bindRate:'82%', cancels:3, newClients:44, renewals:24 },
-  { name:'State Farm',     policies:42, premium:89200,  bindRate:'76%', cancels:2, newClients:28, renewals:14 },
-  { name:'Allstate',       policies:38, premium:81400,  bindRate:'71%', cancels:3, newClients:24, renewals:14 },
-  { name:'GEICO',          policies:31, premium:58600,  bindRate:'68%', cancels:4, newClients:19, renewals:12 },
-  { name:'Liberty Mutual', policies:24, premium:52100,  bindRate:'65%', cancels:2, newClients:14, renewals:10 },
-  { name:'Farmers',        policies:18, premium:39800,  bindRate:'61%', cancels:1, newClients:11, renewals:7  },
-  { name:'USAA',           policies:12, premium:28400,  bindRate:'88%', cancels:0, newClients:8,  renewals:4  },
-  { name:'Nationwide',     policies:14, premium:27600,  bindRate:'59%', cancels:2, newClients:8,  renewals:6  },
-];
+const CARRIER_DATA = [];   // report rows, filled by msihub-data-2.js (settings list lives on window.CARRIER_DATA)
 
-const LEAD_SOURCE_DATA = [
-  { source:'Everquote',      leads:84, contacted:66, quoted:42, apps:24, cost:2940 },
-  { source:'MediaAlpha',     leads:61, contacted:44, quoted:31, apps:19, cost:2440 },
-  { source:'Facebook Ads',   leads:47, contacted:32, quoted:22, apps:14, cost:3290 },
-  { source:'Google Ads',     leads:38, contacted:27, quoted:18, apps:11, cost:3040 },
-  { source:'Direct Call',    leads:29, contacted:28, quoted:21, apps:16, cost:0    },
-  { source:'Referral',       leads:22, contacted:22, quoted:18, apps:14, cost:0    },
-  { source:'SmartFinancial', leads:31, contacted:21, quoted:14, apps:8,  cost:1550 },
-  { source:'NetQuote',       leads:18, contacted:11, quoted:7,  apps:4,  cost:720  },
-];
+const LEAD_SOURCE_DATA = [];
 
-const POLICY_TYPE_DATA = [
-  { type:'Auto',       policies:142, premium:248600, newClients:98,  renewals:44 },
-  { type:'Home',       policies:48,  premium:96400,  newClients:32,  renewals:16 },
-  { type:'Life',       policies:31,  premium:58200,  newClients:24,  renewals:7  },
-  { type:'Commercial', policies:14,  premium:42800,  newClients:8,   renewals:6  },
-  { type:'Health',     policies:12,  premium:28400,  newClients:9,   renewals:3  },
-];
+const POLICY_TYPE_DATA = [];
 
-const MONTHLY_REVENUE = [
-  { month:'Jan', collected:58200, extended:22400 },
-  { month:'Feb', collected:61800, extended:24100 },
-  { month:'Mar', collected:68400, extended:26800 },
-  { month:'Apr', collected:72100, extended:28400 },
-  { month:'May', collected:76400, extended:29100 },
-  { month:'Jun', collected:79800, extended:31200 },
-  { month:'Jul', collected:43200, extended:17350 },
-];
+const MONTHLY_REVENUE = [];
 
-const FEE_AGING_DATA = [
-  { bucket:'0–30 days',  amount:8200, count:12 },
-  { bucket:'31–60 days', amount:5400, count:8  },
-  { bucket:'61–90 days', amount:2600, count:5  },
-  { bucket:'90+ days',   amount:1150, count:3  },
-];
+const FEE_AGING_DATA = [];
 
-const FEE_AGING_ACCOUNTS = {
-  '0–30 days': [
-    { name:'Maria Gonzalez',   agent:'Sarah Kim',     carrier:'Progressive',     days:8,  amount:685 },
-    { name:'James Torres',     agent:'Marcus Rivera', carrier:'National General', days:14, amount:683 },
-    { name:'Linda Park',       agent:'Sarah Kim',     carrier:'Bristol West',    days:22, amount:690 },
-    { name:'Robert Chen',      agent:'Kira Patel',    carrier:'Mercury',         days:5,  amount:675 },
-    { name:'Sofia Martinez',   agent:'Marcus Rivera', carrier:'Kemper',          days:18, amount:695 },
-    { name:'David Williams',   agent:'Sarah Kim',     carrier:'Progressive',     days:27, amount:680 },
-    { name:'Anna Rodriguez',   agent:'Kira Patel',    carrier:'InsureMax',       days:11, amount:678 },
-    { name:'Carlos Reyes',     agent:'Marcus Rivera', carrier:'National General', days:29, amount:682 },
-    { name:'Patricia Nguyen',  agent:'Sarah Kim',     carrier:'Bristol West',    days:3,  amount:677 },
-    { name:'Michael Torres',   agent:'Kira Patel',    carrier:'Progressive',     days:17, amount:686 },
-    { name:'Jennifer Lee',     agent:'Sarah Kim',     carrier:'Mercury',         days:25, amount:679 },
-    { name:'Antonio Vega',     agent:'Marcus Rivera', carrier:'Kemper',          days:9,  amount:690 },
-  ],
-  '31–60 days': [
-    { name:'Brenda Castillo',  agent:'Marcus Rivera', carrier:'Progressive',     days:35, amount:675 },
-    { name:'Kevin Ortega',     agent:'Sarah Kim',     carrier:'National General', days:42, amount:675 },
-    { name:'Diana Flores',     agent:'Kira Patel',    carrier:'Bristol West',    days:51, amount:675 },
-    { name:'Oscar Mendez',     agent:'Marcus Rivera', carrier:'Mercury',         days:38, amount:675 },
-    { name:'Tamara Jackson',   agent:'Sarah Kim',     carrier:'Kemper',          days:44, amount:675 },
-    { name:'Frank Jimenez',    agent:'Kira Patel',    carrier:'InsureMax',       days:56, amount:675 },
-    { name:'Melissa Torres',   agent:'Sarah Kim',     carrier:'Progressive',     days:33, amount:675 },
-    { name:'Samuel Wright',    agent:'Marcus Rivera', carrier:'National General', days:48, amount:675 },
-  ],
-  '61–90 days': [
-    { name:'Gloria Perez',     agent:'Sarah Kim',     carrier:'Progressive',     days:65, amount:520 },
-    { name:'Timothy Clark',    agent:'Marcus Rivera', carrier:'Bristol West',    days:72, amount:520 },
-    { name:'Rachel Adams',     agent:'Kira Patel',    carrier:'National General', days:88, amount:520 },
-    { name:'Diego Morales',    agent:'Sarah Kim',     carrier:'Mercury',         days:77, amount:520 },
-    { name:'Natalie Kim',      agent:'Marcus Rivera', carrier:'Kemper',          days:61, amount:520 },
-  ],
-  '90+ days': [
-    { name:'Eugene Brown',     agent:'Marcus Rivera', carrier:'Progressive',     days:95,  amount:384 },
-    { name:'Sandra Lopez',     agent:'Sarah Kim',     carrier:'National General', days:112, amount:383 },
-    { name:'Harold Young',     agent:'Kira Patel',    carrier:'Bristol West',    days:134, amount:383 },
-  ],
-};
+const FEE_AGING_ACCOUNTS = {};
 
 const COMMISSION_RATES = { 'Tier 1':0.40, 'Tier 2':0.35, 'Tier 3':0.30, 'Tier 4':0.25 };
 
@@ -8375,23 +7940,7 @@ function openMonthFeeBreakdown(month) {
   const total = r.collected + r.extended;
   const rate  = total ? Math.round(r.collected/total*100) : 0;
 
-  const agentShares  = [
-    { name:'Sarah Kim',           cS:0.38, eS:0.37 },
-    { name:'Marcus Rivera',       cS:0.32, eS:0.33 },
-    { name:'Kira Patel',          cS:0.30, eS:0.30 },
-  ];
-  const sourceShares = [
-    { source:'EverQuote',         cS:0.30, eS:0.31 },
-    { source:'MediaAlpha',        cS:0.25, eS:0.26 },
-    { source:'Referral',          cS:0.22, eS:0.21 },
-    { source:'Direct',            cS:0.23, eS:0.22 },
-  ];
-  const carrierShares= [
-    { carrier:'Progressive',      cS:0.35, eS:0.36 },
-    { carrier:'National General', cS:0.28, eS:0.27 },
-    { carrier:'Bristol West',     cS:0.22, eS:0.22 },
-    { carrier:'Mercury',          cS:0.15, eS:0.15 },
-  ];
+  const { agentShares, sourceShares, carrierShares } = (window.MSIHub && MSIHub.monthShares) ? MSIHub.monthShares(r) : { agentShares: [], sourceShares: [], carrierShares: [] };
 
   const agentRows = agentShares.map(x => {
     const c=Math.round(r.collected*x.cS), e=Math.round(r.extended*x.eS), t=c+e;
@@ -8786,7 +8335,7 @@ function renderTasksPage() {
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:11px;font-weight:600;color:var(--gray-500)">Assign:</span>
           <select class="filter-select" onchange="window.TASKS_STATE.agentFilter=this.value;refreshTasksPage()" style="font-size:12px">
-            ${agentList.map(n=>`<option value="${n}" ${filterAgent===n?'selected':''}>${n==='All'?'All Assignees':n==='Admin'?'Admin (Tony Ballo)':n}</option>`).join('')}
+            ${agentList.map(n=>`<option value="${n}" ${filterAgent===n?'selected':''}>${n==='All'?'All Assignees':n==='Admin'?'Admin ('+((window.CURRENT_USER||{}).name||'Admin')+')':n}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -8806,13 +8355,20 @@ function renderTasksPage() {
 }
 
 // ==================== GOALS ====================
-PAGES.goals = `
-<div class="page-header"><div class="page-header-left"><h1>Goals & Tiers</h1><p>April 1–30, 2026</p></div></div>
+function renderGoalsPage() {
+  const _g = AGENTS.map(a => pct(a.apps, a.goal));
+  const _avg = _g.length ? Math.round(_g.reduce((s, x) => s + x, 0) / _g.length) : 0;
+  const _above = AGENTS.filter((a, i) => _g[i] >= 100);
+  const _mid = _g.filter(p => p >= 50 && p < 100).length;
+  const _low = _g.filter(p => p < 50).length;
+  const _label = (typeof rptDateLabel === 'function') ? rptDateLabel({ dateMode: 'payperiod' }) : '';
+  return `
+<div class="page-header"><div class="page-header-left"><h1>Goals & Tiers</h1><p>${_label}</p></div></div>
 <div class="kpi-grid">
-  <div class="kpi-card accent"><div class="kpi-label">Team Avg % to Goal</div><div class="kpi-value">82%</div></div>
-  <div class="kpi-card accent"><div class="kpi-label">At or Above Goal</div><div class="kpi-value green">2</div><div class="kpi-sub">Sarah Kim · Marcus Rivera</div></div>
-  <div class="kpi-card accent-amber"><div class="kpi-label">50–99% to Goal</div><div class="kpi-value amber">2</div></div>
-  <div class="kpi-card accent-red"><div class="kpi-label">Below 50% to Goal</div><div class="kpi-value red">3</div></div>
+  <div class="kpi-card accent"><div class="kpi-label">Team Avg % to Goal</div><div class="kpi-value">${_avg}%</div></div>
+  <div class="kpi-card accent"><div class="kpi-label">At or Above Goal</div><div class="kpi-value green">${_above.length}</div><div class="kpi-sub">${_above.map(a => a.name).join(' · ') || '—'}</div></div>
+  <div class="kpi-card accent-amber"><div class="kpi-label">50–99% to Goal</div><div class="kpi-value amber">${_mid}</div></div>
+  <div class="kpi-card accent-red"><div class="kpi-label">Below 50% to Goal</div><div class="kpi-value red">${_low}</div></div>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
   ${AGENTS.map(a=>{const p=pct(a.apps,a.goal);return `<div class="goal-card">
@@ -8829,6 +8385,10 @@ PAGES.goals = `
   </div>`;}).join('')}
 </div>
 `;
+}
+PAGES.goals = '';
+window.PAGE_INIT = window.PAGE_INIT || {};
+window.PAGE_INIT.goals = function () { const c = document.getElementById('content'); if (!c) return; c.innerHTML = ''; const d = document.createElement('div'); d.className = 'page-content'; d.innerHTML = renderGoalsPage(); c.appendChild(d); };
 
 // ==================== FINANCE ====================
 PAGES.finance = `
@@ -11553,5 +11113,6 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <script src="msihub-data.js"></script>
+<script src="msihub-data-2.js"></script>
 </body>
 </html>
