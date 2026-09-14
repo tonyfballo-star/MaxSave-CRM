@@ -8515,8 +8515,8 @@ function renderAgentList() {
                   </div>
                 </div></td>
                 <td><span style="background:var(--navy-50);color:var(--navy-700);padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:600">${a._role||'Agent'}</span></td>
-                <td style="color:var(--gray-600);font-size:12px">${a.name.split(' ')[0].toLowerCase()}.${a.name.split(' ')[1].toLowerCase()}@maxsave.com</td>
-                <td style="color:var(--gray-600);font-size:12px">(619) 555-0${100+i}</td>
+                <td style="color:var(--gray-600);font-size:12px">${a._email||'—'}</td>
+                <td style="color:var(--gray-600);font-size:12px">${a._phone||'—'}</td>
                 <td style="font-size:12px;color:var(--navy-800);font-weight:500">CA-${3840000+i*11437}</td>
                 <td style="font-size:12px;color:var(--navy-800)">NPN${19200000+i*8321}</td>
                 <td><span class="tier ${tierClass(a.tier)}">${a.tier}</span></td>
@@ -8540,7 +8540,7 @@ function renderAgentProfile(idx) {
   const avatarColors = ['av-green','av-navy','av-amber','av-teal','av-purple','av-red'];
   const av = avatarColors[idx % avatarColors.length];
   const ini = a.name.split(' ').map(w=>w[0]).join('').slice(0,2);
-  const email = a.name.split(' ')[0].toLowerCase()+'.'+a.name.split(' ')[1].toLowerCase()+'@maxsave.com';
+  const email = a._email || '';
   const phone = '(619) 555-0'+(100+idx);
   const licNum = 'CA-'+(3840000+idx*11437);
   const npn = 'NPN'+(19200000+idx*8321);
@@ -8786,7 +8786,7 @@ function renderEditAgentForm(idx) {
   const a = AGENTS[idx];
   if (!a) return '<div class="card"><div class="card-body">Agent not found.</div></div>';
   const tm = (window.TEAM_MEMBERS || []).find(m => m.name === a.name) || {};
-  const email = tm.email || (a.name.split(' ')[0].toLowerCase() + '.' + a.name.split(' ')[1].toLowerCase() + '@maxsave.com');
+  const email = tm.email || a._email || '';
   const phone = tm.phone || ('(619) 555-0' + (100 + idx));
   const licNum = 'CA-' + (3840000 + idx * 11437);
   const npn = 'NPN' + (19200000 + idx * 8321);

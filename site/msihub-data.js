@@ -116,6 +116,7 @@
       '<div style="font-size:15px;font-weight:700;color:#1C2B4B;margin-bottom:6px">Welcome! Set your password</div>' +
       '<div style="font-size:12.5px;color:#6B7280;margin-bottom:14px">Choose a password to finish setting up your MSIHub login.</div>' +
       '<form id="msihubPwForm">' +
+      '<input id="pwName" type="text" placeholder="Your full name (as agents will see it)" autocomplete="name" required style="' + inputCss + '">' +
       '<input id="pw1" type="password" placeholder="New password (8+ characters)" autocomplete="new-password" required minlength="8" style="' + inputCss + '">' +
       '<input id="pw2" type="password" placeholder="Confirm password" autocomplete="new-password" required style="' + inputCss + '">' +
       '<div id="authMsg" style="min-height:18px;font-size:12.5px;color:#DC2626;margin-bottom:8px"></div>' +
@@ -124,9 +125,12 @@
     $('msihubPwForm').onsubmit = async (e) => {
       e.preventDefault();
       if ($('pw1').value !== $('pw2').value) { $('authMsg').textContent = 'Passwords do not match.'; return; }
+      const name = $('pwName').value.trim();
+      if (name.split(' ').length < 2) { $('authMsg').textContent = 'Please enter your first and last name.'; return; }
       const b = $('authSubmit'); b.disabled = true;
-      const { error } = await M.sb.auth.updateUser({ password: $('pw1').value });
+      const { data: upd, error } = await M.sb.auth.updateUser({ password: $('pw1').value, data: { full_name: name } });
       if (error) { $('authMsg').textContent = error.message; b.disabled = false; return; }
+      try { await M.sb.from('profiles').update({ full_name: name }).eq('id', upd.user.id); } catch (e2) { console.warn('[MSIHub] name not saved', e2); }
       history.replaceState(null, '', location.pathname + location.search);
       const { data: { session } } = await M.sb.auth.getSession();
       await startApp(session);
