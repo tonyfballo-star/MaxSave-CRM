@@ -53,6 +53,14 @@
   };
   function fail(where, err) { console.error('[MSIHub] ' + where, err); M.toast((where ? where + ': ' : '') + (err && err.message ? err.message : String(err)), 'error'); }
 
+  // The original app used browser alert() pop-ups for feedback. Show them as toasts instead
+  // (validation messages in amber, everything else in navy). confirm() is left alone: it needs a yes/no.
+  window.alert = function (msg) {
+    const text = String(msg == null ? '' : msg).replace(/\s*\n+\s*/g, ' · ').trim();
+    if (!text) return;
+    M.toast(text, /^(please|enter|select|pick|type|choose)\b|required|first\.?$|invalid|missing/i.test(text) ? 'warn' : 'info');
+  };
+
   const me = () => M.profile || {};
   const myId = () => (M.user && M.user.id) || null;
   const isAdmin = () => me().role === 'admin';
