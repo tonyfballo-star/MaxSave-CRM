@@ -1,4 +1,4 @@
-// Run:  cd tools && npm init -y && npm i puppeteer-core@23 && node smoke.js real|fake
+// Run:  cd tools && npm init -y && npm i puppeteer-core@23 && node smoke.js real|fake [url]
 // Requires Microsoft Edge. "real" expects the login screen; "fake" injects an in-memory Supabase stub and walks every page + write path.
 // Headless smoke test for MSIHub using Edge.
 // Mode A: real page load -> expect login overlay, no JS errors.
@@ -6,7 +6,7 @@
 const puppeteer = require('puppeteer-core');
 const path = require('path');
 const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
-const FILE = 'file:///C:/Users/Tony%20Ballo/OneDrive/Desktop/MSICRM/maxsave_crm.html';
+const FILE = process.argv[3] || 'file:///C:/Users/Tony%20Ballo/OneDrive/Desktop/MSICRM/maxsave_crm.html';
 
 const FAKE_CLIENT = `
 (function(){
@@ -86,6 +86,9 @@ async function run(mode) {
       ['customer-text', () => { cdTab('cd-text'); document.getElementById('cdTextInput').value = 'cust text'; return MSIHub.sendCustomerText(); }],
       ['quote-export', () => { openLeadDetail('L1'); return new Promise(r => setTimeout(r, 200)).then(() => { openQuoteExport('lead'); closeQuoteExport(); }); }],
       ['new-sale', () => { openNewSale(); return new Promise(r => setTimeout(r, 300)).then(() => completeNewSaleDetails()).then(() => new Promise(r => setTimeout(r, 700))).then(() => { document.getElementById('nsCarrier').value = document.getElementById('nsCarrier').options[0].value; document.getElementById('nsPolicyNum').value = 'X1'; document.getElementById('nsPremium').value = '900'; return submitNewSale(); }); }],
+      ['esignatures', () => nav('esignatures', null)],
+      ['esign-preview', () => { openESignDocPreview('doc_std_payauth'); const ok = !!document.querySelector('#esignPreviewOverlay embed[src^="docs/"]'); closeESignPreview(); if (!ok) throw new Error('preview embed missing'); }],
+      ['payment', () => nav('payment', null)],
       ['calendar', () => nav('calendar', null)],
       ['reports', () => nav('reports', null)],
       ['inbox', () => nav('inbox', null)],
