@@ -76,6 +76,8 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
     await wait(400);
     out.steps.push(name + (errors.length > before ? ' ✗' : ' ✓'));
   }
+  // Clean up what we can as an agent: cancel the test appointment (deletes are admin-only by design)
+  out.cleanup = await page.evaluate(async (tag) => { const L = LEADS.find((l) => l.first === tag); if (!L) return 'no test lead'; const { error } = await MSIHub.sb.from('appointments').update({ status: 'Cancelled', notes: 'QA test — safe to delete' }).eq('lead_id', L.id); return error ? 'appointment cancel failed: ' + error.message : 'test appointment cancelled; test lead hidden as Bad Lead (admin can purge with: delete from leads where first_name like \'ZZ QA%\')'; }, TAG);
   out.toasts = await page.evaluate(() => window.__toasts);
   out.pageTitle = await page.evaluate(() => document.getElementById('page-title').textContent);
   await page.screenshot({ path: path.join(__dirname, 'live-dashboard.png') });

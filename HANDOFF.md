@@ -1,4 +1,4 @@
-# MSIHub — where things stand (updated 2026-09-14, end of day)
+# MSIHub — where things stand (updated 2026-09-15)
 
 Read this first when picking up on another machine. Start Claude Code in this folder and say:
 "Continue MSIHub from HANDOFF.md."
@@ -20,8 +20,7 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 7. Bug fixed: Settings page crashed for single-word agent names.
 
 ## In progress / blocked
-- **Live verification run** (`tools/live.js`) is written but has not passed yet: the QA login attempt with `qa@maxsave.com` returned "Invalid login credentials". Tony created a test agent login (password given in chat, not stored here) — confirm the exact email, then run:
-  `node tools/live.js https://msihub-maxsave.netlify.app/ <email> <password>`
+- **Live verification PASSED 2026-09-15** (29/29 steps, 0 errors) signed in as qa@maxsave.com. Findings: Tony's login is tonyb@maxsaveins.com with role *agent* (not admin) and public sign-ups are still enabled → run `supabase/fix-admin.sql` (makes him admin, hardens the profile trigger, purges QA test rows) and turn off "Allow new users to sign up" in Supabase Auth → Sign In / Providers → Email.
 - **Brevo SMTP:** account exists; Supabase Auth → Emails → SMTP Settings still needs: host `smtp-relay.brevo.com`, port 587, username = Brevo login email, password = Brevo SMTP key, sender = a verified Brevo sender. Then raise Auth rate limits.
 - **Custom domain:** msihub.com is taken (since 2015). Available: msihub.app, msihub.io, getmsihub.com. `maxsavehub.com` was registered 2026-07-02 — possibly Tony's; ask. Connect via Netlify → Domain management, then update Supabase Site URL + Redirect URLs.
 
