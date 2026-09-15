@@ -9,10 +9,10 @@ update public.profiles
  where lower(email) in ('tonyb@maxsaveins.com', 'tonyfballo@gmail.com');
 
 -- 2. Future logins: owner addresses become admin; everyone else is an agent.
---    A profile is only ACTIVE when the login was created confirmed (i.e. by an
---    admin in the Supabase dashboard with "Auto Confirm User"). Anyone who
---    self-registers through the public sign-up endpoint gets an inactive
---    profile and cannot read any agency data — even if sign-ups are left on.
+--    Profiles start active (dashboard-created logins are not yet confirmed when
+--    this trigger fires, so a "confirmed" check would lock everyone out).
+--    Public self-registration is prevented by turning OFF
+--    "Allow new users to sign up" in Authentication > Sign In / Providers > Email.
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
@@ -22,7 +22,7 @@ begin
     new.email,
     coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email,'@',1)),
     case when lower(new.email) in ('tonyb@maxsaveins.com', 'tonyfballo@gmail.com') then 'admin' else 'agent' end,
-    (new.email_confirmed_at is not null)
+    true
   )
   on conflict (id) do update set email = excluded.email;
   return new;
