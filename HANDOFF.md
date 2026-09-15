@@ -20,7 +20,7 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 7. Bug fixed: Settings page crashed for single-word agent names.
 
 ## In progress / blocked
-- **Live verification PASSED 2026-09-15** (29/29 steps, 0 errors) signed in as qa@maxsave.com. Findings: Tony's login is tonyb@maxsaveins.com with role *agent* (not admin) and public sign-ups are still enabled → run `supabase/fix-admin.sql` (makes him admin, hardens the profile trigger, purges QA test rows) and turn off "Allow new users to sign up" in Supabase Auth → Sign In / Providers → Email.
+- **Live verification PASSED 2026-09-15** (29/29 steps, 0 errors). Owner login is tonyb@maxsaveins.com (admin, active, name Tony Ballo). Public sign-ups DISABLED (verified). Default settings seeded. QA test rows purged. Test login qa@maxsave.com (agent) — password given in chat.
 - **Brevo SMTP:** account exists; Supabase Auth → Emails → SMTP Settings still needs: host `smtp-relay.brevo.com`, port 587, username = Brevo login email, password = Brevo SMTP key, sender = a verified Brevo sender. Then raise Auth rate limits.
 - **Custom domain:** msihub.com is taken (since 2015). Available: msihub.app, msihub.io, getmsihub.com. `maxsavehub.com` was registered 2026-07-02 — possibly Tony's; ask. Connect via Netlify → Domain management, then update Supabase Site URL + Redirect URLs.
 
