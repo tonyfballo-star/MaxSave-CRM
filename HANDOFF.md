@@ -1,4 +1,4 @@
-# MSIHub — where things stand (updated 2026-09-15)
+# MSIHub — where things stand (updated 2026-09-15, evening)
 
 Read this first when picking up on another machine. Start Claude Code in this folder and say:
 "Continue MSIHub from HANDOFF.md."
@@ -23,6 +23,13 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 - **Live verification PASSED 2026-09-15** (29/29 steps, 0 errors). Owner login is tonyb@maxsaveins.com (admin, active, name Tony Ballo). Public sign-ups DISABLED (verified). Default settings seeded. QA test rows purged. Test login qa@maxsave.com (agent) — password given in chat.
 - **Brevo SMTP:** account exists; Supabase Auth → Emails → SMTP Settings still needs: host `smtp-relay.brevo.com`, port 587, username = Brevo login email, password = Brevo SMTP key, sender = a verified Brevo sender. Then raise Auth rate limits.
 - **Custom domain:** msihub.com is taken (since 2015). Available: msihub.app, msihub.io, getmsihub.com. `maxsavehub.com` was registered 2026-07-02 — possibly Tony's; ask. Connect via Netlify → Domain management, then update Supabase Site URL + Redirect URLs.
+
+## DYL data migration (2026-09-15, in progress)
+- Full DYL export pulled headlessly (see tools/dyl/README.md): 382k leads, ~16.5k customers, 272 MB of CSV in OneDrive/Desktop/DYL Export (not in repo). Parsed to leads.jsonl.
+- Importer written (tools/dyl/dyl-import.js). Dry run, recommended scope (customers + any real disposition + last 12 months): 89,788 leads, 14,501 customers, 16,398 vehicles, 15,956 drivers. Customers-only: 14,501.
+- CRM prepared for volume: on-demand loading (working set + DB search + per-lead history) and Customers paging — pushed, needs redeploy of msihub-site.zip.
+- WAITING ON TONY: confirm scope (12 vs 24 months), and which DYL agent names are still active so logins can be created and DYL assignments mapped (details.dyl_assigned holds the name).
+- After import: reconcile details.dyl_assigned → agent_id once agent logins exist; consider Supabase Pro if DB > 500 MB.
 
 ## Next steps (agreed order)
 1. Finish live verification, fix anything it finds.
