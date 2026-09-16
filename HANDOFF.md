@@ -25,8 +25,8 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 - **Custom domain:** msihub.com is taken (since 2015). Available: msihub.app, msihub.io, getmsihub.com. `maxsavehub.com` was registered 2026-07-02 — possibly Tony's; ask. Connect via Netlify → Domain management, then update Supabase Site URL + Redirect URLs.
 
 ## DYL data migration (2026-09-15, in progress)
-- Full DYL export pulled headlessly (see tools/dyl/README.md): 382k leads, ~16.5k customers, 272 MB of CSV in OneDrive/Desktop/DYL Export (not in repo). Parsed to leads.jsonl.
-- Importer written (tools/dyl/dyl-import.js). Dry run, recommended scope (customers + any real disposition + last 12 months): 89,788 leads, 14,501 customers, 16,398 vehicles, 15,956 drivers. Customers-only: 14,501.
+- Full DYL export pulled headlessly (see tools/dyl/README.md): 381,544 of 382,621 leads (99.7%), 16,381 customers, ~275 MB of CSV in OneDrive/Desktop/DYL Export (not in repo). Parsed to leads.jsonl.
+- Importer written (tools/dyl/dyl-import.js). Final dry run, recommended scope (customers + any real disposition + last 12 months): 95,241 leads, 16,381 customers; 24-month option: 149,429 leads.
 - CRM prepared for volume: on-demand loading (working set + DB search + per-lead history) and Customers paging — pushed, needs redeploy of msihub-site.zip.
 - WAITING ON TONY: confirm scope (12 vs 24 months), and which DYL agent names are still active so logins can be created and DYL assignments mapped (details.dyl_assigned holds the name).
 - After import: reconcile details.dyl_assigned → agent_id once agent logins exist; consider Supabase Pro if DB > 500 MB.
