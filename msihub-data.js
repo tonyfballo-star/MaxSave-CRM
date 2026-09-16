@@ -512,6 +512,8 @@
   };
   window.leadCall = function (id) { const l = leadById(id); if (l) doCall(l.name, l.phone, l); };
   window.leadText = function (id) { const l = leadById(id); if (l) { M.currentLeadId = id; window._currentLeadName = l.name; openTextThread(l.name, l.phone); } };
+  window.customerCall = function (id) { const c = customerById(id); if (c) doCall(c.first + ' ' + c.last, c.phone); };
+  window.customerText = function (id) { const c = customerById(id); if (c) { window._currentCustomerId = id; openTextThread(c.first + ' ' + c.last, c.phone); } };
 
   window.onColDrop = async function (ev, newStatus) {
     ev.preventDefault();

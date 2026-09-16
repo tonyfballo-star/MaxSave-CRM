@@ -3414,7 +3414,7 @@ function renderCustomersPage(){
     }).join('')}
   </div>
 
-  ${(()=>{ window._currentCustomerList = list; return ''; })()}
+  ${(()=>{ const s = window.CUSTOMERS_STATE; s.perPage = s.perPage || 50; const key = [s.tab,s.carrier,s.city,s.zip,s.ageMin,s.ageMax,s.search,s.payPeriodOnly,s.openBalanceOnly,s.brokerFeeCollectedOnly,s.renewalWindow].join('|'); if (s._filterKey !== key) { s._filterKey = key; s.page = 1; } s.page = s.page || 1; const totalPages = Math.max(1, Math.ceil(list.length / s.perPage)); if (s.page > totalPages) s.page = totalPages; const start = (s.page - 1) * s.perPage; window._customerPages = { total: list.length, totalPages, page: s.page, start, end: Math.min(start + s.perPage, list.length) }; list = list.slice(start, start + s.perPage); window._currentCustomerList = list; return ''; })()}
   <div class="card" style="overflow-x:auto">
     <table class="data-table leads-table">
       <thead><tr>
@@ -3450,14 +3450,15 @@ function renderCustomersPage(){
             <td>
               <div style="display:flex;gap:6px">
                 <button type="button" title="View" onclick="openCustomerDetail('${c.id}')" style="width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;font-size:13px">👁</button>
-                <button type="button" title="Call" onclick="alert('Calling ${c.first}…')" style="background:#1A6ED0;color:#fff;border:none;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M2 2.5C2 2.5 3.5 1 5 1s2.5 1.5 3 3-1 2-1 3 2 2.5 3 3 3-1.5 3-3 1 3 1 3-1.5 2-3 2c-2 0-4-1-6-3S1 5.5 1 3.5C1 2.5 2 2.5 2 2.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Call</button>
-                <button type="button" title="Text" onclick="openTextThread()" style="background:#fff;color:#374151;border:1.5px solid #D1D5DB;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M14 9.5a5 5 0 0 1-5 5H3l-2 2V5a5 5 0 0 1 5-5h3a5 5 0 0 1 5-5v4.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text</button>
+                <button type="button" title="Call" onclick="customerCall('${c.id}')" style="background:#1A6ED0;color:#fff;border:none;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M2 2.5C2 2.5 3.5 1 5 1s2.5 1.5 3 3-1 2-1 3 2 2.5 3 3 3-1.5 3-3 1 3 1 3-1.5 2-3 2c-2 0-4-1-6-3S1 5.5 1 3.5C1 2.5 2 2.5 2 2.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Call</button>
+                <button type="button" title="Text" onclick="customerText('${c.id}')" style="background:#fff;color:#374151;border:1.5px solid #D1D5DB;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M14 9.5a5 5 0 0 1-5 5H3l-2 2V5a5 5 0 0 1 5-5h3a5 5 0 0 1 5-5v4.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text</button>
               </div>
             </td>
           </tr>`;
         }).join('')}
       </tbody>
     </table>
+    ${(()=>{ const pg = window._customerPages; if (!pg || pg.total <= 50) return ''; const btn = (label, disabled, p) => `<button class="btn btn-ghost" style="font-size:13px;padding:7px 13px${disabled?';opacity:0.4;cursor:not-allowed':''}" ${disabled?'disabled':''} onclick="window.CUSTOMERS_STATE.page=${p};refreshCustomers()">${label}</button>`; return `<div style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);background:var(--gray-50)"><div style="font-size:13.5px;color:var(--gray-600)">Showing ${pg.start+1}–${pg.end} of <strong>${pg.total}</strong> customers · 50 per page</div><div style="display:flex;gap:6px;align-items:center">${btn('← Prev', pg.page<=1, pg.page-1)}<span style="font-size:13px;color:var(--gray-600);padding:0 6px">Page ${pg.page} of ${pg.totalPages}</span>${btn('Next →', pg.page>=pg.totalPages, pg.page+1)}</div></div>`; })()}
   </div>
   `;
 }
