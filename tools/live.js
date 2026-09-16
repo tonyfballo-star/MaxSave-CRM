@@ -5,7 +5,7 @@ const puppeteer = require('puppeteer-core');
 const path = require('path');
 const { spawn } = require('child_process'); const http = require('http');
 const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
-const [URL, EMAIL, PASS] = process.argv.slice(2);
+const [URL, EMAIL, PASS, LOCAL_DATA] = process.argv.slice(2);
 if (!URL || !EMAIL || !PASS) { console.error('usage: node live.js <url> <email> <password>'); process.exit(2); }
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -24,6 +24,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   page.on('console', (m) => { const t = m.text(); if (m.type() === 'error' && !/favicon|Tracking Prevention/.test(t)) errors.push('console: ' + t); });
   page.on('dialog', async (d) => { toasts.push('DIALOG: ' + d.message()); await d.accept(); });
 
+  if (LOCAL_DATA) { await page.setRequestInterception(true); page.on('request', (r) => { const u = r.url(); if (/msihub-data(-2)?.js/.test(u)) { const f = LOCAL_DATA + '/' + u.split('/').pop().split('?')[0]; r.respond({ status: 200, contentType: 'application/javascript', body: require('fs').readFileSync(f, 'utf8') }); } else r.continue(); }); }
   await page.goto(URL, { waitUntil: 'load' });
   await page.waitForSelector('#authEmail', { timeout: 20000 });
   await page.type('#authEmail', EMAIL); await page.type('#authPassword', PASS);

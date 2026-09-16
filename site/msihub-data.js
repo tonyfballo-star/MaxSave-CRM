@@ -197,43 +197,57 @@
   // ------------------------------------------------------------------
   // Loading + mapping into the CRM's arrays
   // ------------------------------------------------------------------
+  // What loads at sign-in. Big tables load a "working set" (recent + open records); older leads and
+  // per-lead history are fetched on demand (search box, opening a profile). Rows are pulled in pages of 1000.
+  const daysAgo = (n) => new Date(Date.now() - n * 86400000).toISOString();
   const TABLES = {
     profiles:     (q) => q.order('full_name'),
-    leads:        (q) => q.order('received_at', { ascending: false }),
+    leads:        (q) => q.or('received_at.gte.' + daysAgo(90) + ',status.in.("New Lead","Quoted","Appointment Set")').order('received_at', { ascending: false }),
     customers:    (q) => q.order('created_at', { ascending: false }),
     policies:     (q) => q.order('effective_date', { ascending: false }),
-    vehicles:     (q) => q,
+    vehicles:     (q) => q.order('created_at'),
     drivers:      (q) => q.order('is_primary', { ascending: false }),
     claims:       (q) => q.order('claim_date', { ascending: false }),
     sales:        (q) => q.order('created_at', { ascending: false }),
-    appointments: (q) => q.order('starts_at'),
-    notes:        (q) => q.order('created_at', { ascending: false }),
-    quotes:       (q) => q.order('created_at', { ascending: false }),
-    calls:        (q) => q.order('created_at', { ascending: false }),
-    messages:     (q) => q.order('created_at'),
+    appointments: (q) => q.gte('starts_at', daysAgo(365)).order('starts_at'),
+    notes:        (q) => q.gte('created_at', daysAgo(90)).order('created_at', { ascending: false }),
+    quotes:       (q) => q.gte('created_at', daysAgo(180)).order('created_at', { ascending: false }),
+    calls:        (q) => q.gte('created_at', daysAgo(90)).order('created_at', { ascending: false }),
+    messages:     (q) => q.gte('created_at', daysAgo(90)).order('created_at'),
     templates:    (q) => q.order('sort_order'),
     files:        (q) => q.order('created_at', { ascending: false }),
     tasks:        (q) => q.order('due_date').order('id'),
     agency_settings: (q) => q,
   };
+  const CAPS = { leads: 20000, customers: 30000, policies: 40000, vehicles: 40000, drivers: 40000, claims: 10000, files: 10000, sales: 20000, appointments: 10000, notes: 10000, quotes: 10000, calls: 10000, messages: 10000, templates: 500, tasks: 5000, agency_settings: 100, profiles: 500 };
   const TABLE_NAME = { calls: 'call_log' };
   const OPTIONAL = new Set(['tasks', 'agency_settings']);   // added by schema-v2.sql
+  const PAGE = 1000;
+  M.extra = { leads: new Map() };   // leads pulled in by search / direct open, kept across reloads
 
   async function fetchTable(key) {
-    const name = TABLE_NAME[key] || key;
-    const { data, error } = await TABLES[key](M.sb.from(name).select('*').limit(5000));
-    if (error) {
-      if (OPTIONAL.has(key) && /does not exist|schema cache|not found/i.test(error.message)) { M.missingTables.add(name); return []; }
-      throw new Error(name + ': ' + error.message);
+    const name = TABLE_NAME[key] || key; const cap = CAPS[key] || 5000; const out = [];
+    for (let from = 0; from < cap; from += PAGE) {
+      const { data, error } = await TABLES[key](M.sb.from(name).select('*')).range(from, Math.min(from + PAGE - 1, cap - 1));
+      if (error) {
+        if (OPTIONAL.has(key) && /does not exist|schema cache|not found/i.test(error.message)) { M.missingTables.add(name); return []; }
+        throw new Error(name + ': ' + error.message);
+      }
+      (data || []).forEach((r) => out.push(r));
+      if (!data || data.length < PAGE) break;
     }
-    return data || [];
+    return out;
+  }
+  function mergeExtras(key, rows) {
+    const extra = M.extra[key]; if (!extra || !extra.size) return rows;
+    const ids = new Set(rows.map((r) => r.id)); extra.forEach((r, id) => { if (!ids.has(id)) rows.push(r); }); return rows;
   }
 
   M.loadAll = async function () {
     const keys = Object.keys(TABLES);
     try {
       const results = await Promise.all(keys.map(fetchTable));
-      keys.forEach((k, i) => { M.data[k] = results[i]; });
+      keys.forEach((k, i) => { M.data[k] = mergeExtras(k, results[i]); });
     } catch (e) { fail('Loading data', e); }
     remapAll();
     if (M.missingTables.size && isAdmin()) M.toast('Tasks & Settings are not synced yet — run supabase/schema-v2.sql in the Supabase SQL Editor.', 'warn');
@@ -242,9 +256,46 @@
   M.reload = async function (keys) {
     try {
       const results = await Promise.all(keys.map(fetchTable));
-      keys.forEach((k, i) => { M.data[k] = results[i]; });
+      keys.forEach((k, i) => { M.data[k] = mergeExtras(k, results[i]); });
     } catch (e) { fail('Refreshing data', e); }
     remapAll();
+  };
+
+  // ---- On-demand: search older leads in the database, open a lead that is not in the working set,
+  //      and pull a lead's full history when its profile opens.
+  const searched = new Set();
+  M.searchLeads = async function (q) {
+    const term = String(q || '').trim(); if (term.length < 3) return 0;
+    const key = term.toLowerCase(); if (searched.has(key)) return 0; searched.add(key);
+    const digits = term.replace(/\D/g, ''); const like = '%' + term.replace(/[%_,()]/g, ' ') + '%';
+    const ors = ['first_name.ilike.' + like, 'last_name.ilike.' + like, 'email.ilike.' + like];
+    if (digits.length >= 4) ors.push('phone.ilike.%' + digits.slice(0, 3) + '%' + digits.slice(3, 6) + '%' + digits.slice(6) + '%');
+    if (term.includes(' ')) { const [a, b] = term.split(/\s+/); ors.push('and(first_name.ilike.' + a + '%,last_name.ilike.' + b + '%)'); }
+    const { data, error } = await M.sb.from('leads').select('*').or(ors.join(',')).order('received_at', { ascending: false }).limit(200);
+    if (error) { console.warn('[MSIHub] search', error); return 0; }
+    let added = 0; const have = new Set(M.data.leads.map((l) => l.id));
+    (data || []).forEach((r) => { if (!have.has(r.id)) { M.extra.leads.set(r.id, r); M.data.leads.push(r); added++; } });
+    if (added) mapLeads();
+    return added;
+  };
+  const _refreshLeads = window.refreshLeads;
+  const searchLater = debounce(async () => { const q = (window.LEADS_STATE || {}).search || ''; const n = await M.searchLeads(q); if (n && window.CURRENT_PAGE === 'leads') _refreshLeads(); }, 450);
+  window.refreshLeads = function () { const r = _refreshLeads.apply(this, arguments); const q = (window.LEADS_STATE || {}).search || ''; if (q.trim().length >= 3) searchLater(); return r; };
+
+  M.fetchLead = async function (id) {
+    const { data, error } = await M.sb.from('leads').select('*').eq('id', id).maybeSingle();
+    if (error || !data) return null;
+    if (!M.data.leads.find((l) => l.id === id)) { M.extra.leads.set(id, data); M.data.leads.push(data); mapLeads(); }
+    return leadById(id);
+  };
+  const historyLoaded = new Set();
+  M.ensureLeadHistory = async function (id) {
+    if (historyLoaded.has(id)) return false; historyLoaded.add(id);
+    const pull = (key, table) => M.sb.from(table).select('*').eq('lead_id', id).order('created_at').then(({ data }) => { const have = new Set(M.data[key].map((r) => r.id)); let n = 0; (data || []).forEach((r) => { if (!have.has(r.id)) { M.data[key].push(r); n++; } }); return n; });
+    const counts = await Promise.all([pull('notes', 'notes'), pull('quotes', 'quotes'), pull('files', 'files'), pull('calls', 'call_log'), pull('messages', 'messages')]);
+    const added = counts.reduce((a, b) => a + b, 0);
+    if (added) { M.data.notes.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); mapActivity(); }
+    return added > 0;
   };
 
   function remapAll() {
@@ -452,8 +503,10 @@
   // ------------------------------------------------------------------
   // LEADS
   // ------------------------------------------------------------------
-  window.openLeadDetail = function (id) {
-    const l = leadById(id); if (!l) { M.toast('Lead not found', 'error'); return; }
+  window.openLeadDetail = async function (id) {
+    let l = leadById(id);
+    if (!l) { l = await M.fetchLead(id); }
+    if (!l) { M.toast('Lead not found', 'error'); return; }
     M.currentLeadId = id; window._currentLeadName = l.name;
     nav('leaddetail', document.querySelector('.nav-item[onclick*="leads"]'));
   };
@@ -676,6 +729,8 @@
     const lbl = $('apptLeadNameLabel'); if (lbl) lbl.textContent = L.name;
     const prod = $('nsProd');
     if (prod) { const cur = prod.value; prod.innerHTML = M.agents().map((p) => '<option' + (p.full_name === (cur || me().full_name) ? ' selected' : '') + '>' + esc(p.full_name) + '</option>').join(''); }
+    // Older notes/quotes/files/calls/texts are not in the sign-in working set: fetch this lead's history and re-render once.
+    M.ensureLeadHistory(L.id).then((added) => { if (added && M.currentLeadId === L.id && window.CURRENT_PAGE === 'leaddetail') PAGE_INIT.leaddetail(); });
   };
 
   // ---- Notes / quotes / files on the lead page ----

@@ -20,7 +20,7 @@ const FAKE_CLIENT = `
     templates: [{ id:'T1', emoji:'📋', name:'Quote Ready', body:'Hi {{name}}', sort_order:1 }], files: [] };
   window.__writes = [];
   function q(table){ const st={table, filters:[]}; const api={
-    select(){return api;}, order(){return api;}, limit(){return api;}, eq(k,v){st.filters.push([k,v]);return api;}, maybeSingle(){st.single=true;return api;}, single(){st.single=true;return api;},
+    select(){return api;}, order(){return api;}, limit(){return api;}, range(){return api;}, or(){return api;}, gte(){return api;}, lte(){return api;}, in(){return api;}, ilike(){return api;}, not(){return api;}, is(){return api;}, neq(){return api;}, eq(k,v){st.filters.push([k,v]);return api;}, maybeSingle(){st.single=true;return api;}, single(){st.single=true;return api;},
     insert(row){ st.op='insert'; window.__writes.push([table,'insert',row]); const r=Object.assign({id:'new'+Date.now(), created_at:new Date().toISOString()}, row); (rows[table]=rows[table]||[]).push(r); st.result=r; return api; },
     update(patch){ st.op='update'; window.__writes.push([table,'update',patch]); st.patch=patch; return api; },
     delete(){ st.op='delete'; window.__writes.push([table,'delete']); return api; },
