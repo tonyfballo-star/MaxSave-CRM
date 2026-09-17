@@ -28,7 +28,8 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 - Full DYL export pulled headlessly (see tools/dyl/README.md): 381,544 of 382,621 leads (99.7%), 16,381 customers, ~275 MB of CSV in OneDrive/Desktop/DYL Export (not in repo). Parsed to leads.jsonl.
 - Importer written (tools/dyl/dyl-import.js). Final dry run, recommended scope (customers + any real disposition + last 12 months): 95,241 leads, 16,381 customers; 24-month option: 149,429 leads.
 - CRM prepared for volume: on-demand loading (working set + DB search + per-lead history) and Customers paging — pushed, needs redeploy of msihub-site.zip.
-- WAITING ON TONY: confirm scope (12 vs 24 months), and which DYL agent names are still active so logins can be created and DYL assignments mapped (details.dyl_assigned holds the name).
+- DONE 2026-09-17: Tony chose 24 months. Import complete: 149,248 leads (+notes), customers deduped by phone, vehicles/drivers. Imported as qa@maxsave.com; customer_no = DYL-<id>. Current agents: Dellano Soro, Marino D Alfonso, Nathan Hermiz, Alton Jorjes, Arman Nishan, Julian Sabri, Nawras Tatta, Norman Tatta, Jermaine Jackson — logins still to be created by Tony, then map details.dyl_assigned → agent_id.
+- Netlify redeploy of the on-demand-loader build NOT confirmed live yet (live msihub-data.js still old as of 2026-09-17).
 - After import: reconcile details.dyl_assigned → agent_id once agent logins exist; consider Supabase Pro if DB > 500 MB.
 
 ## Next steps (agreed order)
