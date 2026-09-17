@@ -17,13 +17,15 @@ const isoDate = (s) => (s && /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : nul
 const title = (s) => (s ? s.replace(/\S+/g, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase()) : s);
 const inScope = (L) => { if (SCOPE === 'all') return true; if (L.customer) return true; if (SCOPE === 'customers') return false; if (REAL_DISP.has(L.disposition)) return true; return (L.received || '') >= CUTOFF; };
 
+// Drop null/empty values from the details blob so the database stays small.
+function prune(o) { if (Array.isArray(o)) return o.map(prune); if (o && typeof o === 'object') { const r = {}; for (const [k, v] of Object.entries(o)) { const pv = prune(v); if (pv === null || pv === undefined || pv === '' || (typeof pv === 'object' && !Array.isArray(pv) && Object.keys(pv).length === 0)) continue; r[k] = pv; } return r; } return o; }
 function mapLead(L, createdBy) {
   const d1 = L.drivers[0] || {}; const c1 = L.cars[0] || {};
   const drivers = L.drivers.map((d, i) => ({ name: [d['First Name'], d['Last Name']].filter(Boolean).join(' ') || null, dob: isoDate(d['Date of Birth']), gender: d.Gender || null, marital: d['Marital Status'] || null, license: [d['License Status'], d['State Licensed']].filter(Boolean).join(' · ') || null, violations: d.Violations || (d.Suspension === 'true' ? 'Suspension' : null), relationship: d.Relationship || null, occupation: d.Occupation || null, sr22: d['SR-22 Required'] === 'true', primary: i === 0 }));
   const vehicles = L.cars.map((c) => ({ year: parseInt(c['Vehicle Model Year']) || null, make: title(c['Vehicle Make']) || null, model: c['Vehicle Model'] || null, trim: c['Vehicle Trim'] || null, vin: c['VIN Number'] || null, use: c['Primary Use'] || null, mileage: c['Annual Mileage'] ? c['Annual Mileage'] + ' mi/yr' : null, ownership: c.Ownership || null, garaging: c.Garage === 'true' ? 'Garage' : null, coverage: c['Car Coverage'] || null }));
   const disp = DISP[L.disposition] === undefined ? L.disposition : DISP[L.disposition];
   const prior = [L.current_carrier, L.insured === 'true' ? 'currently insured' : (L.insured === 'false' ? 'uninsured' : null), L.policy_expiration ? 'exp ' + L.policy_expiration : null].filter(Boolean).join(' — ') || null;
-  return {
+  const out = {
     first_name: title(L.first) || '', last_name: title(L.last) || '', phone: fmtPhone(L.phone), email: L.email ? L.email.toLowerCase() : null,
     status: STATUS(L.disposition, L.call_result, L.customer), disposition: disp, policy_type: L.lead_type === 'Contact' ? 'Auto' : (L.lead_type || 'Auto'), source: L.source || null, agent_id: null,
     received_at: pacificISO(L.received) || new Date().toISOString(), fee: 0, sr22: drivers.some((d) => d.sr22), language: L.language || (L.disposition === 'SPANISH' ? 'Spanish' : 'English'), prior_coverage: prior, best_time: L.best_time || null, lead_score: null, do_not_call: L.disposition === 'Do Not Call',
@@ -35,17 +37,30 @@ function mapLead(L, createdBy) {
       credit: L.credit || null, home_ownership: L.home_ownership || null, residency_years: L.residency || null, bankruptcy: L.bankruptcy || null, insured: L.insured || null, policy_expiration: L.policy_expiration || null, current_carrier: L.current_carrier || null },
     created_by: createdBy, created_at: pacificISO(L.received) || undefined,
   };
+  out.details = prune(out.details);
+  return out;
 }
 
 async function api(path, opts) {
-  const r = await fetch(URL + path, Object.assign({ headers: Object.assign({ apikey: KEY, Authorization: 'Bearer ' + TOKEN, 'Content-Type': 'application/json' }, (opts && opts.headers) || {}) }, opts));
+  const headers = Object.assign({ apikey: KEY, Authorization: 'Bearer ' + TOKEN, 'Content-Type': 'application/json' }, (opts && opts.headers) || {});
+  const r = await fetch(URL + path, Object.assign({}, opts || {}, { headers }));
   const t = await r.text(); if (!r.ok) throw new Error(path + ' → ' + r.status + ' ' + t.slice(0, 300)); return t ? JSON.parse(t) : null;
 }
 let TOKEN = null, ME = null;
 async function login() { const r = await fetch(URL + '/auth/v1/token?grant_type=password', { method: 'POST', headers: { apikey: KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: args.email, password: args.password }) }); const j = await r.json(); if (!j.access_token) throw new Error('login failed: ' + JSON.stringify(j).slice(0, 200)); TOKEN = j.access_token; ME = j.user.id; }
 async function existingDylIds() { const ids = new Set(); let from = 0; for (;;) { const rows = await api(`/rest/v1/leads?select=details->>dyl_id&details->>dyl_id=not.is.null&order=created_at&offset=${from}&limit=1000`); rows.forEach((r) => ids.add(r.dyl_id)); if (rows.length < 1000) break; from += 1000; } return ids; }
 
+async function repair() {
+  await login(); const custs = await api('/rest/v1/customers?select=id,lead_id,first_name,last_name,leads!inner(details)&lead_id=not.is.null&limit=5000');
+  const ids = custs.map((c) => c.id); const have = new Set((await api('/rest/v1/drivers?select=customer_id&customer_id=in.(' + ids.join(',') + ')')).map((r) => r.customer_id));
+  const byDyl = {}; const rl = readline.createInterface({ input: fs.createReadStream(IN) }); const want = new Set(custs.filter((c) => !have.has(c.id)).map((c) => c.leads.details.dyl_id));
+  for await (const line of rl) { if (!line) continue; const L = JSON.parse(line); if (want.has(L.dyl_id)) byDyl[L.dyl_id] = L; }
+  const drv = []; custs.filter((c) => !have.has(c.id)).forEach((c) => { const L = byDyl[c.leads.details.dyl_id]; if (!L) return; const m = mapLead(L, ME); (m.details.drivers || []).forEach((d) => drv.push({ customer_id: c.id, name: d.name || (c.first_name + ' ' + c.last_name), dob: d.dob ?? null, gender: d.gender ?? null, license: d.license ?? null, violations: d.violations ?? null, is_primary: !!d.primary })); });
+  if (drv.length) await api('/rest/v1/drivers', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(drv) });
+  console.log('repair: customers missing drivers', custs.length - have.size, '→ drivers inserted', drv.length);
+}
 (async () => {
+  if (args.repair) { await repair(); return; }
   const stats = { read: 0, inScope: 0, customers: 0, notes: 0, vehicles: 0, drivers: 0, skippedExisting: 0, byStatus: {}, inserted: 0, custInserted: 0 };
   const picked = [];
   const rl = readline.createInterface({ input: fs.createReadStream(IN) });
@@ -70,7 +85,7 @@ async function existingDylIds() { const ids = new Set(); let from = 0; for (;;) 
       const cins = await api('/rest/v1/customers?select=id,lead_id', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify(crows) });
       const custByLead = {}; cins.forEach((c) => { custByLead[c.lead_id] = c.id; }); stats.custInserted += cins.length;
       const veh = [], drv = [];
-      custs.forEach((L) => { const cid = custByLead[idBy[L.dyl_id]]; if (!cid) return; const m = mapLead(L, ME); m.details.vehicles.forEach((v) => veh.push({ customer_id: cid, year: v.year, make: v.make, model: v.model, vin: v.vin, use: [v.use, v.mileage].filter(Boolean).join(' · ') || null, garaging: v.garaging, lien: v.ownership })); m.details.drivers.forEach((d) => drv.push({ customer_id: cid, name: d.name || (m.first_name + ' ' + m.last_name), dob: d.dob, gender: d.gender, license: d.license, violations: d.violations, is_primary: d.primary })); });
+      custs.forEach((L) => { const cid = custByLead[idBy[L.dyl_id]]; if (!cid) return; const m = mapLead(L, ME); (m.details.vehicles || []).forEach((v) => veh.push({ customer_id: cid, year: v.year ?? null, make: v.make ?? null, model: v.model ?? null, vin: v.vin ?? null, use: [v.use, v.mileage].filter(Boolean).join(' · ') || null, garaging: v.garaging ?? null, lien: v.ownership ?? null })); (m.details.drivers || []).forEach((d) => drv.push({ customer_id: cid, name: d.name || (m.first_name + ' ' + m.last_name), dob: d.dob ?? null, gender: d.gender ?? null, license: d.license ?? null, violations: d.violations ?? null, is_primary: !!d.primary })); });
       if (veh.length) await api('/rest/v1/vehicles', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(veh) });
       if (drv.length) await api('/rest/v1/drivers', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(drv) });
     }
