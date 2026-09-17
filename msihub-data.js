@@ -200,25 +200,29 @@
   // What loads at sign-in. Big tables load a "working set" (recent + open records); older leads and
   // per-lead history are fetched on demand (search box, opening a profile). Rows are pulled in pages of 1000.
   const daysAgo = (n) => new Date(Date.now() - n * 86400000).toISOString();
+  // Filters only — ordering/paging is applied by fetchTable. Big tables page by keyset
+  // (timestamp + id), which stays fast at any depth; small tables use plain ranges.
   const TABLES = {
-    profiles:     (q) => q.order('full_name'),
-    leads:        (q) => q.or('received_at.gte.' + daysAgo(90) + ',status.in.("New Lead","Quoted","Appointment Set")').order('received_at', { ascending: false }),
-    customers:    (q) => q.order('created_at', { ascending: false }),
-    policies:     (q) => q.order('effective_date', { ascending: false }),
-    vehicles:     (q) => q.order('created_at'),
-    drivers:      (q) => q.order('is_primary', { ascending: false }),
-    claims:       (q) => q.order('claim_date', { ascending: false }),
-    sales:        (q) => q.order('created_at', { ascending: false }),
-    appointments: (q) => q.gte('starts_at', daysAgo(365)).order('starts_at'),
-    notes:        (q) => q.gte('created_at', daysAgo(90)).order('created_at', { ascending: false }),
-    quotes:       (q) => q.gte('created_at', daysAgo(180)).order('created_at', { ascending: false }),
-    calls:        (q) => q.gte('created_at', daysAgo(90)).order('created_at', { ascending: false }),
-    messages:     (q) => q.gte('created_at', daysAgo(90)).order('created_at'),
+    profiles:     (q) => q,
+    leads:        (q) => q.or('received_at.gte.' + daysAgo(90) + ',status.in.("Quoted","Appointment Set")'),
+    customers:    (q) => q,
+    policies:     (q) => q,
+    vehicles:     (q) => q,
+    drivers:      (q) => q,
+    claims:       (q) => q,
+    sales:        (q) => q,
+    appointments: (q) => q.gte('starts_at', daysAgo(365)),
+    notes:        (q) => q.gte('created_at', daysAgo(90)),
+    quotes:       (q) => q.gte('created_at', daysAgo(180)),
+    calls:        (q) => q.gte('created_at', daysAgo(90)),
+    messages:     (q) => q.gte('created_at', daysAgo(90)),
     templates:    (q) => q.order('sort_order'),
-    files:        (q) => q.order('created_at', { ascending: false }),
+    files:        (q) => q,
     tasks:        (q) => q.order('due_date').order('id'),
     agency_settings: (q) => q,
   };
+  const KEYSET = { leads: 'received_at', customers: 'created_at', policies: 'created_at', vehicles: 'created_at', drivers: 'created_at', claims: 'created_at', sales: 'created_at', appointments: 'starts_at', notes: 'created_at', quotes: 'created_at', calls: 'created_at', messages: 'created_at', files: 'created_at' };
+  const SORT_AFTER = { messages: 'created_at', appointments: 'starts_at' };   // consumers expect ascending order
   const CAPS = { leads: 20000, customers: 30000, policies: 40000, vehicles: 40000, drivers: 40000, claims: 10000, files: 10000, sales: 20000, appointments: 10000, notes: 10000, quotes: 10000, calls: 10000, messages: 10000, templates: 500, tasks: 5000, agency_settings: 100, profiles: 500 };
   const TABLE_NAME = { calls: 'call_log' };
   const OPTIONAL = new Set(['tasks', 'agency_settings']);   // added by schema-v2.sql
@@ -226,16 +230,27 @@
   M.extra = { leads: new Map() };   // leads pulled in by search / direct open, kept across reloads
 
   async function fetchTable(key) {
-    const name = TABLE_NAME[key] || key; const cap = CAPS[key] || 5000; const out = [];
-    for (let from = 0; from < cap; from += PAGE) {
-      const { data, error } = await TABLES[key](M.sb.from(name).select('*')).range(from, Math.min(from + PAGE - 1, cap - 1));
+    const name = TABLE_NAME[key] || key; const cap = CAPS[key] || 5000; const out = []; const col = KEYSET[key];
+    let last = null;
+    while (out.length < cap) {
+      let q = TABLES[key](M.sb.from(name).select('*'));
+      if (col) {
+        q = q.order(col, { ascending: false }).order('id', { ascending: true }).limit(Math.min(PAGE, cap - out.length));
+        if (last) q = q.or(col + '.lt.' + last[col] + ',and(' + col + '.eq.' + last[col] + ',id.gt.' + last.id + ')');
+      } else {
+        q = q.range(out.length, Math.min(out.length + PAGE - 1, cap - 1));
+      }
+      const { data, error } = await q;
       if (error) {
         if (OPTIONAL.has(key) && /does not exist|schema cache|not found/i.test(error.message)) { M.missingTables.add(name); return []; }
         throw new Error(name + ': ' + error.message);
       }
       (data || []).forEach((r) => out.push(r));
       if (!data || data.length < PAGE) break;
+      last = data[data.length - 1];
+      if (col && (last[col] == null)) break;
     }
+    if (SORT_AFTER[key]) out.sort((a, b) => new Date(a[SORT_AFTER[key]]) - new Date(b[SORT_AFTER[key]]));
     return out;
   }
   function mergeExtras(key, rows) {
@@ -243,21 +258,41 @@
     const ids = new Set(rows.map((r) => r.id)); extra.forEach((r, id) => { if (!ids.has(id)) rows.push(r); }); return rows;
   }
 
+  // Smaller fallback queries used when a working-set query times out (very large tables, slow rules).
+  const FALLBACK = {
+    leads:     (q) => q.gte('received_at', daysAgo(30)).order('received_at', { ascending: false }),
+    customers: (q) => q.order('created_at', { ascending: false }),
+    notes:     (q) => q.gte('created_at', daysAgo(30)).order('created_at', { ascending: false }),
+  };
+  const FALLBACK_CAP = { leads: 3000, customers: 3000, notes: 3000 };
+  async function fetchTableSafe(key) {
+    try { return await fetchTable(key); }
+    catch (e) {
+      if (!FALLBACK[key]) throw e;
+      console.warn('[MSIHub] ' + key + ' working set failed, using smaller fallback:', e.message);
+      const name = TABLE_NAME[key] || key;
+      const { data, error } = await FALLBACK[key](M.sb.from(name).select('*')).limit(FALLBACK_CAP[key]);
+      if (error) throw new Error(name + ': ' + error.message);
+      M.degraded = true;
+      return data || [];
+    }
+  }
+  async function loadKeys(keys, label) {
+    const results = await Promise.allSettled(keys.map(fetchTableSafe));
+    const failed = [];
+    keys.forEach((k, i) => { if (results[i].status === 'fulfilled') M.data[k] = mergeExtras(k, results[i].value); else failed.push(k + ': ' + (results[i].reason && results[i].reason.message)); });
+    if (failed.length) fail(label, new Error(failed.join(' · ')));
+  }
+
   M.loadAll = async function () {
-    const keys = Object.keys(TABLES);
-    try {
-      const results = await Promise.all(keys.map(fetchTable));
-      keys.forEach((k, i) => { M.data[k] = mergeExtras(k, results[i]); });
-    } catch (e) { fail('Loading data', e); }
+    await loadKeys(Object.keys(TABLES), 'Loading data');
     remapAll();
     if (M.missingTables.size && isAdmin()) M.toast('Tasks & Settings are not synced yet — run supabase/schema-v2.sql in the Supabase SQL Editor.', 'warn');
+    if (M.degraded && isAdmin()) M.toast('Some lists loaded in reduced mode (database rules are slow at this size) — run supabase/schema-v3.sql to fix.', 'warn');
   };
 
   M.reload = async function (keys) {
-    try {
-      const results = await Promise.all(keys.map(fetchTable));
-      keys.forEach((k, i) => { M.data[k] = mergeExtras(k, results[i]); });
-    } catch (e) { fail('Refreshing data', e); }
+    await loadKeys(keys, 'Refreshing data');
     remapAll();
   };
 

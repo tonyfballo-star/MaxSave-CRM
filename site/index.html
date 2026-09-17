@@ -3488,6 +3488,7 @@ window.cdTab = function(id) {
 window.PAGE_INIT.customerdetail = function(){
   const id = window._currentCustomerId;
   const c = CUSTOMERS.find(x => x.id === id) || CUSTOMERS[0];
+  if (!c) { const el = document.getElementById('content'); if (el) el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No customer selected</div><div class="empty-sub">Open a customer from the Customers page.</div></div>'; return; }
   const isActive = c.status === 'Active';
   const isCancelled = c.status === 'Cancelled';
   const statusColor = isActive ? '#3BAA47' : isCancelled ? '#EF4444' : '#3A6A95';
