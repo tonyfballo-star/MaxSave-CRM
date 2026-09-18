@@ -4,7 +4,7 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 "Continue MSIHub from HANDOFF.md."
 
 ## What is live
-- **App:** https://msihub-maxsave.netlify.app/ (Netlify project, deployed by dragging `msihub-site.zip` or the `site/` folder onto the Deploys page). Public URL, sign-in required, `noindex`.
+- **App:** https://msihub-maxsave.netlify.app/ (Netlify project id ba46785b-f37b-4cc9-80c8-b92ddc7dd684). Deploy via API — never by dragging (drops on the Netlify home page create new sites): `curl -X POST https://api.netlify.com/api/v1/sites/<id>/deploys -H 'Authorization: Bearer <token>' -H 'Content-Type: application/zip' --data-binary @msihub-site.zip`. Token is held locally by Claude, not in this repo. Public URL, sign-in required, `noindex`.
 - **Database:** Supabase project `xcwkkynxgojmabxdrngm` (see `supabase/CONFIG.md`). `schema.sql` and `schema-v2.sql` have both been run.
 - **Source of truth:** `maxsave_crm.html` + `msihub-data.js` + `msihub-data-2.js` + `docs/*.pdf`. Rebuild the deploy copy with:
   `cp maxsave_crm.html site/index.html && cp msihub-data.js msihub-data-2.js site/` then zip `site/*` → `msihub-site.zip`.
@@ -29,7 +29,7 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 - Importer written (tools/dyl/dyl-import.js). Final dry run, recommended scope (customers + any real disposition + last 12 months): 95,241 leads, 16,381 customers; 24-month option: 149,429 leads.
 - CRM prepared for volume: on-demand loading (working set + DB search + per-lead history) and Customers paging — pushed, needs redeploy of msihub-site.zip.
 - DONE 2026-09-17: Tony chose 24 months. Import complete: 149,248 leads (+notes), customers deduped by phone, vehicles/drivers. Imported as qa@maxsave.com; customer_no = DYL-<id>. Current agents: Dellano Soro, Marino D Alfonso, Nathan Hermiz, Alton Jorjes, Arman Nishan, Julian Sabri, Nawras Tatta, Norman Tatta, Jermaine Jackson — logins still to be created by Tony, then map details.dyl_assigned → agent_id.
-- Loader now uses keyset paging (fast at any depth); live walkthrough on the imported data passes 29/29. supabase/schema-v3.sql (RLS evaluated once per query + indexes + DYL agent assignment + QA cleanup) written — Tony must run it. Netlify must be redeployed with the latest msihub-site.zip (earlier drop never applied).
+- 2026-09-17 evening: schema-v3.sql RUN (verified: fast queries, QA rows purged, Tony's ~950 DYL leads auto-assigned). Latest build DEPLOYED via API and verified live (29/29). Two stray Netlify sites from accidental drops (eclectic-souffle-37b91d, profound-daifuku-9568d5) can be deleted.
 - After import: reconcile details.dyl_assigned → agent_id once agent logins exist; consider Supabase Pro if DB > 500 MB.
 
 ## Next steps (agreed order)
