@@ -1,11 +1,11 @@
-# MSIHub — where things stand (updated 2026-09-15, evening)
+# MSIHub — where things stand (updated 2026-09-21)
 
 Read this first when picking up on another machine. Start Claude Code in this folder and say:
 "Continue MSIHub from HANDOFF.md."
 
 ## What is live
 - **App:** https://msihub-maxsave.netlify.app/ (Netlify project id ba46785b-f37b-4cc9-80c8-b92ddc7dd684). Deploy via API — never by dragging (drops on the Netlify home page create new sites): `curl -X POST https://api.netlify.com/api/v1/sites/<id>/deploys -H 'Authorization: Bearer <token>' -H 'Content-Type: application/zip' --data-binary @msihub-site.zip`. Token is held locally by Claude, not in this repo. Public URL, sign-in required, `noindex`.
-- **Database:** Supabase project `xcwkkynxgojmabxdrngm` (see `supabase/CONFIG.md`). `schema.sql` and `schema-v2.sql` have both been run.
+- **Database:** Supabase project `xcwkkynxgojmabxdrngm` (see `supabase/CONFIG.md`). `schema.sql`, `schema-v2.sql` and `schema-v3.sql` have all been run.
 - **Source of truth:** `maxsave_crm.html` + `msihub-data.js` + `msihub-data-2.js` + `docs/*.pdf`. Rebuild the deploy copy with:
   `cp maxsave_crm.html site/index.html && cp msihub-data.js msihub-data-2.js site/` then zip `site/*` → `msihub-site.zip`.
 - **Tests:** `tools/smoke.js fake` (in-memory stub, 44 steps) and `tools/live.js <url> <email> <password>` (real sign-in walkthrough). Need `npm i puppeteer-core@23` inside `tools/` and Microsoft Edge.
