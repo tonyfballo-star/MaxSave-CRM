@@ -45,7 +45,7 @@
     if (!c) { c = document.createElement('div'); c.id = 'msihubToasts'; c.style.cssText = 'position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:30000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none'; document.body.appendChild(c); }
     const t = document.createElement('div');
     const bg = kind === 'error' ? '#DC2626' : kind === 'warn' ? '#D97706' : '#1C2B4B';
-    t.style.cssText = 'background:' + bg + ';color:#fff;padding:11px 18px;border-radius:10px;font-family:var(--font-body,sans-serif);font-size:13.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.25);max-width:520px;text-align:center;opacity:0;transition:opacity .2s';
+    t.style.cssText = 'background:' + bg + ';color:#fff;padding:11px 18px;border-radius:10px;font-family:var(--font-body,sans-serif);font-size:13.5px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.25);max-width:520px;text-align:center;opacity:0;transition:opacity .2s';
     t.textContent = msg;
     c.appendChild(t);
     requestAnimationFrame(() => { t.style.opacity = '1'; });
@@ -78,27 +78,27 @@
   function authShell(inner) {
     let o = $('msihubAuth');
     if (!o) { o = document.createElement('div'); o.id = 'msihubAuth'; document.body.appendChild(o); }
-    o.style.cssText = 'position:fixed;inset:0;z-index:25000;background:linear-gradient(160deg,#0A1624 0%,#122B47 60%,#1C2B4B 100%);display:flex;align-items:center;justify-content:center;font-family:var(--font-body,Outfit,sans-serif)';
+    o.style.cssText = 'position:fixed;inset:0;z-index:25000;background:linear-gradient(160deg,#0A1624 0%,#122B47 60%,#1C2B4B 100%);display:flex;align-items:center;justify-content:center;font-family:var(--font-body,"DM Sans",sans-serif)';
     o.innerHTML = '<div style="width:400px;max-width:92vw;background:#fff;border-radius:18px;padding:34px 36px;box-shadow:0 24px 60px rgba(0,0,0,0.45)">' +
       '<div style="display:flex;align-items:center;gap:12px;margin-bottom:22px">' +
-        '<div style="width:44px;height:44px;border-radius:12px;background:#1C2B4B;display:flex;align-items:center;justify-content:center;color:#3BAA47;font-family:var(--font-display,Sora,sans-serif);font-weight:800;font-size:15px">M|H</div>' +
-        '<div><div style="font-family:var(--font-display,Sora,sans-serif);font-weight:800;font-size:20px;color:#1C2B4B;line-height:1.1">MSIHub</div><div style="font-size:11.5px;color:#6B7280;font-weight:600;letter-spacing:.3px">Maxsave · Powered Up</div></div>' +
+        '<div style="width:44px;height:44px;border-radius:12px;background:#1C2B4B;display:flex;align-items:center;justify-content:center;color:#3BAA47;font-family:var(--font-display,"DM Sans",sans-serif);font-weight:500;font-size:15px">M|H</div>' +
+        '<div><div style="font-family:var(--font-display,"DM Sans",sans-serif);font-weight:500;font-size:20px;color:#1C2B4B;line-height:1.1">MSIHub</div><div style="font-size:11.5px;color:#6B7280;font-weight:500;letter-spacing:.3px">Maxsave · Powered Up</div></div>' +
       '</div>' + inner + '</div>';
     o.style.display = 'flex';
   }
   const inputCss = 'width:100%;padding:11px 13px;border:1px solid #D1D5DB;border-radius:9px;font-size:14px;font-family:inherit;margin-bottom:12px;box-sizing:border-box;color:#1C2B4B';
-  const btnCss = 'width:100%;padding:12px;border:none;border-radius:9px;background:#3BAA47;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit';
+  const btnCss = 'width:100%;padding:12px;border:none;border-radius:9px;background:#3BAA47;color:#fff;font-weight:500;font-size:14px;cursor:pointer;font-family:inherit';
 
   function showLogin(msg) {
     authShell(
-      '<div style="font-size:15px;font-weight:700;color:#1C2B4B;margin-bottom:14px">Sign in to your agency</div>' +
+      '<div style="font-size:15px;font-weight:500;color:#1C2B4B;margin-bottom:14px">Sign in to your agency</div>' +
       '<form id="msihubLoginForm" autocomplete="on">' +
       '<input id="authEmail" type="email" placeholder="Email" autocomplete="username" required style="' + inputCss + '">' +
       '<input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" required style="' + inputCss + '">' +
       '<div id="authMsg" style="min-height:18px;font-size:12.5px;color:#DC2626;margin-bottom:8px">' + esc(msg || '') + '</div>' +
       '<button id="authSubmit" type="submit" style="' + btnCss + '">Sign In</button>' +
       '</form>' +
-      '<div style="text-align:center;margin-top:14px"><a href="#" id="authForgot" style="font-size:12.5px;color:#1C2B4B;font-weight:600">Forgot password?</a></div>'
+      '<div style="text-align:center;margin-top:14px"><a href="#" id="authForgot" style="font-size:12.5px;color:#1C2B4B;font-weight:500">Forgot password?</a></div>'
     );
     $('msihubLoginForm').onsubmit = async (e) => {
       e.preventDefault();
@@ -121,7 +121,7 @@
 
   function showSetPassword() {
     authShell(
-      '<div style="font-size:15px;font-weight:700;color:#1C2B4B;margin-bottom:6px">Welcome! Set your password</div>' +
+      '<div style="font-size:15px;font-weight:500;color:#1C2B4B;margin-bottom:6px">Welcome! Set your password</div>' +
       '<div style="font-size:12.5px;color:#6B7280;margin-bottom:14px">Choose a password to finish setting up your MSIHub login.</div>' +
       '<form id="msihubPwForm">' +
       '<input id="pwName" type="text" placeholder="Your full name (as agents will see it)" autocomplete="name" required style="' + inputCss + '">' +
@@ -146,7 +146,7 @@
   }
 
   function showBlocked(title, text) {
-    authShell('<div style="font-size:15px;font-weight:700;color:#1C2B4B;margin-bottom:8px">' + esc(title) + '</div><div style="font-size:13px;color:#6B7280;margin-bottom:16px">' + esc(text) + '</div><button id="authBack" style="' + btnCss + '">Back to sign in</button>');
+    authShell('<div style="font-size:15px;font-weight:500;color:#1C2B4B;margin-bottom:8px">' + esc(title) + '</div><div style="font-size:13px;color:#6B7280;margin-bottom:16px">' + esc(text) + '</div><button id="authBack" style="' + btnCss + '">Back to sign in</button>');
     $('authBack').onclick = async () => { await M.sb.auth.signOut(); showLogin(); };
   }
   function hideAuth() { const o = $('msihubAuth'); if (o) o.style.display = 'none'; }
@@ -652,11 +652,11 @@
   // ---- Lead detail page (data-driven) ----
   const field = (label, value, color, mono) => {
     const v = (value == null || value === '') ? '—' : String(value);
-    return '<div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">' + label + '</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:' + (mono ? '15' : '16') + 'px;font-weight:600;color:' + (color || '#1C2B4B') + (mono ? ';font-family:monospace' : '') + '">' + esc(v) + '</span>' + (v !== '—' ? '<button onclick="copyToClipboard(' + JSON.stringify(v).replace(/"/g, '&quot;') + ',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button>' : '') + '</div></div>';
+    return '<div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">' + label + '</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:' + (mono ? '15' : '16') + 'px;font-weight:500;color:' + (color || '#1C2B4B') + (mono ? ';font-family:monospace' : '') + '">' + esc(v) + '</span>' + (v !== '—' ? '<button onclick="copyToClipboard(' + JSON.stringify(v).replace(/"/g, '&quot;') + ',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button>' : '') + '</div></div>';
   };
-  const secHdr = (t) => '<div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#1C2B4B;padding:9px 14px;border-radius:6px;margin-bottom:14px;margin-top:20px">' + t + '</div>';
+  const secHdr = (t) => '<div style="font-size:11px;font-weight:500;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#1C2B4B;padding:9px 14px;border-radius:6px;margin-bottom:14px;margin-top:20px">' + t + '</div>';
   const grid = (inner) => '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 36px;margin-bottom:10px">' + inner + '</div>';
-  const barBtn = (onclick, label, style) => '<button onclick="' + onclick + '" style="display:flex;align-items:center;gap:5px;' + (style || 'background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.28)') + ';border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">' + label + '</button>';
+  const barBtn = (onclick, label, style) => '<button onclick="' + onclick + '" style="display:flex;align-items:center;gap:5px;' + (style || 'background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.28)') + ';border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">' + label + '</button>';
 
   function leadNotes(L) { return M.data.notes.filter((n) => n.lead_id === L.id); }
   function leadQuotes(L) { return M.data.quotes.filter((q) => q.lead_id === L.id); }
@@ -666,26 +666,26 @@
 
   function notesHTML(list) {
     if (!list.length) return '<div style="font-size:12.5px;color:var(--gray-400);padding:6px 0">No notes yet.</div>';
-    return list.map((n) => '<div style="padding:11px 14px;background:var(--gray-50);border-radius:var(--radius-md);border-left:3px solid var(--green-500);margin-bottom:8px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div style="font-size:12px;font-weight:600;color:var(--navy-900)">' + esc(agentName(n.author_id)) + '</div><div style="font-size:10.5px;color:var(--gray-400)">' + fmtStamp(n.created_at) + '</div></div><div style="font-size:12.5px;color:var(--gray-700);line-height:1.5;white-space:pre-wrap">' + esc(n.body) + '</div></div>').join('');
+    return list.map((n) => '<div style="padding:11px 14px;background:var(--gray-50);border-radius:var(--radius-md);border-left:3px solid var(--green-500);margin-bottom:8px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div style="font-size:12px;font-weight:500;color:var(--navy-900)">' + esc(agentName(n.author_id)) + '</div><div style="font-size:10.5px;color:var(--gray-400)">' + fmtStamp(n.created_at) + '</div></div><div style="font-size:12.5px;color:var(--gray-700);line-height:1.5;white-space:pre-wrap">' + esc(n.body) + '</div></div>').join('');
   }
 
   function timelineHTML(L) {
     const items = [];
-    leadCalls(L).forEach((c) => items.push({ ts: c.created_at, icon: '📞', cls: 'tl-call', title: (c.direction === 'inbound' ? 'Inbound' : 'Outbound') + ' Call — ' + (c.missed ? 'No Answer' : 'Completed') + (c.duration_sec ? ' <span style="font-size:10.5px;font-weight:600;color:var(--green-700);background:var(--green-50);padding:1px 7px;border-radius:var(--radius-full);margin-left:4px">' + Math.floor(c.duration_sec / 60) + 'm ' + (c.duration_sec % 60) + 's</span>' : ''), who: agentName(c.agent_id), text: '' }));
+    leadCalls(L).forEach((c) => items.push({ ts: c.created_at, icon: '📞', cls: 'tl-call', title: (c.direction === 'inbound' ? 'Inbound' : 'Outbound') + ' Call — ' + (c.missed ? 'No Answer' : 'Completed') + (c.duration_sec ? ' <span style="font-size:10.5px;font-weight:500;color:var(--green-700);background:var(--green-50);padding:1px 7px;border-radius:var(--radius-full);margin-left:4px">' + Math.floor(c.duration_sec / 60) + 'm ' + (c.duration_sec % 60) + 's</span>' : ''), who: agentName(c.agent_id), text: '' }));
     leadTexts(L).forEach((m) => items.push({ ts: m.created_at, icon: '💬', cls: '', style: 'background:var(--blue-light);border-color:#C3D6E8', title: (m.direction === 'inbound' ? 'Inbound Text — Received' : 'Outbound Text — ' + (m.status === 'failed' ? 'Failed' : 'Sent')), who: m.direction === 'inbound' ? L.name : agentName(m.agent_id), text: '"' + m.body + '"' }));
     leadNotes(L).forEach((n) => items.push({ ts: n.created_at, icon: '📝', cls: 'tl-sys', title: 'Note added', who: agentName(n.author_id), text: n.body }));
     leadQuotes(L).forEach((q) => items.push({ ts: q.created_at, icon: '🧾', cls: 'tl-sys', title: 'Quote — ' + (q.carrier || '') + ' ' + money(q.premium), who: agentName(q.agent_id), text: q.coverage_notes || '' }));
     items.push({ ts: L.createdAt || L.receivedAt, icon: '🔔', cls: 'tl-sys', title: 'Lead Created' + (L.agent_id ? ' &amp; Assigned to ' + esc(L.agent) : ''), who: 'System', text: '' });
     items.sort((a, b) => new Date(b.ts) - new Date(a.ts));
     const calls = leadCalls(L).length, texts = leadTexts(L).filter((m) => m.direction === 'outbound').length;
-    const stat = (bg, bd, col, n, label) => '<div style="background:' + bg + ';border:1px solid ' + bd + ';border-radius:var(--radius-md);padding:9px 12px;text-align:center"><div style="font-size:22px;font-weight:800;font-family:var(--font-display);color:' + col + '">' + n + '</div><div style="font-size:11px;font-weight:700;color:' + col + ';margin-top:1px">' + label + '</div></div>';
+    const stat = (bg, bd, col, n, label) => '<div style="background:' + bg + ';border:1px solid ' + bd + ';border-radius:var(--radius-md);padding:9px 12px;text-align:center"><div style="font-size:22px;font-weight:500;font-family:var(--font-display);color:' + col + '">' + n + '</div><div style="font-size:11px;font-weight:500;color:' + col + ';margin-top:1px">' + label + '</div></div>';
     return '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">' + stat('var(--green-50)', 'var(--green-200)', 'var(--green-700)', calls, '📞 Calls') + stat('var(--blue-light)', '#C3D6E8', '#0E2340', texts, '💬 Texts') + stat('var(--gray-50)', 'var(--border)', 'var(--gray-500)', leadNotes(L).length, '📝 Notes') + '</div>' +
       items.map((it) => '<div class="tl-item"><div class="tl-icon ' + it.cls + '"' + (it.style ? ' style="' + it.style + '"' : '') + '>' + it.icon + '</div><div class="tl-body"><div class="tl-title">' + it.title + '</div><div class="tl-meta">' + fmtStamp(it.ts) + ' · <strong>' + esc(it.who) + '</strong></div>' + (it.text ? '<div class="tl-text">' + esc(it.text) + '</div>' : '') + '</div></div>').join('');
   }
 
   function quotesHTML(L) {
     const qs = leadQuotes(L);
-    const list = qs.length ? qs.map((q, i) => '<div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;margin-bottom:10px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-weight:700;color:var(--navy-900);font-size:13px">' + esc(q.carrier || 'Quote') + '</div><span class="badge b-quoted" style="font-size:10.5px">Quote #' + (qs.length - i) + '</span></div>' +
+    const list = qs.length ? qs.map((q, i) => '<div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;margin-bottom:10px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-weight:500;color:var(--navy-900);font-size:13px">' + esc(q.carrier || 'Quote') + '</div><span class="badge b-quoted" style="font-size:10.5px">Quote #' + (qs.length - i) + '</span></div>' +
       '<div class="fee-row" style="padding:6px 0"><div class="fee-label" style="font-size:12px">Premium</div><div class="fee-val" style="font-size:13px">' + money(q.premium) + '</div></div>' +
       '<div class="fee-row" style="padding:6px 0"><div class="fee-label" style="font-size:12px">Down Payment</div><div class="fee-val" style="font-size:13px">' + money(q.down_payment) + '</div></div>' +
       '<div class="fee-row" style="padding:6px 0"><div class="fee-label" style="font-size:12px">Broker Fee</div><div class="fee-val" style="font-size:13px;color:var(--green-700)">' + money(q.fee) + '</div></div>' +
@@ -693,7 +693,7 @@
       '<div class="fee-row" style="padding:6px 0;border-bottom:none"><div class="fee-label" style="font-size:12px">Quoted On</div><div class="fee-val" style="font-size:12px;font-weight:500;color:var(--gray-500)">' + fmtStamp(q.created_at) + ' · ' + esc(agentName(q.agent_id)) + '</div></div></div>').join('')
       : '<div style="font-size:12.5px;color:var(--gray-400);padding:4px 0 10px">No quotes yet.</div>';
     const carriers = (window.CARRIER_DATA && window.CARRIER_DATA.length ? window.CARRIER_DATA.map((c) => c.name) : ['Progressive', 'National General', 'Bristol West', 'Mercury', 'Kemper', 'InsureMax']).concat(['Other']);
-    return list + '<div id="quoteForm" style="display:none;border:1px dashed var(--border-strong);border-radius:var(--radius-md);padding:14px;background:var(--gray-50)"><div style="font-weight:700;font-size:12px;color:var(--navy-900);margin-bottom:10px">Add Quote Details</div><div class="form-grid" style="grid-template-columns:1fr;gap:10px;margin-bottom:10px">' +
+    return list + '<div id="quoteForm" style="display:none;border:1px dashed var(--border-strong);border-radius:var(--radius-md);padding:14px;background:var(--gray-50)"><div style="font-weight:500;font-size:12px;color:var(--navy-900);margin-bottom:10px">Add Quote Details</div><div class="form-grid" style="grid-template-columns:1fr;gap:10px;margin-bottom:10px">' +
       fg('Carrier', '<select id="q_carrier" class="form-control">' + opt(carriers) + '</select>') + fg('Term', '<select id="q_term" class="form-control"><option>6 Months</option><option>12 Months</option></select>') +
       fg('Total Premium', inp('q_premium', '', '$0.00')) + fg('Down Payment', inp('q_down', '', '$0.00')) + fg('Broker Fee', inp('q_fee', '', '$0.00')) + fg('Deductible', inp('q_deductible', '', '$0.00')) +
       fg('Notes', '<textarea id="q_notes" class="form-control" rows="2" placeholder="Coverage, discounts, etc."></textarea>') +
@@ -702,36 +702,36 @@
 
   function filesHTML(list) {
     if (!list.length) return '<div style="font-size:12.5px;color:var(--gray-400);padding:4px 0 8px">No files yet.</div>';
-    return list.map((f) => '<div class="customer-file" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--radius-md);background:var(--gray-50);border:1px solid var(--border);margin-bottom:7px"><div style="font-size:18px">' + fileIcon(f.filename) + '</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(f.filename) + '</div><div style="font-size:10.5px;color:var(--gray-400)">' + (f.size_bytes ? fileSize(f.size_bytes) + ' · ' : '') + fmtStamp(f.created_at) + '</div></div><div class="tbl-icon-btn" title="Download" style="cursor:pointer" onclick="MSIHub.openFile(\'' + f.id + '\')">⬇</div></div>').join('');
+    return list.map((f) => '<div class="customer-file" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--radius-md);background:var(--gray-50);border:1px solid var(--border);margin-bottom:7px"><div style="font-size:18px">' + fileIcon(f.filename) + '</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(f.filename) + '</div><div style="font-size:10.5px;color:var(--gray-400)">' + (f.size_bytes ? fileSize(f.size_bytes) + ' · ' : '') + fmtStamp(f.created_at) + '</div></div><div class="tbl-icon-btn" title="Download" style="cursor:pointer" onclick="MSIHub.openFile(\'' + f.id + '\')">⬇</div></div>').join('');
   }
 
   function renderLeadDetailBody(L) {
     const d = L.details || {}, v = d.vehicle || {}, cov = d.coverage || {}, d2 = d.driver2 || null;
     const temp = typeof leadTemperature === 'function' ? leadTemperature(L) : '';
-    const tempBadge = temp === 'Hot' ? '<span style="background:rgba(239,68,68,0.30);color:#FCA5A5;border:1px solid rgba(252,165,165,0.40);padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:800;letter-spacing:0.4px">🔥 HOT LEAD</span>' : temp === 'Warm' ? '<span style="background:rgba(245,158,11,0.28);color:#FCD34D;border:1px solid rgba(252,211,77,0.4);padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:800">🌤 WARM</span>' : '<span style="background:rgba(148,163,184,0.25);color:#CBD5E1;border:1px solid rgba(203,213,225,0.35);padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:800">❄️ COLD</span>';
+    const tempBadge = temp === 'Hot' ? '<span style="background:rgba(239,68,68,0.30);color:#FCA5A5;border:1px solid rgba(252,165,165,0.40);padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:500;letter-spacing:0.4px">🔥 HOT LEAD</span>' : temp === 'Warm' ? '<span style="background:rgba(245,158,11,0.28);color:#FCD34D;border:1px solid rgba(252,211,77,0.4);padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:500">🌤 WARM</span>' : '<span style="background:rgba(148,163,184,0.25);color:#CBD5E1;border:1px solid rgba(203,213,225,0.35);padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:500">❄️ COLD</span>';
     const age = typeof leadAgeDays === 'function' ? leadAgeDays(L) : 0;
     const dispOpts = ['Quoted', 'Bad Lead', 'Do Not Call', 'Refund', 'HR', 'Already Sold', 'Spanish', 'Rewrite', 'Cancelled', 'Follow Up'];
     const agentOpts = '<option value="" style="color:#1C2B4B"' + (!L.agent_id ? ' selected' : '') + '>Unassigned</option>' + M.agents().map((p) => '<option value="' + p.id + '" style="color:#1C2B4B"' + (L.agent_id === p.id ? ' selected' : '') + '>' + esc(p.full_name) + '</option>').join('');
     const addr = [d.address, d.city, (d.state || 'CA') + (d.zip ? ' ' + d.zip : '')].filter(Boolean).join(', ');
     const stages = ['New Lead', 'Quoted', 'Appointment Set', 'Sold'];
     const idx = Math.max(0, stages.indexOf(L.status === 'Contacted' ? 'New Lead' : L.status));
-    const stageHTML = stages.map((st, i) => { const done = i < idx, curr = i === idx; return '<div class="stage-step ' + (done ? 'done' : curr ? 'current' : 'future') + '"><div class="stage-dot" style="background:' + (done ? 'var(--green-500)' : curr ? 'var(--navy-600)' : 'var(--gray-300)') + '"></div><div class="stage-label" style="color:' + (done ? 'var(--green-700)' : curr ? 'var(--navy-900)' : 'var(--gray-400)') + ';font-weight:' + (curr ? '600' : '400') + '">' + st + '</div>' + (curr ? '<span style="margin-left:auto;font-size:10px;background:var(--navy-50);color:var(--navy-600);padding:1px 7px;border-radius:var(--radius-full);font-weight:700">Current</span>' : '') + '</div>'; }).join('');
-    const selCss = 'background:transparent;color:#fff;border:none;font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;outline:none;min-width:110px';
+    const stageHTML = stages.map((st, i) => { const done = i < idx, curr = i === idx; return '<div class="stage-step ' + (done ? 'done' : curr ? 'current' : 'future') + '"><div class="stage-dot" style="background:' + (done ? 'var(--green-500)' : curr ? 'var(--navy-600)' : 'var(--gray-300)') + '"></div><div class="stage-label" style="color:' + (done ? 'var(--green-700)' : curr ? 'var(--navy-900)' : 'var(--gray-400)') + ';font-weight:' + (curr ? '600' : '400') + '">' + st + '</div>' + (curr ? '<span style="margin-left:auto;font-size:10px;background:var(--navy-50);color:var(--navy-600);padding:1px 7px;border-radius:var(--radius-full);font-weight:500">Current</span>' : '') + '</div>'; }).join('');
+    const selCss = 'background:transparent;color:#fff;border:none;font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;outline:none;min-width:110px';
 
     return '<div style="background:linear-gradient(175deg,#0A1624 0%,#122B47 100%);border-radius:var(--radius-xl);padding:16px 24px;display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap">' +
-      '<button onclick="nav(\'leads\',document.querySelector(\'[onclick*=leads]\'))" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:var(--radius-md);padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);white-space:nowrap;flex-shrink:0">← All Leads</button>' +
-      '<div style="flex:1;min-width:180px"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:20px;font-weight:700;color:#fff">' + esc(L.name) + '</span>' + tempBadge + '<span class="badge ' + (typeof statusBadge === 'function' ? statusBadge(L.status) : '') + '" style="font-size:11px;padding:3px 11px">' + esc(L.status) + '</span>' + (L.doNotCall ? '<span style="background:#DC2626;color:#fff;padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:800">DO NOT CALL</span>' : '') + '</div>' +
+      '<button onclick="nav(\'leads\',document.querySelector(\'[onclick*=leads]\'))" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:var(--radius-md);padding:7px 13px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-body);white-space:nowrap;flex-shrink:0">← All Leads</button>' +
+      '<div style="flex:1;min-width:180px"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:20px;font-weight:500;color:#fff">' + esc(L.name) + '</span>' + tempBadge + '<span class="badge ' + (typeof statusBadge === 'function' ? statusBadge(L.status) : '') + '" style="font-size:11px;padding:3px 11px">' + esc(L.status) + '</span>' + (L.doNotCall ? '<span style="background:#DC2626;color:#fff;padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:500">DO NOT CALL</span>' : '') + '</div>' +
       '<div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:3px">Source: ' + esc(L.source || '—') + ' &middot; Received ' + (age === 0 ? 'today' : age + ' day' + (age === 1 ? '' : 's') + ' ago') + ' &middot; ' + esc(L.policy) + ' &middot; ' + esc(L.phone) + (L.email ? ' &middot; ' + esc(L.email) : '') + '</div></div>' +
       '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex-shrink:0">' +
       barBtn('leadCall(\'' + L.id + '\')', '📞 Call', 'background:#2563EB;color:#fff;border:none') +
       barBtn('leadText(\'' + L.id + '\')', '💬 Text') +
       (L.email ? barBtn('window.location.href=\'mailto:' + esc(L.email) + '\'', '✉️ Email') : '') +
       barBtn('openAppointment()', '📅 Appt') +
-      barBtn('openNewSale()', '🎉 Sale', 'background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;border:none;font-weight:700') +
+      barBtn('openNewSale()', '🎉 Sale', 'background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;border:none;font-weight:500') +
       barBtn('openQuoteExport(\'lead\')', '📤 Export') +
       barBtn('openLeadForm(\'' + L.id + '\')', '✏️ Edit') +
-      '<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:8px;padding:5px 10px"><span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.5px">Agent</span><select style="' + selCss + '" onchange="MSIHub.assignLead(\'' + L.id + '\',this.value)">' + agentOpts + '</select></div>' +
-      '<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:8px;padding:5px 10px"><span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.5px">Disp</span><select id="dispositionSelect" style="' + selCss + '" onchange="setDisposition(this.value)"><option value="" style="color:#1C2B4B">— Select —</option>' + dispOpts.map((x) => '<option style="color:#1C2B4B"' + (L.disposition === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div>' +
+      '<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:8px;padding:5px 10px"><span style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.5px">Agent</span><select style="' + selCss + '" onchange="MSIHub.assignLead(\'' + L.id + '\',this.value)">' + agentOpts + '</select></div>' +
+      '<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:8px;padding:5px 10px"><span style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.5px">Disp</span><select id="dispositionSelect" style="' + selCss + '" onchange="setDisposition(this.value)"><option value="" style="color:#1C2B4B">— Select —</option>' + dispOpts.map((x) => '<option style="color:#1C2B4B"' + (L.disposition === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div>' +
       '</div></div>' +
 
       '<div style="background:#fff;border-radius:var(--radius-xl);padding:22px 28px;margin-bottom:14px;border:1px solid #E5E7EB;box-shadow:0 1px 4px rgba(0,0,0,0.05)">' +
@@ -749,7 +749,7 @@
       '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Pipeline Stage</div></div><div class="card-body">' + stageHTML + '</div></div>' +
       '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Quoted</div><button class="btn btn-ghost" style="font-size:11.5px" onclick="addQuote()">+ Add Quote</button></div><div class="card-body" id="quotesList">' + quotesHTML(L) + '</div></div>' +
       '<div class="card"><div class="card-header" style="background:#1C2B4B;border-radius:var(--radius-lg) var(--radius-lg) 0 0"><div class="card-title" style="color:#fff">Customer Files</div></div><div class="card-body"><div id="customerFilesList">' + filesHTML(leadFiles(L)) + '</div>' +
-      '<div id="customerFileDrop" style="border:2px dashed var(--border-strong);border-radius:var(--radius-md);padding:14px;text-align:center;cursor:pointer;margin-top:10px;transition:all 0.15s" onclick="document.getElementById(\'customerFileInput\').click()" ondragover="event.preventDefault();this.style.borderColor=\'var(--green-500)\';this.style.background=\'var(--green-50)\'" ondragleave="this.style.borderColor=\'var(--border-strong)\';this.style.background=\'\'" ondrop="event.preventDefault();this.style.borderColor=\'var(--border-strong)\';this.style.background=\'\';handleCustomerFiles(event.dataTransfer.files)"><div style="font-size:20px;margin-bottom:2px">📎</div><div style="font-size:12px;font-weight:600;color:var(--navy-900)">Add Files</div><div style="font-size:10.5px;color:var(--gray-400);margin-top:2px">Click or drag &amp; drop · saved securely to the agency file store</div></div>' +
+      '<div id="customerFileDrop" style="border:2px dashed var(--border-strong);border-radius:var(--radius-md);padding:14px;text-align:center;cursor:pointer;margin-top:10px;transition:all 0.15s" onclick="document.getElementById(\'customerFileInput\').click()" ondragover="event.preventDefault();this.style.borderColor=\'var(--green-500)\';this.style.background=\'var(--green-50)\'" ondragleave="this.style.borderColor=\'var(--border-strong)\';this.style.background=\'\'" ondrop="event.preventDefault();this.style.borderColor=\'var(--border-strong)\';this.style.background=\'\';handleCustomerFiles(event.dataTransfer.files)"><div style="font-size:20px;margin-bottom:2px">📎</div><div style="font-size:12px;font-weight:500;color:var(--navy-900)">Add Files</div><div style="font-size:10.5px;color:var(--gray-400);margin-top:2px">Click or drag &amp; drop · saved securely to the agency file store</div></div>' +
       '<input id="customerFileInput" type="file" multiple style="display:none" onchange="handleCustomerFiles(this.files)"></div></div>' +
       '</div></div>';
   }
@@ -1056,8 +1056,8 @@
     const msgs = M.data.messages.filter((x) => custMatch(c, x));
     if (!msgs.length) return '<div style="text-align:center;color:var(--gray-400);font-size:12.5px;padding:20px 0">No text history yet.</div>';
     return msgs.map((m) => m.direction === 'inbound'
-      ? '<div style="display:flex;justify-content:flex-start"><div style="max-width:60%;background:var(--gray-100);border-radius:14px 14px 14px 3px;padding:11px 15px"><div style="font-size:10.5px;font-weight:700;color:var(--gray-400);margin-bottom:4px">' + esc(c.first) + ' · ' + fmtStamp(m.created_at) + '</div><div style="font-size:13.5px;color:var(--navy-900);line-height:1.5">' + esc(m.body) + '</div></div></div>'
-      : '<div style="display:flex;justify-content:flex-end"><div style="max-width:60%;background:var(--blue);border-radius:14px 14px 3px 14px;padding:11px 15px"><div style="font-size:10.5px;font-weight:700;color:rgba(255,255,255,0.55);margin-bottom:4px">' + esc(agentName(m.agent_id)) + ' · ' + fmtStamp(m.created_at) + '</div><div style="font-size:13.5px;color:#fff;line-height:1.5">' + esc(m.body) + '</div></div></div>').join('');
+      ? '<div style="display:flex;justify-content:flex-start"><div style="max-width:60%;background:var(--gray-100);border-radius:14px 14px 14px 3px;padding:11px 15px"><div style="font-size:10.5px;font-weight:500;color:var(--gray-400);margin-bottom:4px">' + esc(c.first) + ' · ' + fmtStamp(m.created_at) + '</div><div style="font-size:13.5px;color:var(--navy-900);line-height:1.5">' + esc(m.body) + '</div></div></div>'
+      : '<div style="display:flex;justify-content:flex-end"><div style="max-width:60%;background:var(--blue);border-radius:14px 14px 3px 14px;padding:11px 15px"><div style="font-size:10.5px;font-weight:500;color:rgba(255,255,255,0.55);margin-bottom:4px">' + esc(agentName(m.agent_id)) + ' · ' + fmtStamp(m.created_at) + '</div><div style="font-size:13.5px;color:#fff;line-height:1.5">' + esc(m.body) + '</div></div></div>').join('');
   };
   M.sendCustomerText = async function () {
     const c = customerById(window._currentCustomerId); const input = $('cdTextInput'); if (!c || !input || !input.value.trim()) return;
@@ -1067,7 +1067,7 @@
   M.customerNotesHTML = function (c) {
     const list = M.data.notes.filter((n) => n.customer_id === c.id || (c.lead_id && n.lead_id === c.lead_id));
     if (!list.length) return '<div style="font-size:12.5px;color:var(--gray-400)">No notes yet.</div>';
-    return list.map((n) => '<div style="padding:13px 15px;background:var(--gray-50);border-radius:var(--radius-md);border-left:3px solid var(--green-500)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-size:13px;font-weight:700;color:var(--navy-900)">' + esc(agentName(n.author_id)) + '</div><div style="font-size:11px;color:var(--gray-400)">' + fmtStamp(n.created_at) + '</div></div><div style="font-size:13px;color:var(--gray-700);line-height:1.55;white-space:pre-wrap">' + esc(n.body) + '</div></div>').join('');
+    return list.map((n) => '<div style="padding:13px 15px;background:var(--gray-50);border-radius:var(--radius-md);border-left:3px solid var(--green-500)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-size:13px;font-weight:500;color:var(--navy-900)">' + esc(agentName(n.author_id)) + '</div><div style="font-size:11px;color:var(--gray-400)">' + fmtStamp(n.created_at) + '</div></div><div style="font-size:13px;color:var(--gray-700);line-height:1.55;white-space:pre-wrap">' + esc(n.body) + '</div></div>').join('');
   };
   M.saveCustomerNote = async function () {
     const c = customerById(window._currentCustomerId); const input = $('cdNoteInput'); if (!c || !input || !input.value.trim()) { M.toast('Type a note first.', 'warn'); return; }
