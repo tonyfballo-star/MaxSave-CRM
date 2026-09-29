@@ -705,53 +705,100 @@
     return list.map((f) => '<div class="customer-file" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--radius-md);background:var(--gray-50);border:1px solid var(--border);margin-bottom:7px"><div style="font-size:18px">' + fileIcon(f.filename) + '</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(f.filename) + '</div><div style="font-size:10.5px;color:var(--gray-400)">' + (f.size_bytes ? fileSize(f.size_bytes) + ' · ' : '') + fmtStamp(f.created_at) + '</div></div><div class="tbl-icon-btn" title="Download" style="cursor:pointer" onclick="MSIHub.openFile(\'' + f.id + '\')">⬇</div></div>').join('');
   }
 
+  // ---- Lead profile: identity card (left) + actions/tabs (right) ----
+  M.leadTab = M.leadTab || 'comments';
+  M.hideEmpty = M.hideEmpty == null ? true : M.hideEmpty;
+  M.setLeadTab = function (t) { M.leadTab = t; PAGE_INIT.leaddetail(); };
+  M.toggleHideEmpty = function () { M.hideEmpty = !M.hideEmpty; PAGE_INIT.leaddetail(); };
+  M.applyLeadHeader = async function (id) {
+    const L = leadById(id); if (!L) return;
+    const patch = { status: ($('ldStage') || {}).value || L.status, agent_id: ($('ldAgent') || {}).value || null, disposition: ($('dispositionSelect') || {}).value || null };
+    if (patch.disposition === 'Bad Lead' || patch.disposition === 'Do Not Call') patch.status = 'Bad Lead';
+    if (patch.disposition === 'Do Not Call') patch.do_not_call = true;
+    try {
+      await update('leads', L.id, patch);
+      Object.assign(L, { status: patch.status, disposition: patch.disposition || '', agent_id: patch.agent_id, agent: patch.agent_id ? agentName(patch.agent_id) : 'Unassigned' }, patch.do_not_call ? { doNotCall: true } : {});
+      M.toast('Lead updated'); PAGE_INIT.leaddetail();
+    } catch (e) { fail('Updating lead', e); }
+  };
+
+  const CARD = 'background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:0 1px 3px rgba(12,29,51,0.05)';
+  const LABEL = 'font-size:12.5px;color:var(--gray-500);font-weight:400';
+  const SEL = 'width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:10px;background:#fff;font-family:var(--font-body);font-size:14px;color:var(--navy-900);cursor:pointer';
+  const infoRow = (label, value) => {
+    const v = (value == null || value === '') ? '' : String(value);
+    if (!v && M.hideEmpty) return '';
+    return '<div style="display:grid;grid-template-columns:150px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px"><div style="' + LABEL + '">' + label + '</div><div style="color:var(--navy-900)">' + (v ? esc(v) : '<span style="color:var(--gray-300)">—</span>') + '</div></div>';
+  };
+  const emptyBox = (text) => '<div style="border:1px dashed var(--border-strong);border-radius:12px;padding:34px;text-align:center;color:var(--gray-500);font-size:13.5px">' + text + '</div>';
+  const pill = (onclick, label, primary) => '<button onclick="' + onclick + '" style="padding:10px 18px;border-radius:10px;border:1px solid ' + (primary ? 'var(--green-500)' : 'var(--border)') + ';background:' + (primary ? 'var(--green-500)' : '#fff') + ';color:' + (primary ? '#fff' : 'var(--navy-900)') + ';font-family:var(--font-body);font-size:13.5px;font-weight:500;cursor:pointer">' + label + '</button>';
+
   function renderLeadDetailBody(L) {
-    const d = L.details || {}, v = d.vehicle || {}, cov = d.coverage || {}, d2 = d.driver2 || null;
-    const temp = typeof leadTemperature === 'function' ? leadTemperature(L) : '';
-    const tempBadge = temp === 'Hot' ? '<span style="background:rgba(239,68,68,0.30);color:#FCA5A5;border:1px solid rgba(252,165,165,0.40);padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:500;letter-spacing:0.4px">🔥 HOT LEAD</span>' : temp === 'Warm' ? '<span style="background:rgba(245,158,11,0.28);color:#FCD34D;border:1px solid rgba(252,211,77,0.4);padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:500">🌤 WARM</span>' : '<span style="background:rgba(148,163,184,0.25);color:#CBD5E1;border:1px solid rgba(203,213,225,0.35);padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:500">❄️ COLD</span>';
-    const age = typeof leadAgeDays === 'function' ? leadAgeDays(L) : 0;
+    const d = L.details || {}, v = d.vehicle || {}, cov = d.coverage || {};
+    const agentOpts = '<option value=""' + (!L.agent_id ? ' selected' : '') + '>Unassigned</option>' + M.agents().map((p) => '<option value="' + p.id + '"' + (L.agent_id === p.id ? ' selected' : '') + '>' + esc(p.full_name) + '</option>').join('');
+    const stages = ['New Lead', 'Contacted', 'Quoted', 'Appointment Set', 'Sold', 'Bad Lead'];
     const dispOpts = ['Quoted', 'Bad Lead', 'Do Not Call', 'Refund', 'HR', 'Already Sold', 'Spanish', 'Rewrite', 'Cancelled', 'Follow Up'];
-    const agentOpts = '<option value="" style="color:#1C2B4B"' + (!L.agent_id ? ' selected' : '') + '>Unassigned</option>' + M.agents().map((p) => '<option value="' + p.id + '" style="color:#1C2B4B"' + (L.agent_id === p.id ? ' selected' : '') + '>' + esc(p.full_name) + '</option>').join('');
-    const addr = [d.address, d.city, (d.state || 'CA') + (d.zip ? ' ' + d.zip : '')].filter(Boolean).join(', ');
-    const stages = ['New Lead', 'Quoted', 'Appointment Set', 'Sold'];
-    const idx = Math.max(0, stages.indexOf(L.status === 'Contacted' ? 'New Lead' : L.status));
-    const stageHTML = stages.map((st, i) => { const done = i < idx, curr = i === idx; return '<div class="stage-step ' + (done ? 'done' : curr ? 'current' : 'future') + '"><div class="stage-dot" style="background:' + (done ? 'var(--green-500)' : curr ? 'var(--navy-600)' : 'var(--gray-300)') + '"></div><div class="stage-label" style="color:' + (done ? 'var(--green-700)' : curr ? 'var(--navy-900)' : 'var(--gray-400)') + ';font-weight:' + (curr ? '600' : '400') + '">' + st + '</div>' + (curr ? '<span style="margin-left:auto;font-size:10px;background:var(--navy-50);color:var(--navy-600);padding:1px 7px;border-radius:var(--radius-full);font-weight:500">Current</span>' : '') + '</div>'; }).join('');
-    const selCss = 'background:transparent;color:#fff;border:none;font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;outline:none;min-width:110px';
+    const tabs = [['comments', 'Comments', '💬'], ['call', 'Call', '📞'], ['applications', 'Applications', '📄'], ['activities', 'Activities', '☰'], ['sms', 'SMS', '✉'], ['task', 'Task', '☑'], ['appointments', 'Appointments', '📅'], ['files', 'Files', '📎']];
+    const tab = tabs.some((t) => t[0] === M.leadTab) ? M.leadTab : 'comments';
+    const created = L.createdAt || L.receivedAt;
+    const calls = leadCalls(L), texts = leadTexts(L);
+    const appts = (typeof APPOINTMENTS !== 'undefined' ? APPOINTMENTS : []).filter((a) => a.lead_id === L.id);
+    const tasks = (window.TASKS_DATA || []).filter((t) => t.lead_id === L.id || (t.label || '').includes(L.name));
+    const panel = (key, inner) => '<div id="ldTab-' + key + '" style="display:' + (tab === key ? 'block' : 'none') + '">' + inner + '</div>';
 
-    return '<div style="background:linear-gradient(175deg,#0A1624 0%,#122B47 100%);border-radius:var(--radius-xl);padding:16px 24px;display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap">' +
-      '<button onclick="nav(\'leads\',document.querySelector(\'[onclick*=leads]\'))" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:var(--radius-md);padding:7px 13px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-body);white-space:nowrap;flex-shrink:0">← All Leads</button>' +
-      '<div style="flex:1;min-width:180px"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:20px;font-weight:500;color:#fff">' + esc(L.name) + '</span>' + tempBadge + '<span class="badge ' + (typeof statusBadge === 'function' ? statusBadge(L.status) : '') + '" style="font-size:11px;padding:3px 11px">' + esc(L.status) + '</span>' + (L.doNotCall ? '<span style="background:#DC2626;color:#fff;padding:2px 9px;border-radius:var(--radius-full);font-size:10px;font-weight:500">DO NOT CALL</span>' : '') + '</div>' +
-      '<div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:3px">Source: ' + esc(L.source || '—') + ' &middot; Received ' + (age === 0 ? 'today' : age + ' day' + (age === 1 ? '' : 's') + ' ago') + ' &middot; ' + esc(L.policy) + ' &middot; ' + esc(L.phone) + (L.email ? ' &middot; ' + esc(L.email) : '') + '</div></div>' +
-      '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex-shrink:0">' +
-      barBtn('leadCall(\'' + L.id + '\')', '📞 Call', 'background:#2563EB;color:#fff;border:none') +
-      barBtn('leadText(\'' + L.id + '\')', '💬 Text') +
-      (L.email ? barBtn('window.location.href=\'mailto:' + esc(L.email) + '\'', '✉️ Email') : '') +
-      barBtn('openAppointment()', '📅 Appt') +
-      barBtn('openNewSale()', '🎉 Sale', 'background:linear-gradient(135deg,var(--green-500),var(--green-700));color:#fff;border:none;font-weight:500') +
-      barBtn('openQuoteExport(\'lead\')', '📤 Export') +
-      barBtn('openLeadForm(\'' + L.id + '\')', '✏️ Edit') +
-      '<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:8px;padding:5px 10px"><span style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.5px">Agent</span><select style="' + selCss + '" onchange="MSIHub.assignLead(\'' + L.id + '\',this.value)">' + agentOpts + '</select></div>' +
-      '<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:8px;padding:5px 10px"><span style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.5px">Disp</span><select id="dispositionSelect" style="' + selCss + '" onchange="setDisposition(this.value)"><option value="" style="color:#1C2B4B">— Select —</option>' + dispOpts.map((x) => '<option style="color:#1C2B4B"' + (L.disposition === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div>' +
-      '</div></div>' +
+    const left =
+      '<div style="' + CARD + ';padding:22px 22px 18px">' +
+        '<div style="display:flex;align-items:center;gap:14px"><div style="width:46px;height:46px;border-radius:50%;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:var(--navy-900)">' + esc(initials(L.name)) + '</div>' +
+        '<div style="flex:1;min-width:0;font-size:19px;font-weight:500;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(L.name) + '</div>' +
+        '<button title="Edit" onclick="openLeadForm(\'' + L.id + '\')" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--gray-500)">✎</button>' +
+        '<button title="Export to rater" onclick="openQuoteExport(\'lead\')" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--gray-500)">⇄</button>' +
+        '<button title="New lead" onclick="openLeadForm()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--gray-500)">+</button></div>' +
+        '<div style="height:1px;background:var(--border);margin:16px 0"></div>' +
+        '<button onclick="openNewSale()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-radius:12px;border:none;background:var(--green-50);color:var(--green-700);font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer"><span>＋ &nbsp;New Sale</span><span>→</span></button>' +
+        '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:16px;font-size:13px;color:var(--gray-600)"><span>Source: <span style="color:var(--navy-900)">' + esc(L.source || '—') + '</span></span><span>Received: <span style="color:var(--navy-900)">' + (created ? new Date(created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—') + '</span></span></div>' +
+        (L.doNotCall ? '<div style="margin-top:8px;font-size:13px;color:#DC2626">Do Not Call: this lead asked not to be contacted</div>' : '') +
+        '<div style="height:1px;background:var(--border);margin:16px 0"></div>' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div style="font-size:14px;font-weight:500;color:var(--navy-900)">User Info</div><label style="font-size:12.5px;color:var(--gray-600);display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" ' + (M.hideEmpty ? 'checked' : '') + ' onchange="MSIHub.toggleHideEmpty()" style="accent-color:var(--green-500)">Hide empty values</label></div>' +
+        infoRow('First Name', L.first) + infoRow('Last Name', L.last) +
+        '<div style="display:grid;grid-template-columns:150px 1fr auto;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px;align-items:center"><div style="' + LABEL + '">Phone</div><div style="color:var(--navy-900)">' + esc(L.phone || '—') + '</div><button title="Call" onclick="leadCall(\'' + L.id + '\')" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--gray-600)">📞</button></div>' +
+        infoRow('Email', L.email) + infoRow('Address', d.address) + infoRow('City', d.city) + infoRow('State', d.state) + infoRow('Zip', d.zip) + infoRow('Date of Birth', d.dob) +
+        infoRow('Gender', d.gender) + infoRow('Marital Status', d.marital) + infoRow('Language', L.language) + infoRow('License', d.license) + infoRow('Violations', d.violations) + infoRow('SR-22', L.sr22 ? 'Required' : '') +
+        infoRow('Policy Type', L.policy) + infoRow('Prior Coverage', L.priorCoverage) + infoRow('Requested Coverage', [cov.type, cov.limits].filter(Boolean).join(' · ')) +
+        infoRow('Vehicle', [v.year, v.make, v.model].filter(Boolean).join(' ')) + infoRow('VIN', v.vin) + infoRow('Lead Score', L.leadScore) +
+        '<div style="margin-top:18px"><button onclick="setDisposition(\'Bad Lead\')" title="Mark as bad lead" style="padding:10px 22px;border-radius:10px;border:none;background:#FEE2E2;color:#DC2626;font-size:15px;cursor:pointer">🗑</button></div>' +
+      '</div>';
 
-      '<div style="background:#fff;border-radius:var(--radius-xl);padding:22px 28px;margin-bottom:14px;border:1px solid #E5E7EB;box-shadow:0 1px 4px rgba(0,0,0,0.05)">' +
-      secHdr('Primary Driver').replace('margin-top:20px', 'margin-top:0') +
-      grid(field('First Name', L.first) + field('Last Name', L.last) + field('Date of Birth', d.dob) + field('Gender', d.gender) + field('Phone', L.phone) + field('Email', L.email) + field('Marital Status', d.marital) + field('Language', L.language) + field('License #', d.license) + field('Violations', d.violations, d.violations && !/none|clean/i.test(d.violations) ? '#B45309' : '#16A34A') + field('SR-22 Required', L.sr22 ? 'Yes' : 'No', L.sr22 ? '#DC2626' : '#16A34A') + '<div style="grid-column:span 2">' + field('Address', addr) + '</div>') +
-      (d2 ? secHdr('Driver 2 — Additional') + grid(field('Name', d2.name) + field('Date of Birth', d2.dob) + field('Gender', d2.gender) + field('License #', d2.license) + field('Violations', d2.violations) + field('SR-22 Required', d2.sr22 ? 'Yes' : 'No')) : '') +
-      secHdr('Vehicle') + grid(field('Year', v.year) + field('Make', v.make) + field('Model', v.model) + field('VIN', v.vin, null, true) + field('Annual Mileage', v.mileage) + field('Primary Use', v.use)) +
-      secHdr('Coverage Requested') + grid(field('Policy Type', L.policy) + field('Coverage Type', cov.type) + field('Limits', cov.limits) + field('Prior Coverage', L.priorCoverage) + field('Lead Score', L.leadScore) + field('Disposition', L.disposition)) +
-      '</div>' +
+    const header =
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:16px;align-items:end">' +
+        '<div><div style="' + LABEL + ';margin-bottom:6px">Agent</div><select id="ldAgent" style="' + SEL + '">' + agentOpts + '</select></div>' +
+        '<div><div style="' + LABEL + ';margin-bottom:6px">Stage</div><select id="ldStage" style="' + SEL + '">' + stages.map((s) => '<option' + (L.status === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select></div>' +
+        '<div><div style="' + LABEL + ';margin-bottom:6px">Disposition</div><select id="dispositionSelect" style="' + SEL + '"><option value="">— None —</option>' + dispOpts.map((x) => '<option' + (L.disposition === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div>' +
+        '<button onclick="MSIHub.applyLeadHeader(\'' + L.id + '\')" style="padding:12px 26px;border-radius:10px;border:none;background:var(--green-500);color:#fff;font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer">Update</button>' +
+      '</div>';
 
-      '<div class="ld-layout"><div>' +
-      '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Notes</div><button class="btn btn-primary" style="font-size:11.5px" onclick="addNote()">+ Add Note</button></div><div class="card-body"><textarea id="noteInput" class="form-control" placeholder="Add a quick note about this lead… (visible to the team)" rows="3" style="width:100%;resize:vertical;font-family:var(--font-body);font-size:13px;margin-bottom:12px"></textarea><div id="notesList">' + notesHTML(leadNotes(L)) + '</div></div></div>' +
-      '<div class="card"><div class="card-header"><div class="card-title">Activity Timeline</div></div><div class="card-body" id="leadTimeline">' + timelineHTML(L) + '</div></div>' +
-      '</div><div>' +
-      '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Pipeline Stage</div></div><div class="card-body">' + stageHTML + '</div></div>' +
-      '<div class="card" style="margin-bottom:14px"><div class="card-header"><div class="card-title">Quoted</div><button class="btn btn-ghost" style="font-size:11.5px" onclick="addQuote()">+ Add Quote</button></div><div class="card-body" id="quotesList">' + quotesHTML(L) + '</div></div>' +
-      '<div class="card"><div class="card-header" style="background:#1C2B4B;border-radius:var(--radius-lg) var(--radius-lg) 0 0"><div class="card-title" style="color:#fff">Customer Files</div></div><div class="card-body"><div id="customerFilesList">' + filesHTML(leadFiles(L)) + '</div>' +
-      '<div id="customerFileDrop" style="border:2px dashed var(--border-strong);border-radius:var(--radius-md);padding:14px;text-align:center;cursor:pointer;margin-top:10px;transition:all 0.15s" onclick="document.getElementById(\'customerFileInput\').click()" ondragover="event.preventDefault();this.style.borderColor=\'var(--green-500)\';this.style.background=\'var(--green-50)\'" ondragleave="this.style.borderColor=\'var(--border-strong)\';this.style.background=\'\'" ondrop="event.preventDefault();this.style.borderColor=\'var(--border-strong)\';this.style.background=\'\';handleCustomerFiles(event.dataTransfer.files)"><div style="font-size:20px;margin-bottom:2px">📎</div><div style="font-size:12px;font-weight:500;color:var(--navy-900)">Add Files</div><div style="font-size:10.5px;color:var(--gray-400);margin-top:2px">Click or drag &amp; drop · saved securely to the agency file store</div></div>' +
-      '<input id="customerFileInput" type="file" multiple style="display:none" onchange="handleCustomerFiles(this.files)"></div></div>' +
-      '</div></div>';
+    const tabBar = '<div style="display:flex;gap:4px;border-bottom:1px solid var(--border);padding:0 8px;overflow-x:auto">' + tabs.map(([k, label, ico]) => '<button onclick="MSIHub.setLeadTab(\'' + k + '\')" style="background:none;border:none;border-bottom:2px solid ' + (tab === k ? 'var(--green-500)' : 'transparent') + ';padding:16px 14px;font-family:var(--font-body);font-size:14px;color:' + (tab === k ? 'var(--green-700)' : 'var(--gray-600)') + ';cursor:pointer;white-space:nowrap"><span style="margin-right:6px;opacity:0.8">' + ico + '</span>' + label + '</button>').join('') + '</div>';
+
+    const callRows = calls.length ? calls.slice().reverse().map((c) => '<div style="display:flex;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--border);font-size:13.5px"><span>' + (c.direction === 'inbound' ? 'Inbound' : 'Outbound') + ' · ' + (c.missed ? 'No answer' : 'Completed') + (c.duration_sec ? ' · ' + Math.floor(c.duration_sec / 60) + 'm ' + (c.duration_sec % 60) + 's' : '') + '</span><span style="color:var(--gray-500)">' + fmtStamp(c.created_at) + ' · ' + esc(agentName(c.agent_id)) + '</span></div>').join('') : emptyBox('No calls yet');
+    const smsRows = texts.length ? texts.map((m) => '<div style="display:flex;flex-direction:column;align-items:' + (m.direction === 'inbound' ? 'flex-start' : 'flex-end') + ';gap:3px;margin-bottom:10px"><div style="max-width:70%;padding:10px 14px;border-radius:14px;background:' + (m.direction === 'inbound' ? 'var(--gray-100)' : 'var(--blue)') + ';color:' + (m.direction === 'inbound' ? 'var(--navy-900)' : '#fff') + ';font-size:13.5px">' + esc(m.body) + '</div><div style="font-size:11px;color:var(--gray-400)">' + fmtStamp(m.created_at) + '</div></div>').join('') : emptyBox('No text messages yet');
+    const apptRows = appts.length ? appts.map((a) => '<div style="display:flex;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--border);font-size:13.5px"><span>' + esc(a.date) + ' at ' + esc(a.time) + ' · ' + esc(a.type || 'Follow-Up') + '</span><span style="color:var(--gray-500)">' + esc(a.status) + ' · ' + esc(a.agent) + '</span></div>').join('') : emptyBox('No appointments yet');
+    const taskRows = tasks.length ? tasks.map((t) => '<div style="display:flex;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--border);font-size:13.5px;' + (t.done ? 'color:var(--gray-400);text-decoration:line-through' : '') + '"><span>' + esc(t.label) + '</span><span style="color:var(--gray-500)">' + esc(t.dueDate) + ' ' + esc(t.dueTime || '') + '</span></div>').join('') : emptyBox('No tasks yet');
+    const actionRow = (inner) => '<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px">' + inner + '</div>';
+
+    const right =
+      '<div style="display:flex;flex-direction:column;gap:22px">' + header +
+      '<div style="' + CARD + '">' + tabBar + '<div style="padding:22px">' +
+        panel('comments', '<div style="background:var(--gray-50);border-radius:14px;padding:16px"><textarea id="noteInput" class="form-control" rows="4" placeholder="Add a comment for the team…" style="width:100%;resize:vertical;font-family:var(--font-body);font-size:14px;border-radius:12px;padding:12px 14px;background:#fff"></textarea><div style="display:flex;justify-content:flex-end;margin-top:10px">' + pill('addNote()', 'Save', true) + '</div></div><div id="notesList" style="margin-top:16px">' + (leadNotes(L).length ? notesHTML(leadNotes(L)) : emptyBox('No data')) + '</div>') +
+        panel('call', actionRow(pill('leadCall(\'' + L.id + '\')', '📞 Call ' + esc(L.first || 'lead'), true)) + callRows) +
+        panel('applications', actionRow(pill('addQuote()', '＋ Add Quote', true)) + '<div id="quotesList">' + quotesHTML(L) + '</div>') +
+        panel('activities', '<div id="leadTimeline">' + timelineHTML(L) + '</div>') +
+        panel('sms', actionRow(pill('leadText(\'' + L.id + '\')', '✉ Send Text', true)) + smsRows) +
+        panel('task', actionRow(pill('openTaskModal()', '＋ Add Task', true)) + taskRows) +
+        panel('appointments', actionRow(pill('openAppointment()', '＋ Set Appointment', true)) + apptRows) +
+        panel('files', '<div id="customerFilesList">' + filesHTML(leadFiles(L)) + '</div><div id="customerFileDrop" style="border:2px dashed var(--border-strong);border-radius:12px;padding:16px;text-align:center;cursor:pointer;margin-top:12px" onclick="document.getElementById(\'customerFileInput\').click()" ondragover="event.preventDefault()" ondrop="event.preventDefault();handleCustomerFiles(event.dataTransfer.files)"><div style="font-size:13.5px;color:var(--navy-900)">Add files</div><div style="font-size:12px;color:var(--gray-400);margin-top:2px">Click or drag &amp; drop</div></div><input id="customerFileInput" type="file" multiple style="display:none" onchange="handleCustomerFiles(this.files)">') +
+      '</div></div></div>';
+
+    return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><button onclick="nav(\'leads\',document.querySelector(\'[onclick*=leads]\'))" style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-family:var(--font-body);font-size:13px;color:var(--navy-900);cursor:pointer">← All Leads</button><span class="badge ' + (typeof statusBadge === 'function' ? statusBadge(L.status) : '') + '">' + esc(L.status) + '</span></div>' +
+      '<div style="display:grid;grid-template-columns:420px 1fr;gap:24px;align-items:start">' + left + right + '</div>';
   }
 
   window.PAGE_INIT = window.PAGE_INIT || {};
