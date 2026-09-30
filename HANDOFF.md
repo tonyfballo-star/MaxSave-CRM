@@ -12,7 +12,7 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 
 ## Brand (standing rule, 2026-09-30)
 - Follows the MaxSaveHub brand guide: Turquoise `#09C4CD` (fills only, black text on it), Black `#000`, Charcoal `#696969`, White; text-safe turquoise for links is `#067C83`. Black sidebar, light pages, dark mode = full black. Typeface TT Hoves (400/500/600) via `@font-face` from `fonts/`. Logo = X mark + MAXSAVEHUB wordmark as inline SVG (sidebar, login, favicon); vector sources in `OneDrive/Desktop/LOGO/PDF`, converted with `tools/pdf2svg.js`.
-- **Font licence:** `fonts/` holds TT Hoves *trial* TTFs and is gitignored (public repo). They ship in the zip. When the licence is bought, overwrite `fonts/TTHoves-{Regular,Medium,DemiBold}.ttf` with the licensed files; nothing else changes. The font folder must exist locally before rebuilding `site/`.
+- **Font licence:** TT Hoves is licensed (rights held by Tony's designer, confirmed 2026-09-30). The TTFs in `fonts/` are the production files. They stay gitignored because the repo is public and the licence does not allow redistribution; they ship in the zip. The font folder must exist locally before rebuilding `site/`.
 - `tools/rebrand.js` is the palette/name codemod; `node tools/rebrand.js --check` must print "clean" for all three files before a deploy.
 - Visible product name is **MaxSaveHub**; code identifiers (`window.MSIHub`, `[MSIHub]` logs, ids) are unchanged on purpose. The onboarding invite still links to `msihub.maxsave.com/join/…` — update when the real domain (maxsavehub.com?) is wired up.
 
