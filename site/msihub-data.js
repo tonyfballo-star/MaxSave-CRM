@@ -44,7 +44,7 @@
     let c = $('msihubToasts');
     if (!c) { c = document.createElement('div'); c.id = 'msihubToasts'; c.style.cssText = 'position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:30000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none'; document.body.appendChild(c); }
     const t = document.createElement('div');
-    const bg = kind === 'error' ? '#DC2626' : kind === 'warn' ? '#D97706' : '#1C2B4B';
+    const bg = kind === 'error' ? '#DC2626' : kind === 'warn' ? '#D97706' : '#111111';
     t.style.cssText = 'background:' + bg + ';color:#fff;padding:11px 18px;border-radius:10px;font-family:var(--font-body,sans-serif);font-size:13.5px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.25);max-width:520px;text-align:center;opacity:0;transition:opacity .2s';
     t.textContent = msg;
     c.appendChild(t);
@@ -78,27 +78,27 @@
   function authShell(inner) {
     let o = $('msihubAuth');
     if (!o) { o = document.createElement('div'); o.id = 'msihubAuth'; document.body.appendChild(o); }
-    o.style.cssText = 'position:fixed;inset:0;z-index:25000;background:linear-gradient(160deg,#0A1624 0%,#122B47 60%,#1C2B4B 100%);display:flex;align-items:center;justify-content:center;font-family:var(--font-body,"DM Sans",sans-serif)';
+    o.style.cssText = 'position:fixed;inset:0;z-index:25000;background:radial-gradient(circle at 18% 12%,rgba(9,196,205,0.22),transparent 42%),radial-gradient(circle at 85% 90%,rgba(9,196,205,0.12),transparent 40%),#000;display:flex;align-items:center;justify-content:center;font-family:var(--font-body,"TT Hoves",sans-serif)';
     o.innerHTML = '<div style="width:400px;max-width:92vw;background:#fff;border-radius:18px;padding:34px 36px;box-shadow:0 24px 60px rgba(0,0,0,0.45)">' +
-      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:22px">' +
-        '<div style="width:44px;height:44px;border-radius:12px;background:#1C2B4B;display:flex;align-items:center;justify-content:center;color:#3BAA47;font-family:var(--font-display,"DM Sans",sans-serif);font-weight:500;font-size:15px">M|H</div>' +
-        '<div><div style="font-family:var(--font-display,"DM Sans",sans-serif);font-weight:500;font-size:20px;color:#1C2B4B;line-height:1.1">MSIHub</div><div style="font-size:11.5px;color:#6B7280;font-weight:500;letter-spacing:.3px">Maxsave · Powered Up</div></div>' +
+      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:24px">' +
+        '<div style="width:48px;height:48px;border-radius:12px;background:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="30" height="25" viewBox="0 0 827.6 682.1" aria-hidden="true"><path fill="#09C4CD" d="M643.2 178.5L474.7 341L352.9 341L413.8 282.3L521.4 178.5Z"/><path fill="#09C4CD" d="M811.7 15.9L643.2 178.5L521.4 178.5L689.9 15.9Z"/><path fill="#09C4CD" d="M413.8 282.3L292 282.3L184.4 178.5L306.2 178.5Z"/><path fill="#FFFFFF" d="M643.2 503.6L521.4 503.6L413.8 399.8L306.2 503.6L184.4 503.6L352.9 341L474.7 341L643.1 503.5Z"/><path fill="#FFFFFF" d="M306.2 503.6L137.8 666.1L15.9 666.1L184.4 503.6Z"/></svg></div>' +
+        '<div><svg width="168" height="29" viewBox="0 0 1916.6 331.7" role="img" aria-label="MaxSaveHub" style="color:#111111;display:block"><path fill="#09C4CD" d="M1452.6 149.9L1325 149.9L1325 101.4L1288.7 101.4L1288.7 230.4L1325 230.4L1325 181.9L1452.6 181.9L1452.6 230.4L1489 230.4L1489 101.4L1452.6 101.4Z"/><path fill="#09C4CD" d="M1650.2 167.6C1650.2 188.8 1637.1 197.4 1619.4 197.4L1574.5 197.4C1556.6 197.4 1543.7 188.8 1543.7 167.6L1543.7 101.4L1507.4 101.4L1507.4 167.6C1507.4 209.9 1532.7 230.4 1574.5 230.4L1619.4 230.4C1661.2 230.4 1686.5 209.9 1686.5 167.6L1686.5 101.4L1650.2 101.4Z"/><path fill="#09C4CD" d="M1829.3 201.3L1740.4 201.3L1740.4 179.3L1829.5 179.3C1839.9 179.3 1844.6 183.4 1844.6 190.3C1844.6 198.5 1838.8 201.3 1829.3 201.3M1740.4 130.3L1824.1 130.3C1833.2 130.3 1839.3 133.7 1839.3 141.7C1839.3 150.4 1833 152.1 1824.8 152.1L1740.4 152.1ZM1852.9 165.5C1865.8 162.5 1874.4 155.1 1874.4 136.8C1874.4 113 1856.7 101.4 1824.1 101.4L1705 101.4L1705 230.4L1829.3 230.4C1859.1 230.4 1879.8 219.6 1879.8 194.8C1879.8 175.4 1868 168.1 1852.9 165.5"/><path fill="currentColor" d="M137.6 169.6L70.6 101.4L36.9 101.4L36.9 230.4L72.7 230.4L72.7 151.9L129.2 209.5L145.9 209.5L202.4 151.9L202.4 230.4L238.2 230.4L238.2 101.4L204.5 101.4Z"/><path fill="currentColor" d="M318.9 177.6L347.6 132.5L376.3 177.6ZM401 217.8L424.9 194.7L365.7 101.4L329.6 101.4L247.7 230.4L286.9 230.4L300.9 207.1L394.6 207.1Z"/><path fill="currentColor" d="M732.7 152.3L657.7 148.1C646 146.7 643 144.1 643 139.5C643 134 649 131.5 659 131.5L717.8 131.5C730.6 131.5 737.5 133.7 743.5 140.8L771.1 122C762.3 109.2 745 101.7 718.3 101.7L660.7 101.7C625.9 101.7 609.7 117.6 609.7 140.4C609.7 157.8 619.3 173.7 648.4 176.8L725.6 181.9C734.9 183 739.4 185.4 739.4 191.4C739.4 197.7 734.2 200.6 723.5 200.6L663.3 200.6C650.1 200.6 642.5 197.8 636.7 186.5L605.2 203.9C613 220.7 632.2 230.4 663 230.4L723.2 230.4C756.7 230.4 772.9 213.8 772.9 191.6C772.9 173.5 764 155.4 732.7 152.3"/><path fill="currentColor" d="M840 177.6L868.7 132.5L897.4 177.6ZM850.6 101.4L768.8 230.4L807.9 230.4L821.9 207.1L915.6 207.1L929.4 230.4L968.6 230.4L886.7 101.4Z"/><path fill="currentColor" d="M1007.4 192.7L953.9 101.4L911 101.4L989.1 230.4L1025.3 230.4L1103.4 101.4L1060.9 101.4Z"/><path fill="currentColor" d="M1270.2 132.5L1270.2 101.4L1116.7 101.4L1116.7 230.4L1270.2 230.4L1270.2 199.1L1152.1 199.1L1152.1 181.2L1257.2 181.2L1257.2 150.6L1152.1 150.6L1152.1 132.5Z"/><path fill="#09C4CD" d="M596.4 101.4L529.6 165.9L481.2 165.9L505.4 142.6L548.1 101.4Z"/><path fill="#09C4CD" d="M663.3 36.9L596.4 101.4L548.1 101.4L615 36.9Z"/><path fill="#09C4CD" d="M505.4 142.6L457.1 142.6L414.4 101.4L462.7 101.4Z"/><path fill="currentColor" d="M596.4 230.4L548.1 230.4L505.4 189.2L462.7 230.4L414.4 230.4L481.2 165.9L529.6 165.9L596.4 230.4Z"/><path fill="currentColor" d="M462.7 230.4L395.9 294.9L347.5 294.9L414.4 230.4Z"/></svg><div style="font-size:11.5px;color:#696969;font-weight:500;letter-spacing:.3px;margin-top:5px">Stop chasing. Start closing.</div></div>' +
       '</div>' + inner + '</div>';
     o.style.display = 'flex';
   }
-  const inputCss = 'width:100%;padding:11px 13px;border:1px solid #D1D5DB;border-radius:9px;font-size:14px;font-family:inherit;margin-bottom:12px;box-sizing:border-box;color:#1C2B4B';
-  const btnCss = 'width:100%;padding:12px;border:none;border-radius:9px;background:#3BAA47;color:#fff;font-weight:500;font-size:14px;cursor:pointer;font-family:inherit';
+  const inputCss = 'width:100%;padding:11px 13px;border:1px solid #CCCCCC;border-radius:9px;font-size:14px;font-family:inherit;margin-bottom:12px;box-sizing:border-box;color:#111111';
+  const btnCss = 'width:100%;padding:12px;border:none;border-radius:9px;background:#09C4CD;color:#000;font-weight:500;font-size:14px;cursor:pointer;font-family:inherit';
 
   function showLogin(msg) {
     authShell(
-      '<div style="font-size:15px;font-weight:500;color:#1C2B4B;margin-bottom:14px">Sign in to your agency</div>' +
+      '<div style="font-size:15px;font-weight:500;color:#111111;margin-bottom:14px">Sign in to your agency</div>' +
       '<form id="msihubLoginForm" autocomplete="on">' +
       '<input id="authEmail" type="email" placeholder="Email" autocomplete="username" required style="' + inputCss + '">' +
       '<input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" required style="' + inputCss + '">' +
       '<div id="authMsg" style="min-height:18px;font-size:12.5px;color:#DC2626;margin-bottom:8px">' + esc(msg || '') + '</div>' +
       '<button id="authSubmit" type="submit" style="' + btnCss + '">Sign In</button>' +
       '</form>' +
-      '<div style="text-align:center;margin-top:14px"><a href="#" id="authForgot" style="font-size:12.5px;color:#1C2B4B;font-weight:500">Forgot password?</a></div>'
+      '<div style="text-align:center;margin-top:14px"><a href="#" id="authForgot" style="font-size:12.5px;color:#111111;font-weight:500">Forgot password?</a></div>'
     );
     $('msihubLoginForm').onsubmit = async (e) => {
       e.preventDefault();
@@ -113,7 +113,7 @@
       const email = $('authEmail').value.trim();
       if (!email) { $('authMsg').textContent = 'Type your email first, then click Forgot password.'; return; }
       const { error } = await M.sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
-      $('authMsg').style.color = error ? '#DC2626' : '#15803D';
+      $('authMsg').style.color = error ? '#DC2626' : '#067C83';
       $('authMsg').textContent = error ? error.message : 'Check your email for a reset link.';
     };
     setTimeout(() => { const el = $('authEmail'); if (el) el.focus(); }, 50);
@@ -121,8 +121,8 @@
 
   function showSetPassword() {
     authShell(
-      '<div style="font-size:15px;font-weight:500;color:#1C2B4B;margin-bottom:6px">Welcome! Set your password</div>' +
-      '<div style="font-size:12.5px;color:#6B7280;margin-bottom:14px">Choose a password to finish setting up your MSIHub login.</div>' +
+      '<div style="font-size:15px;font-weight:500;color:#111111;margin-bottom:6px">Welcome! Set your password</div>' +
+      '<div style="font-size:12.5px;color:#696969;margin-bottom:14px">Choose a password to finish setting up your MaxSaveHub login.</div>' +
       '<form id="msihubPwForm">' +
       '<input id="pwName" type="text" placeholder="Your full name (as agents will see it)" autocomplete="name" required style="' + inputCss + '">' +
       '<input id="pw1" type="password" placeholder="New password (8+ characters)" autocomplete="new-password" required minlength="8" style="' + inputCss + '">' +
@@ -146,7 +146,7 @@
   }
 
   function showBlocked(title, text) {
-    authShell('<div style="font-size:15px;font-weight:500;color:#1C2B4B;margin-bottom:8px">' + esc(title) + '</div><div style="font-size:13px;color:#6B7280;margin-bottom:16px">' + esc(text) + '</div><button id="authBack" style="' + btnCss + '">Back to sign in</button>');
+    authShell('<div style="font-size:15px;font-weight:500;color:#111111;margin-bottom:8px">' + esc(title) + '</div><div style="font-size:13px;color:#696969;margin-bottom:16px">' + esc(text) + '</div><button id="authBack" style="' + btnCss + '">Back to sign in</button>');
     $('authBack').onclick = async () => { await M.sb.auth.signOut(); showLogin(); };
   }
   function hideAuth() { const o = $('msihubAuth'); if (o) o.style.display = 'none'; }
@@ -652,9 +652,9 @@
   // ---- Lead detail page (data-driven) ----
   const field = (label, value, color, mono) => {
     const v = (value == null || value === '') ? '—' : String(value);
-    return '<div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">' + label + '</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:' + (mono ? '15' : '16') + 'px;font-weight:500;color:' + (color || '#1C2B4B') + (mono ? ';font-family:monospace' : '') + '">' + esc(v) + '</span>' + (v !== '—' ? '<button onclick="copyToClipboard(' + JSON.stringify(v).replace(/"/g, '&quot;') + ',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button>' : '') + '</div></div>';
+    return '<div style="padding:10px 0;border-bottom:1px solid #E2E2E2"><div style="font-size:11.5px;color:#696969;font-weight:500;margin-bottom:4px">' + label + '</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:' + (mono ? '15' : '16') + 'px;font-weight:500;color:' + (color || '#111111') + (mono ? ';font-family:monospace' : '') + '">' + esc(v) + '</span>' + (v !== '—' ? '<button onclick="copyToClipboard(' + JSON.stringify(v).replace(/"/g, '&quot;') + ',this)" style="background:#EFEFEF;border:1px solid #E2E2E2;border-radius:5px;color:#9A9A9A;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button>' : '') + '</div></div>';
   };
-  const secHdr = (t) => '<div style="font-size:11px;font-weight:500;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#1C2B4B;padding:9px 14px;border-radius:6px;margin-bottom:14px;margin-top:20px">' + t + '</div>';
+  const secHdr = (t) => '<div style="font-size:11px;font-weight:500;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#111111;padding:9px 14px;border-radius:6px;margin-bottom:14px;margin-top:20px">' + t + '</div>';
   const grid = (inner) => '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 36px;margin-bottom:10px">' + inner + '</div>';
   const barBtn = (onclick, label, style) => '<button onclick="' + onclick + '" style="display:flex;align-items:center;gap:5px;' + (style || 'background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.28)') + ';border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">' + label + '</button>';
 
@@ -672,14 +672,14 @@
   function timelineHTML(L) {
     const items = [];
     leadCalls(L).forEach((c) => items.push({ ts: c.created_at, icon: '📞', cls: 'tl-call', title: (c.direction === 'inbound' ? 'Inbound' : 'Outbound') + ' Call — ' + (c.missed ? 'No Answer' : 'Completed') + (c.duration_sec ? ' <span style="font-size:10.5px;font-weight:500;color:var(--green-700);background:var(--green-50);padding:1px 7px;border-radius:var(--radius-full);margin-left:4px">' + Math.floor(c.duration_sec / 60) + 'm ' + (c.duration_sec % 60) + 's</span>' : ''), who: agentName(c.agent_id), text: '' }));
-    leadTexts(L).forEach((m) => items.push({ ts: m.created_at, icon: '💬', cls: '', style: 'background:var(--blue-light);border-color:#C3D6E8', title: (m.direction === 'inbound' ? 'Inbound Text — Received' : 'Outbound Text — ' + (m.status === 'failed' ? 'Failed' : 'Sent')), who: m.direction === 'inbound' ? L.name : agentName(m.agent_id), text: '"' + m.body + '"' }));
+    leadTexts(L).forEach((m) => items.push({ ts: m.created_at, icon: '💬', cls: '', style: 'background:var(--blue-light);border-color:#CCCCCC', title: (m.direction === 'inbound' ? 'Inbound Text — Received' : 'Outbound Text — ' + (m.status === 'failed' ? 'Failed' : 'Sent')), who: m.direction === 'inbound' ? L.name : agentName(m.agent_id), text: '"' + m.body + '"' }));
     leadNotes(L).forEach((n) => items.push({ ts: n.created_at, icon: '📝', cls: 'tl-sys', title: 'Note added', who: agentName(n.author_id), text: n.body }));
     leadQuotes(L).forEach((q) => items.push({ ts: q.created_at, icon: '🧾', cls: 'tl-sys', title: 'Quote — ' + (q.carrier || '') + ' ' + money(q.premium), who: agentName(q.agent_id), text: q.coverage_notes || '' }));
     items.push({ ts: L.createdAt || L.receivedAt, icon: '🔔', cls: 'tl-sys', title: 'Lead Created' + (L.agent_id ? ' &amp; Assigned to ' + esc(L.agent) : ''), who: 'System', text: '' });
     items.sort((a, b) => new Date(b.ts) - new Date(a.ts));
     const calls = leadCalls(L).length, texts = leadTexts(L).filter((m) => m.direction === 'outbound').length;
     const stat = (bg, bd, col, n, label) => '<div style="background:' + bg + ';border:1px solid ' + bd + ';border-radius:var(--radius-md);padding:9px 12px;text-align:center"><div style="font-size:22px;font-weight:500;font-family:var(--font-display);color:' + col + '">' + n + '</div><div style="font-size:11px;font-weight:500;color:' + col + ';margin-top:1px">' + label + '</div></div>';
-    return '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">' + stat('var(--green-50)', 'var(--green-200)', 'var(--green-700)', calls, '📞 Calls') + stat('var(--blue-light)', '#C3D6E8', '#0E2340', texts, '💬 Texts') + stat('var(--gray-50)', 'var(--border)', 'var(--gray-500)', leadNotes(L).length, '📝 Notes') + '</div>' +
+    return '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">' + stat('var(--green-50)', 'var(--green-200)', 'var(--green-700)', calls, '📞 Calls') + stat('var(--blue-light)', '#CCCCCC', '#000000', texts, '💬 Texts') + stat('var(--gray-50)', 'var(--border)', 'var(--gray-500)', leadNotes(L).length, '📝 Notes') + '</div>' +
       items.map((it) => '<div class="tl-item"><div class="tl-icon ' + it.cls + '"' + (it.style ? ' style="' + it.style + '"' : '') + '>' + it.icon + '</div><div class="tl-body"><div class="tl-title">' + it.title + '</div><div class="tl-meta">' + fmtStamp(it.ts) + ' · <strong>' + esc(it.who) + '</strong></div>' + (it.text ? '<div class="tl-text">' + esc(it.text) + '</div>' : '') + '</div></div>').join('');
   }
 
@@ -731,7 +731,7 @@
     return '<div style="display:grid;grid-template-columns:150px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px"><div style="' + LABEL + '">' + label + '</div><div style="color:var(--navy-900)">' + (v ? esc(v) : '<span style="color:var(--gray-300)">—</span>') + '</div></div>';
   };
   const emptyBox = (text) => '<div style="border:1px dashed var(--border-strong);border-radius:12px;padding:34px;text-align:center;color:var(--gray-500);font-size:13.5px">' + text + '</div>';
-  const pill = (onclick, label, primary) => '<button onclick="' + onclick + '" style="padding:10px 18px;border-radius:10px;border:1px solid ' + (primary ? 'var(--green-500)' : 'var(--border)') + ';background:' + (primary ? 'var(--green-500)' : '#fff') + ';color:' + (primary ? '#fff' : 'var(--navy-900)') + ';font-family:var(--font-body);font-size:13.5px;font-weight:500;cursor:pointer">' + label + '</button>';
+  const pill = (onclick, label, primary) => '<button onclick="' + onclick + '" style="padding:10px 18px;border-radius:10px;border:1px solid ' + (primary ? 'var(--green-500)' : 'var(--border)') + ';background:' + (primary ? 'var(--green-500)' : '#fff') + ';color:' + (primary ? '#000' : 'var(--navy-900)') + ';font-family:var(--font-body);font-size:13.5px;font-weight:500;cursor:pointer">' + label + '</button>';
 
   function renderLeadDetailBody(L) {
     const d = L.details || {}, v = d.vehicle || {}, cov = d.coverage || {};
@@ -773,7 +773,7 @@
         '<div><div style="' + LABEL + ';margin-bottom:6px">Agent</div><select id="ldAgent" style="' + SEL + '">' + agentOpts + '</select></div>' +
         '<div><div style="' + LABEL + ';margin-bottom:6px">Stage</div><select id="ldStage" style="' + SEL + '">' + stages.map((s) => '<option' + (L.status === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select></div>' +
         '<div><div style="' + LABEL + ';margin-bottom:6px">Disposition</div><select id="dispositionSelect" style="' + SEL + '"><option value="">— None —</option>' + dispOpts.map((x) => '<option' + (L.disposition === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div>' +
-        '<button onclick="MSIHub.applyLeadHeader(\'' + L.id + '\')" style="padding:12px 26px;border-radius:10px;border:none;background:var(--green-500);color:#fff;font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer">Update</button>' +
+        '<button onclick="MSIHub.applyLeadHeader(\'' + L.id + '\')" style="padding:12px 26px;border-radius:10px;border:none;background:var(--green-500);color:#000;font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer">Update</button>' +
       '</div>';
 
     const tabBar = '<div style="display:flex;gap:4px;border-bottom:1px solid var(--border);padding:0 8px;overflow-x:auto">' + tabs.map(([k, label, ico]) => '<button onclick="MSIHub.setLeadTab(\'' + k + '\')" style="background:none;border:none;border-bottom:2px solid ' + (tab === k ? 'var(--green-500)' : 'transparent') + ';padding:16px 14px;font-family:var(--font-body);font-size:14px;color:' + (tab === k ? 'var(--green-700)' : 'var(--gray-600)') + ';cursor:pointer;white-space:nowrap"><span style="margin-right:6px;opacity:0.8">' + ico + '</span>' + label + '</button>').join('') + '</div>';
@@ -1097,7 +1097,7 @@
   // ------------------------------------------------------------------
   function custMatch(c, x) { return x.customer_id === c.id || (c.lead_id && x.lead_id === c.lead_id) || (x.phone && fmtPhone(x.phone) === c.phone); }
   M.customerCallLog = function (c) {
-    return M.data.calls.filter((x) => custMatch(c, x)).slice(0, 25).map((x) => ({ disp: x.missed ? 'No Answer' : (x.direction === 'inbound' ? 'Inbound Call' : 'Completed'), dc: x.missed ? '#6b7280' : '#15803d', db: x.missed ? '#f3f4f6' : '#dcfce7', agent: agentName(x.agent_id), dur: Math.floor((x.duration_sec || 0) / 60) + ':' + String((x.duration_sec || 0) % 60).padStart(2, '0'), ts: new Date(x.created_at).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: 'numeric', minute: '2-digit' }), ok: !x.missed }));
+    return M.data.calls.filter((x) => custMatch(c, x)).slice(0, 25).map((x) => ({ disp: x.missed ? 'No Answer' : (x.direction === 'inbound' ? 'Inbound Call' : 'Completed'), dc: x.missed ? '#696969' : '#067C83', db: x.missed ? '#EFEFEF' : '#E6F9FA', agent: agentName(x.agent_id), dur: Math.floor((x.duration_sec || 0) / 60) + ':' + String((x.duration_sec || 0) % 60).padStart(2, '0'), ts: new Date(x.created_at).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: 'numeric', minute: '2-digit' }), ok: !x.missed }));
   };
   M.customerTextBubbles = function (c) {
     const msgs = M.data.messages.filter((x) => custMatch(c, x));
