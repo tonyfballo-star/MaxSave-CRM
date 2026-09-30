@@ -4,7 +4,8 @@ const fs = require('fs'); const path = require('path'); const { parse } = requir
 const OUT = 'C:/Users/Tony Ballo/OneDrive/Desktop/DYL Export';
 const STATS_ONLY = process.argv.includes('--stats-only');
 const files = [];
-for (const type of fs.readdirSync(OUT)) { const dir = path.join(OUT, type); if (!fs.statSync(dir).isDirectory()) continue; for (const f of fs.readdirSync(dir)) if (f.endsWith('.csv') && fs.statSync(path.join(dir, f)).size > 0) files.push({ type, month: f.replace('.csv', ''), file: path.join(dir, f) }); }
+const TYPES = ['Auto', 'Life', 'Contact', 'Health', 'Home'];   // only real DYL lead-type folders; ignore backups etc.
+for (const type of fs.readdirSync(OUT)) { const dir = path.join(OUT, type); if (!TYPES.includes(type) || !fs.statSync(dir).isDirectory()) continue; for (const f of fs.readdirSync(dir)) if (f.endsWith('.csv') && fs.statSync(path.join(dir, f)).size > 0) files.push({ type, month: f.replace('.csv', ''), file: path.join(dir, f) }); }
 files.sort((a, b) => (a.type + a.month).localeCompare(b.type + b.month));
 const redact = (s) => String(s || '').replace(/\b(?:\d[ -]?){13,16}\b/g, '[card removed]').replace(/\b\d{3}-\d{2}-\d{4}\b/g, '[ssn removed]');
 const clean = (v) => { const s = String(v == null ? '' : v).trim(); return s === '' ? null : s; };
