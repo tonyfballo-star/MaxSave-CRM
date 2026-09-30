@@ -1,5 +1,6 @@
 // Import DYL leads (from leads.jsonl) into the MSIHub database.
-// Usage: node dyl-import.js --scope=recommended|customers|all [--months=12] [--dry-run] [--limit=N] --email=<login> --password=<pw>
+// Usage: node dyl-import.js --scope=recommended|customers|all [--months=12] [--dry-run] [--limit=N] --email=<ADMIN login> --password=<pw>
+// The login MUST be an admin: RLS hides other agents' leads from agent accounts, which breaks the already-imported check.
 // Scope "recommended": every customer + every lead with a real disposition (incl. Do Not Call) + all leads from the last N months.
 const fs = require('fs'); const readline = require('readline');
 const args = Object.fromEntries(process.argv.slice(2).map((a) => { const m = a.match(/^--([^=]+)(?:=(.*))?$/); return m ? [m[1], m[2] === undefined ? true : m[2]] : [a, true]; }));
@@ -48,7 +49,7 @@ async function api(path, opts) {
   const t = await r.text(); if (!r.ok) throw new Error(path + ' → ' + r.status + ' ' + t.slice(0, 300)); return t ? JSON.parse(t) : null;
 }
 let TOKEN = null, ME = null;
-async function login() { const r = await fetch(URL + '/auth/v1/token?grant_type=password', { method: 'POST', headers: { apikey: KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: args.email, password: args.password }) }); const j = await r.json(); if (!j.access_token) throw new Error('login failed: ' + JSON.stringify(j).slice(0, 200)); TOKEN = j.access_token; ME = j.user.id; }
+async function login() { const r = await fetch(URL + '/auth/v1/token?grant_type=password', { method: 'POST', headers: { apikey: KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: args.email, password: args.password }) }); const j = await r.json(); if (!j.access_token) throw new Error('login failed: ' + JSON.stringify(j).slice(0, 200)); TOKEN = j.access_token; ME = j.user.id;  const me = await api('/rest/v1/profiles?select=role,full_name&id=eq.' + ME); if (!me[0] || me[0].role !== 'admin') throw new Error('must sign in as an ADMIN: agents cannot see leads assigned to others, so the duplicate check would miss them (signed in as ' + (me[0] ? me[0].full_name + '/' + me[0].role : 'unknown') + ')'); }
 async function scanLeads(select) { const out = []; let last = null; for (;;) { const filter = last ? '&or=(received_at.lt.' + encodeURIComponent(last.received_at) + ',and(received_at.eq.' + encodeURIComponent(last.received_at) + ',id.gt.' + last.id + '))' : ''; const rows = await api('/rest/v1/leads?select=id,received_at,' + select + '&order=received_at.desc,id.asc&limit=1000' + filter); rows.forEach((r) => out.push(r)); if (rows.length < 1000) break; last = rows[rows.length - 1]; } return out; }
 async function existingDylIds() { const ids = new Set(); (await scanLeads('dyl_id:details->>dyl_id')).forEach((r) => { if (r.dyl_id) ids.add(r.dyl_id); }); return ids; }
 

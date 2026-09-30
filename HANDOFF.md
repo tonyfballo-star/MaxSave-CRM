@@ -39,6 +39,10 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 - 2026-09-17 evening: schema-v3.sql RUN (verified: fast queries, QA rows purged, Tony's ~950 DYL leads auto-assigned). Latest build DEPLOYED via API and verified live (29/29). Two stray Netlify sites from accidental drops (eclectic-souffle-37b91d, profound-daifuku-9568d5) can be deleted.
 - After import: reconcile details.dyl_assigned → agent_id once agent logins exist; consider Supabase Pro if DB > 500 MB.
 
+## DYL top-up 2026-09-30 (IN PROGRESS)
+- September re-pulled from DYL (5,225 Auto + 555 Contact; newest 09-30 15:26). leads.jsonl rebuilt (383,781 leads). ~2,237 new leads + 60 customers waiting to import.
+- First import attempt ran as qa (agent role) → RLS hid Tony's ~950 assigned leads → 800 duplicate copies + their [DYL] notes were inserted before a customer_no collision stopped it. **Fix:** run `supabase/fix-dyl-duplicates.sql` in the SQL editor (counts, deletes, verifies), then re-run `tools/dyl/dyl-import.js --scope=recommended --months=24` **as an admin login** (importer now refuses non-admins). `tools/dyl/dyl-check.js` is the read-only diagnostic.
+
 ## Next steps (agreed order)
 1. Finish live verification, fix anything it finds.
 2. Brevo SMTP (above).
