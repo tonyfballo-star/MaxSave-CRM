@@ -1,14 +1,20 @@
-# MSIHub — where things stand (updated 2026-09-21)
+# MaxSaveHub (formerly MSIHub) — where things stand (updated 2026-09-30)
 
 Read this first when picking up on another machine. Start Claude Code in this folder and say:
-"Continue MSIHub from HANDOFF.md."
+"Continue MaxSaveHub from HANDOFF.md."
 
 ## What is live
 - **App:** https://msihub-maxsave.netlify.app/ (Netlify project id ba46785b-f37b-4cc9-80c8-b92ddc7dd684). Deploy via API — never by dragging (drops on the Netlify home page create new sites): `curl -X POST https://api.netlify.com/api/v1/sites/<id>/deploys -H 'Authorization: Bearer <token>' -H 'Content-Type: application/zip' --data-binary @msihub-site.zip`. Token is held locally by Claude, not in this repo. Public URL, sign-in required, `noindex`.
 - **Database:** Supabase project `xcwkkynxgojmabxdrngm` (see `supabase/CONFIG.md`). `schema.sql`, `schema-v2.sql` and `schema-v3.sql` have all been run.
-- **Source of truth:** `maxsave_crm.html` + `msihub-data.js` + `msihub-data-2.js` + `docs/*.pdf`. Rebuild the deploy copy with:
-  `cp maxsave_crm.html site/index.html && cp msihub-data.js msihub-data-2.js site/` then zip `site/*` → `msihub-site.zip`.
+- **Source of truth:** `maxsave_crm.html` + `msihub-data.js` + `msihub-data-2.js` + `docs/*.pdf` + `fonts/*.ttf`. Rebuild the deploy copy with:
+  `cp maxsave_crm.html site/index.html && cp msihub-data.js msihub-data-2.js site/ && mkdir -p site/fonts && cp fonts/*.ttf site/fonts/` then zip `site/*` → `msihub-site.zip`.
 - **Tests:** `tools/smoke.js fake` (in-memory stub, 44 steps) and `tools/live.js <url> <email> <password>` (real sign-in walkthrough). Need `npm i puppeteer-core@23` inside `tools/` and Microsoft Edge.
+
+## Brand (standing rule, 2026-09-30)
+- Follows the MaxSaveHub brand guide: Turquoise `#09C4CD` (fills only, black text on it), Black `#000`, Charcoal `#696969`, White; text-safe turquoise for links is `#067C83`. Black sidebar, light pages, dark mode = full black. Typeface TT Hoves (400/500/600) via `@font-face` from `fonts/`. Logo = X mark + MAXSAVEHUB wordmark as inline SVG (sidebar, login, favicon); vector sources in `OneDrive/Desktop/LOGO/PDF`, converted with `tools/pdf2svg.js`.
+- **Font licence:** `fonts/` holds TT Hoves *trial* TTFs and is gitignored (public repo). They ship in the zip. When the licence is bought, overwrite `fonts/TTHoves-{Regular,Medium,DemiBold}.ttf` with the licensed files; nothing else changes. The font folder must exist locally before rebuilding `site/`.
+- `tools/rebrand.js` is the palette/name codemod; `node tools/rebrand.js --check` must print "clean" for all three files before a deploy.
+- Visible product name is **MaxSaveHub**; code identifiers (`window.MSIHub`, `[MSIHub]` logs, ids) are unchanged on purpose. The onboarding invite still links to `msihub.maxsave.com/join/…` — update when the real domain (maxsavehub.com?) is wired up.
 
 ## Done so far
 1. Supabase backend: 18 tables, RLS, storage bucket, realtime.
@@ -18,6 +24,7 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 5. Tasks, admin settings (tiers, carriers, vendors, lead sources, lifecycle rules), agent profile edits/goals, Live View + Inbox from real logs, Reports computed for the selected range, Goals page live.
 6. All sample data removed. E-sign PDFs moved to `docs/`. Tab icon, noindex, alerts → toasts.
 7. Bug fixed: Settings page crashed for single-word agent names.
+8. 2026-09-30: full visual rebrand to MaxSaveHub (branch `rebrand`, smoke 44/44 clean). Not yet deployed.
 
 ## In progress / blocked
 - **Live verification PASSED 2026-09-15** (29/29 steps, 0 errors). Owner login is tonyb@maxsaveins.com (admin, active, name Tony Ballo). Public sign-ups DISABLED (verified). Default settings seeded. QA test rows purged. Test login qa@maxsave.com (agent) — password given in chat.

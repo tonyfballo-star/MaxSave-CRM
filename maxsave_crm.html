@@ -242,6 +242,10 @@ body.dark-mode [style*="background:var(--gray-50)"] { background: #161616 !impor
 body.dark-mode .logout-modal { background: #1A1A1A; border: 1px solid rgba(255,255,255,0.10); }
 body.dark-mode .logout-modal h2 { color: #E0E0E0; }
 body.dark-mode .logout-modal p  { color: #909090; }
+/* Inline white cards/modals follow the dark card colour; e-sign paper mock stays white. */
+body.dark-mode [style*="background:#fff;border"], body.dark-mode [style*="background: #fff;border"] { background: var(--bg-card) !important; }
+body.dark-mode [style*="background:#fff;padding:1"], body.dark-mode [style*="background:#fff;flex-shrink"] { background: var(--bg-card) !important; }
+body.dark-mode [style*="border:1.5px solid #E2E2E2"] { border-color: var(--border-strong) !important; }
 
 .dark-toggle {
   width: 52px; height: 28px;
@@ -2131,7 +2135,7 @@ function renderLeadsPage(){
       </div>
       <button class="btn btn-ghost">⬆ Import CSV</button>
       <button class="btn btn-ghost">⬇ Export</button>
-      <button class="btn btn-primary" onclick="openLeadForm()">$1 New Lead</button>
+      <button class="btn btn-primary" onclick="openLeadForm()">+ New Lead</button>
     </div>
   </div>
 
