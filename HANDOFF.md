@@ -39,9 +39,11 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 - 2026-09-17 evening: schema-v3.sql RUN (verified: fast queries, QA rows purged, Tony's ~950 DYL leads auto-assigned). Latest build DEPLOYED via API and verified live (29/29). Two stray Netlify sites from accidental drops (eclectic-souffle-37b91d, profound-daifuku-9568d5) can be deleted.
 - After import: reconcile details.dyl_assigned → agent_id once agent logins exist; consider Supabase Pro if DB > 500 MB.
 
-## DYL top-up 2026-09-30 (IN PROGRESS)
+## DYL top-up 2026-09-30 (DONE)
 - September re-pulled from DYL (5,225 Auto + 555 Contact; newest 09-30 15:26). leads.jsonl rebuilt (383,781 leads). ~2,237 new leads + 60 customers waiting to import.
-- First import attempt ran as qa (agent role) → RLS hid Tony's ~950 assigned leads → 800 duplicate copies + their [DYL] notes were inserted before a customer_no collision stopped it. **Fix:** run `supabase/fix-dyl-duplicates.sql` in the SQL editor (counts, deletes, verifies), then re-run `tools/dyl/dyl-import.js --scope=recommended --months=24` **as an admin login** (importer now refuses non-admins). `tools/dyl/dyl-check.js` is the read-only diagnostic.
+- First attempt ran as qa (agent) → RLS hid Tony's assigned leads → 800 duplicates. Tony ran `supabase/fix-dyl-duplicates.sql` (0 left), then the import re-ran as admin: **inserted 2,237 leads + 60 customers**, 147,567 skipped. Importer now refuses non-admin logins; `tools/dyl/dyl-check.js` is the read-only diagnostic.
+- Repeat procedure for the next top-up: move aside `DYL Export/<Type>/<current month>.csv`, `node dyl.js login …`, `node dyl-pull.js YYYY-MM YYYY-MM all`, `node dyl-parse.js`, `node dyl-import.js --scope=recommended --months=24 --email=<admin> --password=…`. New leads land unassigned; re-run schema-v3.sql section 3 to map `details.dyl_assigned` → agent once agent logins exist.
+- Tony's admin password was set to a temporary value in the SQL editor on 2026-09-30 (not stored here); he should change it. Supabase built-in email does NOT deliver to tonyb@maxsaveins.com ("Error sending recovery email") → Brevo SMTP is now the blocker for any password reset.
 
 ## Next steps (agreed order)
 1. Finish live verification, fix anything it finds.
