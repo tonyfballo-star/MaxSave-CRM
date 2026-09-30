@@ -24,7 +24,7 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 5. Tasks, admin settings (tiers, carriers, vendors, lead sources, lifecycle rules), agent profile edits/goals, Live View + Inbox from real logs, Reports computed for the selected range, Goals page live.
 6. All sample data removed. E-sign PDFs moved to `docs/`. Tab icon, noindex, alerts → toasts.
 7. Bug fixed: Settings page crashed for single-word agent names.
-8. 2026-09-30: full visual rebrand to MaxSaveHub (branch `rebrand`, smoke 44/44 clean). Not yet deployed.
+8. 2026-09-30: full visual rebrand to MaxSaveHub (merged to master, smoke 44/44 clean). DEPLOYED via API (deploy 6abd9006, verified live: title, fonts, wordmark). Sidebar shows the wordmark only; X mark is on login + favicon.
 
 ## In progress / blocked
 - **Live verification PASSED 2026-09-15** (29/29 steps, 0 errors). Owner login is tonyb@maxsaveins.com (admin, active, name Tony Ballo). Public sign-ups DISABLED (verified). Default settings seeded. QA test rows purged. Test login qa@maxsave.com (agent) — password given in chat.
