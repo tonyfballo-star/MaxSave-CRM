@@ -219,7 +219,7 @@ body.dark-mode .badge { filter: brightness(1.15); }
 body.dark-mode .tier-1 { background: linear-gradient(135deg, #333333, #3D3D3D); }
 body.dark-mode .tier-2 { background: #1F1F1F; color: #B5B5B5; border-color: #696969; }
 body.dark-mode .tier-3 { background: #1F1F1F; color: #B5B5B5; border-color: #2E2E2E; }
-body.dark-mode .tier-4 { background: #222222; color: #B0B8C8; border-color: #4A4A55; }
+body.dark-mode .tier-4 { background: #222222; color: #B5B5B5; border-color: #484848; }
 body.dark-mode .pri-high { background: #3A1A1A; color: #F87171; }
 body.dark-mode .pri-med  { background: #2E2318; color: #FBBF24; }
 body.dark-mode .pri-low  { background: #161616; color: #909090; }
@@ -365,12 +365,12 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .kpi-card.accent-navy { border-left: 3.5px solid var(--navy-600); }
 .kpi-card.accent-amber { border-left: 3.5px solid var(--amber); }
 .kpi-card.accent-red { border-left: 3.5px solid var(--red); }
-.kpi-label { font-size: 13px; font-weight:500; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
-.kpi-value { font-family: var(--font-display); font-size: 32px; font-weight:500; color: #111827; line-height: 1; letter-spacing: -0.5px; }
+.kpi-label { font-size: 13px; font-weight:500; color: #3D3D3D; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+.kpi-value { font-family: var(--font-display); font-size: 32px; font-weight:500; color: #111111; line-height: 1; letter-spacing: -0.5px; }
 .kpi-value.green { color: var(--green-700); }
 .kpi-value.red { color: var(--red); }
 .kpi-value.amber { color: var(--amber); }
-.kpi-sub { font-size: 13.5px; color: #4B5563; margin-top: 7px; display: flex; align-items: center; gap: 5px; }
+.kpi-sub { font-size: 13.5px; color: #555555; margin-top: 7px; display: flex; align-items: center; gap: 5px; }
 .trend { font-weight:500; display: inline-flex; align-items: center; gap: 2px; }
 .trend.up { color: var(--green-700); }
 .trend.down { color: var(--red); }
@@ -388,14 +388,14 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 11px; border-radius: var(--radius-full); font-size: 13px; font-weight:500; white-space: nowrap; }
 .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-.b-new,.b-contacted,.b-quoted,.b-followup,.b-submitted,.b-sold,.b-lost,.b-pending,.b-noanswer { background: var(--blue-light); color: #0C2040; }
+.b-new,.b-contacted,.b-quoted,.b-followup,.b-submitted,.b-sold,.b-lost,.b-pending,.b-noanswer { background: var(--blue-light); color: #111111; }
 .b-new::before,.b-contacted::before,.b-quoted::before,.b-followup::before,.b-submitted::before,.b-sold::before,.b-lost::before,.b-pending::before,.b-noanswer::before { background: #1F1F1F; }
 
 .tier { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: var(--radius-full); font-size: 13px; font-weight:500; letter-spacing: 0.2px; }
 .tier-1 { background: linear-gradient(135deg, #111111, #262626); color: #fff; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
 .tier-2 { background: #F0F0F0; color: #1F1F1F; border: 1px solid #D9D9D9; }
-.tier-3 { background: #F8F9FC; color: #1F1F1F; border: 1px solid #B5B5B5; }
-.tier-4 { background: #F8FAFC; color: #475569; border: 1px solid #CBD5E1; }
+.tier-3 { background: #F7F7F7; color: #1F1F1F; border: 1px solid #B5B5B5; }
+.tier-4 { background: #F7F7F7; color: #555555; border: 1px solid #CCCCCC; }
 
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th { text-align: left; font-size: 12px; font-weight:500; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; padding: 11px 14px; border-bottom: 2px solid var(--border); white-space: nowrap; background: var(--gray-50); }
@@ -660,7 +660,7 @@ h1, h2, h3, h4 { font-weight: 500; letter-spacing: -0.01em; }
 
   <div class="sidebar-footer" style="padding:0;position:relative">
     <!-- User popup menu (appears above on click) -->
-    <div id="sidebarUserMenu" style="display:none;position:absolute;bottom:calc(100% + 4px);left:6px;right:6px;background:linear-gradient(170deg,#0B1929 0%,#142D4C 100%);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:6px;box-shadow:0 -6px 28px rgba(0,0,0,0.55);z-index:300">
+    <div id="sidebarUserMenu" style="display:none;position:absolute;bottom:calc(100% + 4px);left:6px;right:6px;background:linear-gradient(170deg,#111111 0%,#262626 100%);border:1px solid rgba(255,255,255,0.13);border-radius:12px;padding:6px;box-shadow:0 -6px 28px rgba(0,0,0,0.55);z-index:300">
       <div class="nav-item" onclick="nav('agency',this);closeUserMenu()" style="flex-direction:row;justify-content:flex-start;gap:10px;padding:10px 14px;margin:0 0 2px;font-size:13px;border-radius:8px">
         <svg class="nav-ic" style="width:15px;height:15px;flex-shrink:0" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5.5" cy="5" r="2.5"/><path d="M1 13c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"/><circle cx="12" cy="5" r="2" fill-opacity=".5"/><path d="M12 10c1.8 0 3 1 3 3" fill-opacity=".5" stroke-linecap="round"/></svg>
         Teams &amp; Agents
@@ -743,7 +743,7 @@ function _showNotifCard(id, opts) {
   // Positioned below the banner (~116px) with a small gap
   card.style.cssText = 'position:fixed;top:120px;right:24px;width:310px;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,0.20);z-index:9988;overflow:hidden;font-family:var(--font-body);animation:textPopupSlide 0.32s cubic-bezier(0.34,1.56,0.64,1)';
   var lines = opts.lines.map(function(l) {
-    return '<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11.5px;font-weight:500;color:#9CA3AF">' + l[0] + '</span><span style="font-size:12px;font-weight:500;color:#111827">' + l[1] + '</span></div>';
+    return '<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11.5px;font-weight:500;color:#9A9A9A">' + l[0] + '</span><span style="font-size:12px;font-weight:500;color:#111111">' + l[1] + '</span></div>';
   }).join('');
   var btns = opts.btns.map(function(b) {
     return '<button onclick="' + b.fn + '" style="flex:1;padding:7px 0;border-radius:8px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-body);background:' + b.bg + ';color:' + b.color + '">' + b.label + '</button>';
@@ -883,8 +883,8 @@ function showTextPopup(contact, phone, preview) {
       '<button onclick="event.stopPropagation();var p=document.getElementById(\'textNotifPopup\');if(p&&p.parentNode)p.parentNode.removeChild(p);if(window._textPopupTimer)clearTimeout(window._textPopupTimer)" style="background:none;border:none;color:rgba(255,255,255,0.80);font-size:18px;cursor:pointer;line-height:1;padding:0;flex-shrink:0">&times;</button>' +
     '</div>' +
     '<div style="background:#fff;padding:14px 16px">' +
-      '<div style="font-size:13px;color:#374151;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">' + preview + '</div>' +
-      '<div style="font-size:11px;color:#9CA3AF;margin-top:10px;font-weight:500">Tap to reply →</div>' +
+      '<div style="font-size:13px;color:#3D3D3D;line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">' + preview + '</div>' +
+      '<div style="font-size:11px;color:#9A9A9A;margin-top:10px;font-weight:500">Tap to reply →</div>' +
     '</div>';
   document.body.appendChild(popup);
   window._textPopupTimer = setTimeout(function() {
@@ -953,7 +953,7 @@ function handleClockIn() {
   const agentName = (window.CURRENT_USER || {}).name || 'Unknown';
   window._TC_PENDING = { id: Date.now(), agentName, date: _tcToday(), clockIn: time, clockOut: null, notes: '' };
   const btn = document.getElementById('clockInBtn');
-  if (btn) { btn.innerHTML = '✓ Clocked in'; btn.style.background = '#0E4D20'; btn.style.opacity = '0.75'; btn.style.cursor = 'default'; }
+  if (btn) { btn.innerHTML = '✓ Clocked in'; btn.style.background = '#044C50'; btn.style.opacity = '0.75'; btn.style.cursor = 'default'; }
   const status = document.getElementById('dashClockStatus');
   const timeEl = document.getElementById('dashClockTime');
   if (status) status.innerHTML = '<span style="color:rgba(255,255,255,0.90)">Clocked In</span>';
@@ -2185,14 +2185,14 @@ function renderLeadsPage(){
         </div>
         <div style="font-size:13px;color:var(--gray-500);margin-bottom:8px">${l.phone}</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-          <span style="font-size:13px;font-weight:500;color:#0C2040;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.agent}</span>
+          <span style="font-size:13px;font-weight:500;color:#111111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.agent}</span>
           <span style="font-size:12px;color:var(--gray-400);white-space:nowrap">${l.received}</span>
         </div>
         <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:8px;border-top:1px dashed var(--border)">
           <span style="font-size:12px;color:#1F1F1F;font-weight:500">${sourceAbbrev(l.source)}</span>
           <div style="display:flex;gap:5px">
             <button type="button" class="board-card-action" title="Call" onclick="event.stopPropagation();leadCall('${l.id}')" style="background:#067C83;color:#fff;border:none;border-radius:20px;padding:5px 11px;font-size:11.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:var(--font-body);white-space:nowrap"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M2 2.5C2 2.5 3.5 1 5 1s2.5 1.5 3 3-1 2-1 3 2 2.5 3 3 3-1.5 3-3 1 3 1 3-1.5 2-3 2c-2 0-4-1-6-3S1 5.5 1 3.5C1 2.5 2 2.5 2 2.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Call</button>
-            <button type="button" class="board-card-action" title="Text" onclick="event.stopPropagation();leadText('${l.id}')" style="background:#fff;color:#374151;border:1.5px solid #D1D5DB;border-radius:20px;padding:5px 11px;font-size:11.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:var(--font-body);white-space:nowrap"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M14 9.5a5 5 0 0 1-5 5H3l-2 2V5a5 5 0 0 1 5-5h3a5 5 0 0 1 5-5v4.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text</button>
+            <button type="button" class="board-card-action" title="Text" onclick="event.stopPropagation();leadText('${l.id}')" style="background:#fff;color:#3D3D3D;border:1.5px solid #CCCCCC;border-radius:20px;padding:5px 11px;font-size:11.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:var(--font-body);white-space:nowrap"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M14 9.5a5 5 0 0 1-5 5H3l-2 2V5a5 5 0 0 1 5-5h3a5 5 0 0 1 5-5v4.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text</button>
           </div>
         </div>
       </div>
@@ -2247,13 +2247,13 @@ function renderLeadsPage(){
           </td>
           <td><span class="badge ${statusBadge(l.status)}">${l.status}</span></td>
           <td style="font-size:14px;color:var(--gray-700);font-weight:500">${l.received}</td>
-          <td><span style="font-size:15px;font-weight:500;color:#0C2040">${l.agent}</span></td>
+          <td><span style="font-size:15px;font-weight:500;color:#111111">${l.agent}</span></td>
           <td style="font-size:14px;color:#1F1F1F;font-weight:500">${sourceAbbrev(l.source)}</td>
           <td>
             <div style="display:flex;gap:6px;align-items:center">
               <button type="button" title="View" onclick="openLeadDetail('${l.id}')" style="width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px">👁</button>
               <button type="button" title="Call" onclick="leadCall('${l.id}')" style="background:#067C83;color:#fff;border:none;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M2 2.5C2 2.5 3.5 1 5 1s2.5 1.5 3 3-1 2-1 3 2 2.5 3 3 3-1.5 3-3 1 3 1 3-1.5 2-3 2c-2 0-4-1-6-3S1 5.5 1 3.5C1 2.5 2 2.5 2 2.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Call</button>
-              <button type="button" title="Text" onclick="leadText('${l.id}')" style="background:#fff;color:#374151;border:1.5px solid #D1D5DB;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M14 9.5a5 5 0 0 1-5 5H3l-2 2V5a5 5 0 0 1 5-5h3a5 5 0 0 1 5 5v4.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text</button>
+              <button type="button" title="Text" onclick="leadText('${l.id}')" style="background:#fff;color:#3D3D3D;border:1.5px solid #CCCCCC;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M14 9.5a5 5 0 0 1-5 5H3l-2 2V5a5 5 0 0 1 5-5h3a5 5 0 0 1 5 5v4.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text</button>
             </div>
           </td>
         </tr>`;
@@ -2655,7 +2655,7 @@ PAGES.leaddetail = `
 .qx-rater-logo { width:42px; height:42px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:500; font-size:14px; color:#fff; flex-shrink:0; font-family:var(--font-display); }
 .qx-section-label { font-size:10.5px; font-weight:500; color:var(--gray-500); text-transform:uppercase; letter-spacing:0.7px; margin:14px 0 8px; }
 body.dark-mode .qx-rater-card { background:#2A2A2A; border-color:rgba(255,255,255,0.10); }
-body.dark-mode .qx-rater-card:hover { background:#1E2E1C; }
+body.dark-mode .qx-rater-card:hover { background:#0B2A2C; }
 </style>
 <div id="quoteExportOverlay" class="logout-overlay" style="display:none;z-index:10001" onclick="if(event.target===this)closeQuoteExport()">
   <div class="logout-modal" style="width:620px;max-width:95vw;text-align:left;max-height:90vh;overflow-y:auto;padding:24px 26px" onclick="event.stopPropagation()">
@@ -3073,29 +3073,29 @@ const _actLogHTML = (function(){
 
   <!-- TOP-LINE METRIC ROW -->
   <div class="kpi-grid kpi-grid-5" style="margin-bottom:18px">
-    <div class="kpi-card" style="border:1.5px solid #E5E7EB">
+    <div class="kpi-card" style="border:1.5px solid #E2E2E2">
       <div class="kpi-label">Total Leads Today</div>
       <div class="kpi-value">${totalLeadsToday}</div>
       <div class="kpi-sub">${inboundsToday} inbound · ${totalLeadsToday-inboundsToday} new ingest</div>
     </div>
-    <div class="kpi-card" style="border:1.5px solid #E5E7EB">
+    <div class="kpi-card" style="border:1.5px solid #E2E2E2">
       <div class="kpi-label">Outbound Calls</div>
       <div class="kpi-value">${outboundCalls}</div>
       <div class="mini-progress"><div class="mini-progress-fill ${barColor(outboundCoveragePct)}" style="width:${Math.min(outboundCoveragePct,100)}%"></div></div>
       <div class="kpi-sub"><span style="font-weight:500">${outboundCoveragePct}%</span> of today's leads called</div>
     </div>
-    <div class="kpi-card" style="border:1.5px solid #E5E7EB">
+    <div class="kpi-card" style="border:1.5px solid #E2E2E2">
       <div class="kpi-label">Texts Sent</div>
       <div class="kpi-value">${textsSent}</div>
       <div class="mini-progress"><div class="mini-progress-fill ${barColor(textCoveragePct)}" style="width:${Math.min(textCoveragePct,100)}%"></div></div>
       <div class="kpi-sub"><span style="font-weight:500">${textCoveragePct}%</span> of today's leads texted</div>
     </div>
-    <div class="kpi-card" style="border:1.5px solid #E5E7EB">
+    <div class="kpi-card" style="border:1.5px solid #E2E2E2">
       <div class="kpi-label">Inbound Calls</div>
       <div class="kpi-value">${inboundsToday}</div>
       <div class="kpi-sub">${inboundsAnswered} answered · ${inboundsToday-inboundsAnswered} missed</div>
     </div>
-    <div class="kpi-card" style="border:1.5px solid #E5E7EB">
+    <div class="kpi-card" style="border:1.5px solid #E2E2E2">
       <div class="kpi-label">Inbound Answer Rate</div>
       <div class="kpi-value">${inboundAnswerPct}%</div>
       <div class="mini-progress"><div class="mini-progress-fill ${barColor(inboundAnswerPct)}" style="width:${Math.min(inboundAnswerPct,100)}%"></div></div>
@@ -3420,7 +3420,7 @@ function renderCustomersPage(){
       const icon = t==='Upcoming Renewals' ? '🔄 ' : '';
       return `<div class="${cls}" onclick="window.CUSTOMERS_STATE.tab='${t}';clearCustomerSelection()">
         <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dot};margin-right:6px"></span>
-        ${icon}${t} <span style="background:${t==='Upcoming Renewals' && counts[t]>0 ? '#F8F9FC' : 'var(--gray-100)'};color:${t==='Upcoming Renewals' && counts[t]>0 ? '#2E2E2E' : 'var(--gray-600)'};padding:1px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:500;margin-left:5px">${counts[t]}</span>
+        ${icon}${t} <span style="background:${t==='Upcoming Renewals' && counts[t]>0 ? '#F7F7F7' : 'var(--gray-100)'};color:${t==='Upcoming Renewals' && counts[t]>0 ? '#2E2E2E' : 'var(--gray-600)'};padding:1px 8px;border-radius:var(--radius-full);font-size:10.5px;font-weight:500;margin-left:5px">${counts[t]}</span>
       </div>`;
     }).join('')}
   </div>
@@ -3453,7 +3453,7 @@ function renderCustomersPage(){
               <div style="font-size:14px;font-weight:500;color:var(--gray-800)">${c.carrier}</div>
               <div style="font-family:monospace;font-size:13px;color:var(--gray-500);margin-top:1px">${c.policyNumber}</div>
             </td>
-            <td><span style="font-size:15px;font-weight:500;color:#0C2040">${c.soldBy}</span></td>
+            <td><span style="font-size:15px;font-weight:500;color:#111111">${c.soldBy}</span></td>
             <td><span style="background:var(--navy-50);color:var(--navy-700);font-size:13px;font-weight:500;padding:3px 10px;border-radius:var(--radius-full);border:1px solid var(--navy-100)">${lineCount} line${lineCount!==1?'s':''}</span></td>
             <td style="font-family:var(--font-display);font-weight:500;font-size:15px;color:var(--green-700)">${brokerFeeTotal>0?fmt$(brokerFeeTotal):'—'}</td>
             <td style="font-family:var(--font-display);font-weight:500;font-size:15px;color:${bal>0?'var(--red)':'var(--gray-300)'}">${bal>0?fmt$(bal):'$0'}</td>
@@ -3462,7 +3462,7 @@ function renderCustomersPage(){
               <div style="display:flex;gap:6px">
                 <button type="button" title="View" onclick="openCustomerDetail('${c.id}')" style="width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--gray-50);cursor:pointer;font-size:13px">👁</button>
                 <button type="button" title="Call" onclick="customerCall('${c.id}')" style="background:#067C83;color:#fff;border:none;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M2 2.5C2 2.5 3.5 1 5 1s2.5 1.5 3 3-1 2-1 3 2 2.5 3 3 3-1.5 3-3 1 3 1 3-1.5 2-3 2c-2 0-4-1-6-3S1 5.5 1 3.5C1 2.5 2 2.5 2 2.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Call</button>
-                <button type="button" title="Text" onclick="customerText('${c.id}')" style="background:#fff;color:#374151;border:1.5px solid #D1D5DB;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M14 9.5a5 5 0 0 1-5 5H3l-2 2V5a5 5 0 0 1 5-5h3a5 5 0 0 1 5-5v4.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text</button>
+                <button type="button" title="Text" onclick="customerText('${c.id}')" style="background:#fff;color:#3D3D3D;border:1.5px solid #CCCCCC;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--font-body);white-space:nowrap"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M14 9.5a5 5 0 0 1-5 5H3l-2 2V5a5 5 0 0 1 5-5h3a5 5 0 0 1 5-5v4.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text</button>
               </div>
             </td>
           </tr>`;
@@ -3527,8 +3527,8 @@ window.PAGE_INIT.customerdetail = function(){
     </div>
 
     <!-- FULL-WIDTH PROFILE CARD -->
-    <div style="background:linear-gradient(135deg,#1B2D3E 0%,#1F3550 100%);border-radius:var(--radius-xl);padding:28px 32px;display:flex;align-items:center;gap:28px">
-      <div style="width:80px;height:80px;border-radius:50%;background:#5A6B80;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:500;color:#fff;flex-shrink:0;letter-spacing:-0.5px">${initials(c.first+' '+c.last)}</div>
+    <div style="background:linear-gradient(135deg,#262626 0%,#2E2E2E 100%);border-radius:var(--radius-xl);padding:28px 32px;display:flex;align-items:center;gap:28px">
+      <div style="width:80px;height:80px;border-radius:50%;background:#696969;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:500;color:#fff;flex-shrink:0;letter-spacing:-0.5px">${initials(c.first+' '+c.last)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:22px;font-weight:500;color:#fff;margin-bottom:4px">${c.first} ${c.last}</div>
         <div style="font-size:15px;color:rgba(255,255,255,0.80);margin-bottom:5px">${c.phone}</div>
@@ -3579,7 +3579,7 @@ window.PAGE_INIT.customerdetail = function(){
     <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
       <div style="display:flex;border-bottom:2px solid var(--border);background:var(--gray-50);padding:0 4px">
         <button id="cdBtn-cd-calls" onclick="cdTab('cd-calls')" style="padding:12px 18px;border:none;background:transparent;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--navy-900);border-bottom:2.5px solid var(--navy-900);font-family:var(--font-body);margin-bottom:-2px;transition:all 0.15s">
-          Call Log <span style="font-size:11px;background:#E4EEF7;color:#2E2E2E;padding:1px 7px;border-radius:var(--radius-full);margin-left:5px;font-weight:500">3</span>
+          Call Log <span style="font-size:11px;background:#F0F0F0;color:#2E2E2E;padding:1px 7px;border-radius:var(--radius-full);margin-left:5px;font-weight:500">3</span>
         </button>
         <button id="cdBtn-cd-text" onclick="cdTab('cd-text')" style="padding:12px 18px;border:none;background:transparent;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--gray-500);border-bottom:2.5px solid transparent;font-family:var(--font-body);margin-bottom:-2px;transition:all 0.15s">
           Text / SMS <span style="font-size:11px;background:var(--gray-100);color:var(--gray-500);padding:1px 7px;border-radius:var(--radius-full);margin-left:5px;font-weight:500">5</span>
@@ -3594,7 +3594,7 @@ window.PAGE_INIT.customerdetail = function(){
         ${callLog.map(cl => `
         <div style="display:flex;align-items:center;gap:14px;padding:15px 20px;border-bottom:1px solid var(--border)">
           <div style="width:38px;height:38px;border-radius:50%;background:${cl.ok?'#C6F1F3':'var(--gray-100)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg width="15" height="15" fill="none" stroke="${cl.ok?'#05646A':'#9ca3af'}" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.02 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg width="15" height="15" fill="none" stroke="${cl.ok?'#05646A':'#9A9A9A'}" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.02 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
@@ -3712,7 +3712,7 @@ window.PAGE_INIT.customerdetail = function(){
               ${infoRow('Balance',bal>0?'<span style="color:var(--red);font-weight:500">'+fmt$(bal)+'</span>':'<span style="color:var(--green-700);font-weight:500">$0.00</span>',true)}
               ${isActive ? `<div style="display:flex;gap:8px;padding:10px 0 2px">
                 ${canVoid ? `<button onclick="voidPolicy('${escAttr(c.id)}','${escAttr(p.number)}')" style="flex:1;padding:7px 0;font-size:11.5px;font-weight:500;font-family:var(--font-body);background:#FEF2F2;color:#DC2626;border:1.5px solid #FECACA;border-radius:var(--radius-md);cursor:pointer">&#128683; Void</button>` : ''}
-                <button onclick="cancelPolicy('${escAttr(c.id)}','${escAttr(p.number)}')" style="flex:1;padding:7px 0;font-size:11.5px;font-weight:500;font-family:var(--font-body);background:#F8F9FC;color:#2E2E2E;border:1.5px solid #D9D9D9;border-radius:var(--radius-md);cursor:pointer">&#10006; Cancel Policy</button>
+                <button onclick="cancelPolicy('${escAttr(c.id)}','${escAttr(p.number)}')" style="flex:1;padding:7px 0;font-size:11.5px;font-weight:500;font-family:var(--font-body);background:#F7F7F7;color:#2E2E2E;border:1.5px solid #D9D9D9;border-radius:var(--radius-md);cursor:pointer">&#10006; Cancel Policy</button>
               </div>` : ''}
             </div>`;
           }).join('')}
@@ -4270,7 +4270,7 @@ function renderLiveView() {
           const dot     = dotColor(a.status);
           const glow    = dotGlow(a.status);
           const rowBg   = isMe ? '#E6F9FA' : 'var(--white)';
-          const divBg   = isMe ? '#E4EEF7' : 'var(--gray-50)';
+          const divBg   = isMe ? '#F0F0F0' : 'var(--gray-50)';
           const safe    = a.name.replace(/'/g,"\\'");
           return `
           <div class="agent-card" ${canDrag ? `draggable="true" ondragstart="onAgentCallDragStart(event,'${safe}');this.style.opacity='0.5'" ondragend="onAgentCallDragEnd(event);this.style.opacity='1'"` : ''}
@@ -4345,7 +4345,7 @@ function renderLiveView() {
         <div style="padding:10px;display:flex;flex-direction:column;gap:6px">
           ${s.parkingLot.map((p, i) => `
           <div class="drop-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'park',${i})"
-            style="padding:10px 12px;background:${p?'#F8F9FC':'var(--gray-50)'};border:1.5px ${p?'solid #B5B5B5':'dashed var(--border-strong)'};border-radius:var(--radius-md);display:flex;align-items:center;gap:9px;min-height:44px">
+            style="padding:10px 12px;background:${p?'#F7F7F7':'var(--gray-50)'};border:1.5px ${p?'solid #B5B5B5':'dashed var(--border-strong)'};border-radius:var(--radius-md);display:flex;align-items:center;gap:9px;min-height:44px">
             <div style="font-size:10px;font-weight:500;color:${p?'#2E2E2E':'var(--gray-400)'};text-transform:uppercase;letter-spacing:0.4px;min-width:40px">Slot ${i+1}</div>
             ${p ? `
               <div style="flex:1;min-width:0">
@@ -4453,7 +4453,7 @@ function renderLiveView() {
         <div style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px">
           ${selectedThread.messages.map(m=>`
           <div style="display:flex;justify-content:${m.direction==='outbound'?'flex-end':'flex-start'}">
-            <div style="max-width:68%;padding:10px 14px;font-size:13px;line-height:1.5;${m.direction==='outbound'?'background:#067C83;color:#fff;border-radius:16px 16px 4px 16px':'background:#F1F5F9;color:var(--navy-900);border-radius:16px 16px 16px 4px'}">
+            <div style="max-width:68%;padding:10px 14px;font-size:13px;line-height:1.5;${m.direction==='outbound'?'background:#067C83;color:#fff;border-radius:16px 16px 4px 16px':'background:#EFEFEF;color:var(--navy-900);border-radius:16px 16px 16px 4px'}">
               ${m.text}
               ${m.attachment?`<div style="margin-top:6px;padding:5px 9px;background:rgba(255,255,255,0.20);border-radius:7px;font-size:11px;display:flex;align-items:center;gap:4px">📎 ${m.attachment}</div>`:''}
               <div style="font-size:10px;margin-top:5px;text-align:right;color:${m.direction==='outbound'?'rgba(255,255,255,0.60)':'var(--gray-400)'}">${m.time}</div>
@@ -4795,7 +4795,7 @@ function renderInboxTexts(threads, textFilter, selectedPhone) {
           ${flatMessages.length === 0 ? `<div style="text-align:center;color:var(--gray-400);font-size:13px;padding:30px 0">No messages yet — start the conversation below.</div>` :
             flatMessages.map(m => `
             <div style="display:flex;justify-content:${m.direction==='outbound'?'flex-end':'flex-start'}">
-              <div style="max-width:68%;padding:10px 14px;font-size:13px;line-height:1.5;${m.direction==='outbound'?'background:#067C83;color:#fff;border-radius:16px 16px 4px 16px':'background:#F1F5F9;color:var(--navy-900);border-radius:16px 16px 16px 4px'}">
+              <div style="max-width:68%;padding:10px 14px;font-size:13px;line-height:1.5;${m.direction==='outbound'?'background:#067C83;color:#fff;border-radius:16px 16px 4px 16px':'background:#EFEFEF;color:var(--navy-900);border-radius:16px 16px 16px 4px'}">
                 ${(m.text||'').replace(/</g,'&lt;')}
                 <div style="font-size:10px;margin-top:5px;text-align:right;color:${m.direction==='outbound'?'rgba(255,255,255,0.60)':'var(--gray-400)'}">${m.time}</div>
               </div>
@@ -5456,7 +5456,7 @@ function renderESignEditStep() {
   <style>
     .esf { position:absolute; display:flex; align-items:flex-start; gap:4px; z-index:5; }
     .esf .esf-input { min-width:60px; outline:none; background:rgba(6,124,131,0.08); border:1.5px dashed #067C83; border-radius:6px; padding:4px 10px; font-size:13px; color:var(--navy-900); white-space:nowrap; }
-    .esf .esf-input:empty::before { content:attr(data-ph); color:#9AA4BC; }
+    .esf .esf-input:empty::before { content:attr(data-ph); color:#9A9A9A; }
     .esf-sig .esf-input  { font-family:'Snell Roundhand','Brush Script MT',cursive; font-size:24px; min-width:170px; }
     .esf-ini .esf-input  { font-family:'Snell Roundhand','Brush Script MT',cursive; font-size:19px; min-width:54px; }
     .esf-date .esf-input { min-width:100px; }
@@ -5708,16 +5708,16 @@ function renderAgencyPage() {
 
   const roleBadge = r => r==='Admin'
     ? '<span style="background:#E6F9FA;color:#067C83;border:1px solid #CCCCCC;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:500">Admin</span>'
-    : '<span style="background:#F9FAFB;color:#374151;border:1px solid #E5E7EB;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:500">Agent</span>';
+    : '<span style="background:#F7F7F7;color:#3D3D3D;border:1px solid #E2E2E2;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:500">Agent</span>';
 
   const tierBadge = t => {
-    const st={'Tier 1':'background:#111111;color:#fff','Tier 2':'background:#F0F0F0;color:#1F1F1F','Tier 3':'background:#F8F9FC;color:#1F1F1F','Tier 4':'background:#F8FAFC;color:#475569'};
+    const st={'Tier 1':'background:#111111;color:#fff','Tier 2':'background:#F0F0F0;color:#1F1F1F','Tier 3':'background:#F7F7F7;color:#1F1F1F','Tier 4':'background:#F7F7F7;color:#555555'};
     return `<span style="${st[t]||st['Tier 4']};padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:500">${t}</span>`;
   };
 
   const statusBadge = st => {
     if (st==='Active')   return '<span style="background:#C6F1F3;color:#067C83;border:1px solid #5FD9DF;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:500">● Active</span>';
-    if (st==='Inactive') return '<span style="background:#F3F4F6;color:#6B7280;border:1px solid #D1D5DB;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:500">○ Inactive</span>';
+    if (st==='Inactive') return '<span style="background:#EFEFEF;color:#696969;border:1px solid #CCCCCC;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:500">○ Inactive</span>';
     return '<span style="background:#FEF2F2;color:#DC2626;border:1px solid #FCA5A5;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:500">⊗ Suspended</span>';
   };
 
@@ -5784,7 +5784,7 @@ function renderAgencyPage() {
       <div style="font-size:28px;font-weight:500;color:#067C83;font-family:var(--font-display)">${admins}</div>
       <div style="font-size:12px;font-weight:500;color:#067C83;margin-top:3px">Admins</div>
     </div>
-    <div style="background:#F9FAFB;border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center">
+    <div style="background:#F7F7F7;border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center">
       <div style="font-size:28px;font-weight:500;color:var(--navy-900);font-family:var(--font-display)">${all.length - admins}</div>
       <div style="font-size:12px;font-weight:500;color:var(--gray-500);margin-top:3px">Agents</div>
     </div>
@@ -6234,7 +6234,7 @@ function renderRptOverview(sc, totalApps, totalFeeCollected, totalFeeExtended, t
       <div class="kpi-value green">${fmt$(totalFeeCollected)}</div>
       <div class="kpi-sub"><span class="trend up">↑ 12%</span> vs prior period</div>
     </div>
-    <div class="kpi-card" style="border-left:4px solid #696969;background:linear-gradient(135deg,#F8F9FC,#F0F0F0)">
+    <div class="kpi-card" style="border-left:4px solid #696969;background:linear-gradient(135deg,#F7F7F7,#F0F0F0)">
       <div class="kpi-label">Fee Extended</div>
       <div class="kpi-value" style="color:#2E2E2E">${fmt$(totalFeeExtended)}</div>
       <div class="kpi-sub" style="color:#1F1F1F">Pending · ${100-feeCollPct}% of booked</div>
@@ -6341,7 +6341,7 @@ function renderRptOverview(sc, totalApps, totalFeeCollected, totalFeeExtended, t
           const apps  = rptVal(r.apps, sc);
           const closePct = leads ? Math.round(apps/leads*100) : 0;
           const barW = totalLeads ? Math.round(leads/totalLeads*100) : 0;
-          return `<div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openLeadSourceModal('${r.source.replace(/'/g,"\\'")}',${sc})" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background=''">
+          return `<div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openLeadSourceModal('${r.source.replace(/'/g,"\\'")}',${sc})" onmouseenter="this.style.background='#F0F0F0'" onmouseleave="this.style.background=''">
             <div style="flex:1;min-width:0">
               <div style="font-weight:500;font-size:13px;color:#067C83">${r.source}</div>
               <div style="height:4px;background:var(--gray-100);border-radius:3px;margin-top:4px;overflow:hidden"><div style="width:${barW}%;height:100%;background:var(--green-500)"></div></div>
@@ -6363,7 +6363,7 @@ function renderRptOverview(sc, totalApps, totalFeeCollected, totalFeeExtended, t
           const pol  = rptVal(r.policies, sc);
           const prem = rptVal(r.premium, sc);
           const mix  = totalPolicies ? Math.round(pol/totalPolicies*100) : 0;
-          return `<div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openCarrierModal('${r.name.replace(/'/g,"\\'")}',${sc})" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background=''">
+          return `<div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openCarrierModal('${r.name.replace(/'/g,"\\'")}',${sc})" onmouseenter="this.style.background='#F0F0F0'" onmouseleave="this.style.background=''">
             <div style="flex:1;min-width:0">
               <div style="font-weight:500;font-size:13px;color:#067C83">${r.name}</div>
               <div style="height:4px;background:var(--gray-100);border-radius:3px;margin-top:4px;overflow:hidden"><div style="width:${mix}%;height:100%;background:#067C83"></div></div>
@@ -6400,7 +6400,7 @@ function renderRptAgents(sc) {
   <div class="kpi-grid" style="margin-bottom:14px;grid-template-columns:repeat(5,1fr)">
     <div class="kpi-card accent"><div class="kpi-label">Total Apps</div><div class="kpi-value">${totApps}</div><div class="kpi-sub">Applications this period</div></div>
     <div class="kpi-card accent"><div class="kpi-label">Fee Collected</div><div class="kpi-value">${fmt$(totFee)}</div><div class="kpi-sub">Broker fees received</div></div>
-    <div class="kpi-card" style="border-left:4px solid #696969;background:linear-gradient(135deg,#F8F9FC,#F0F0F0)"><div class="kpi-label">Fee Extended</div><div class="kpi-value" style="color:#2E2E2E">${fmt$(totExtFee)}</div><div class="kpi-sub">Balance remaining</div></div>
+    <div class="kpi-card" style="border-left:4px solid #696969;background:linear-gradient(135deg,#F7F7F7,#F0F0F0)"><div class="kpi-label">Fee Extended</div><div class="kpi-value" style="color:#2E2E2E">${fmt$(totExtFee)}</div><div class="kpi-sub">Balance remaining</div></div>
     <div class="kpi-card accent"><div class="kpi-label">Avg Close Rate</div><div class="kpi-value">${avgClose}%</div><div class="kpi-sub">Team average</div></div>
     <div class="kpi-card accent-navy"><div class="kpi-label">Premium Written</div><div class="kpi-value">${fmtK(totPrem)}</div><div class="kpi-sub">Total premium volume</div></div>
   </div>
@@ -6459,7 +6459,7 @@ function renderRptAgents(sc) {
             <td style="color:rgba(255,255,255,0.4);font-size:11px;padding:13px 14px">${filteredAgents.length} agents</td>
             <td style="font-family:var(--font-display);font-weight:500;font-size:17px;color:#fff;padding:13px 14px">${totApps}</td>
             <td style="font-weight:500;color:rgba(255,255,255,0.65);padding:13px 14px">${totGoal}</td>
-            <td style="font-weight:500;color:${totPct>=100?'#5FD9DF':totPct>=70?'#A8BFD4':'#B5B5B5'};padding:13px 14px">${totPct}%</td>
+            <td style="font-weight:500;color:${totPct>=100?'#5FD9DF':totPct>=70?'#D9D9D9':'#B5B5B5'};padding:13px 14px">${totPct}%</td>
             <td style="color:#5FD9DF;font-weight:500;padding:13px 14px">${fmt$(totFee)}</td>
             <td style="color:#B5B5B5;font-weight:500;padding:13px 14px">${fmt$(totExtFee)}</td>
             <td style="color:rgba(255,255,255,0.85);font-weight:500;padding:13px 14px">${fmtK(totPrem)}</td>
@@ -6516,7 +6516,7 @@ function openLeadSourceModal(source, sc) {
       </div>
       <div style="padding:24px 28px">
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px">
-          <div style="background:#F0F7FF;border-radius:10px;padding:14px;text-align:center">
+          <div style="background:#F0F0F0;border-radius:10px;padding:14px;text-align:center">
             <div style="font-size:22px;font-weight:500;color:#067C83;font-family:var(--font-display)">${leads}</div>
             <div style="font-size:11px;font-weight:500;color:var(--gray-500);margin-top:3px">Total Leads</div>
           </div>
@@ -6528,7 +6528,7 @@ function openLeadSourceModal(source, sc) {
             <div style="font-size:22px;font-weight:500;color:${cost?'#DC2626':'var(--green-700)'};font-family:var(--font-display)">${cost ? fmt$(cost) : 'Free'}</div>
             <div style="font-size:11px;font-weight:500;color:var(--gray-500);margin-top:3px">Lead Cost</div>
           </div>
-          <div style="background:#F8F9FC;border-radius:10px;padding:14px;text-align:center">
+          <div style="background:#F7F7F7;border-radius:10px;padding:14px;text-align:center">
             <div style="font-size:22px;font-weight:500;color:#2E2E2E;font-family:var(--font-display)">${contactPct}%</div>
             <div style="font-size:11px;font-weight:500;color:var(--gray-500);margin-top:3px">Contact Rate</div>
           </div>
@@ -6670,13 +6670,13 @@ function openCarrierModal(name, sc) {
         <div>
           <div style="font-size:11px;font-weight:500;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Carrier</div>
           <div style="font-size:24px;font-weight:500;color:#fff;font-family:var(--font-display)">${name}</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px">Bind Rate: <strong style="color:#A8BFD4">${r.bindRate}</strong> &nbsp;·&nbsp; ${mix}% of total book</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px">Bind Rate: <strong style="color:#D9D9D9">${r.bindRate}</strong> &nbsp;·&nbsp; ${mix}% of total book</div>
         </div>
         <button onclick="closeCarrierModal()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
       </div>
       <div style="padding:24px 28px">
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
-          <div style="background:#F0F7FF;border-radius:10px;padding:14px;text-align:center">
+          <div style="background:#F0F0F0;border-radius:10px;padding:14px;text-align:center">
             <div style="font-size:22px;font-weight:500;color:#067C83;font-family:var(--font-display)">${pol}</div>
             <div style="font-size:11px;font-weight:500;color:var(--gray-500);margin-top:3px">Active Policies</div>
           </div>
@@ -6692,7 +6692,7 @@ function openCarrierModal(name, sc) {
             <div style="font-size:22px;font-weight:500;color:var(--green-700);font-family:var(--font-display)">${nc}</div>
             <div style="font-size:11px;font-weight:500;color:var(--gray-500);margin-top:3px">New Clients</div>
           </div>
-          <div style="background:#F0F7FF;border-radius:10px;padding:14px;text-align:center">
+          <div style="background:#F0F0F0;border-radius:10px;padding:14px;text-align:center">
             <div style="font-size:22px;font-weight:500;color:#067C83;font-family:var(--font-display)">${ren}</div>
             <div style="font-size:11px;font-weight:500;color:var(--gray-500);margin-top:3px">Renewals</div>
           </div>
@@ -6737,7 +6737,7 @@ function renderRptLeads(sc) {
     <div class="kpi-card accent"><div class="kpi-label">Avg Contact Rate</div><div class="kpi-value">${avgContactRate}%</div><div class="kpi-sub">Leads reached</div></div>
     <div class="kpi-card accent"><div class="kpi-label">Lead-to-App Rate</div><div class="kpi-value">${leadToApp}%</div><div class="kpi-sub">Leads → applications</div></div>
     <div class="kpi-card accent-red" style="border-left:4px solid var(--red);background:linear-gradient(135deg,#FFF5F5,#FEE2E2)"><div class="kpi-label">Total Lead Cost</div><div class="kpi-value red">${fmt$(totalCost)}</div><div class="kpi-sub">Paid sources only</div></div>
-    <div class="kpi-card accent-amber" style="border-left:4px solid #696969;background:linear-gradient(135deg,#F8F9FC,#F0F0F0)"><div class="kpi-label">Avg Cost/App</div><div class="kpi-value" style="color:#2E2E2E">${avgCostPerApp?fmt$(avgCostPerApp):'—'}</div><div class="kpi-sub">Paid leads only</div></div>
+    <div class="kpi-card accent-amber" style="border-left:4px solid #696969;background:linear-gradient(135deg,#F7F7F7,#F0F0F0)"><div class="kpi-label">Avg Cost/App</div><div class="kpi-value" style="color:#2E2E2E">${avgCostPerApp?fmt$(avgCostPerApp):'—'}</div><div class="kpi-sub">Paid leads only</div></div>
     <div class="kpi-card accent-navy"><div class="kpi-label">Organic Leads</div><div class="kpi-value">${organicLeads}</div><div class="kpi-sub">Referral + Direct</div></div>
   </div>
   <div class="card">
@@ -6764,7 +6764,7 @@ function renderRptLeads(sc) {
             const closePct   = contacted ? (apps/contacted*100).toFixed(0) : 0;
             const cpa        = apps && cost ? fmt$(Math.round(cost/apps)) : '—';
             const revenue    = apps * 450;
-            return `<tr style="cursor:pointer" onclick="openLeadSourceModal('${r.source.replace(/'/g,"\\'")}',${sc})" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background=''">
+            return `<tr style="cursor:pointer" onclick="openLeadSourceModal('${r.source.replace(/'/g,"\\'")}',${sc})" onmouseenter="this.style.background='#F0F0F0'" onmouseleave="this.style.background=''">
               <td><div style="font-weight:500;color:#067C83">${r.source}</div><div style="font-size:10.5px;color:var(--gray-400);margin-top:2px">Click to expand ↗</div></td>
               <td style="font-weight:500;color:var(--navy-900)">${leads}</td>
               <td>${contacted}</td>
@@ -6783,7 +6783,7 @@ function renderRptLeads(sc) {
             <td style="font-weight:500;font-size:13.5px;color:#fff;padding:13px 14px">Agency Total</td>
             <td style="font-family:var(--font-display);font-weight:500;font-size:16px;color:#fff;padding:13px 14px">${totalLeads}</td>
             <td style="font-weight:500;color:rgba(255,255,255,0.75);padding:13px 14px">${totalContacted}</td>
-            <td style="font-weight:500;color:#A8BFD4;padding:13px 14px">${avgContactRate}%</td>
+            <td style="font-weight:500;color:#D9D9D9;padding:13px 14px">${avgContactRate}%</td>
             <td style="font-weight:500;color:rgba(255,255,255,0.75);padding:13px 14px">${totalQuoted}</td>
             <td style="font-family:var(--font-display);font-weight:500;font-size:16px;color:#fff;padding:13px 14px">${totalApps}</td>
             <td style="font-weight:500;color:#5FD9DF;padding:13px 14px">${totalContacted?Math.round(totalApps/totalContacted*100):'—'}%</td>
@@ -6798,7 +6798,7 @@ function renderRptLeads(sc) {
   <div class="card" style="margin-top:14px">
     <div class="card-header"><div class="card-title">Lead Status Summary</div></div>
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:16px">
-      ${[['New Lead',Math.round(totalLeads*0.18),'#6B7280'],['Contacted',Math.round(totalLeads*0.24),'#067C83'],['Quoted',Math.round(totalLeads*0.22),'#067C83'],['Appt Set',Math.round(totalLeads*0.14),'#696969'],['App Submitted',Math.round(totalLeads*0.22),'var(--green-500)']].map(([lbl,cnt,color])=>`
+      ${[['New Lead',Math.round(totalLeads*0.18),'#696969'],['Contacted',Math.round(totalLeads*0.24),'#067C83'],['Quoted',Math.round(totalLeads*0.22),'#067C83'],['Appt Set',Math.round(totalLeads*0.14),'#696969'],['App Submitted',Math.round(totalLeads*0.22),'var(--green-500)']].map(([lbl,cnt,color])=>`
         <div style="text-align:center;padding:14px;border-radius:var(--radius-md);background:var(--gray-50);border:1px solid var(--border)">
           <div style="font-size:24px;font-weight:500;color:${color};font-family:var(--font-display)">${cnt}</div>
           <div style="font-size:11px;font-weight:500;color:var(--gray-500);margin-top:4px">${lbl}</div>
@@ -6834,7 +6834,7 @@ function renderRptCarriers(sc) {
             const can  = rptVal(r.cancels,  sc);
             const avg  = pol ? Math.round(prem/pol) : 0;
             const mix  = totalPolicies ? Math.round(pol/totalPolicies*100) : 0;
-            return `<tr style="cursor:pointer" onclick="openCarrierModal('${r.name.replace(/'/g,"\\'")}',${sc})" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background=''">
+            return `<tr style="cursor:pointer" onclick="openCarrierModal('${r.name.replace(/'/g,"\\'")}',${sc})" onmouseenter="this.style.background='#F0F0F0'" onmouseleave="this.style.background=''">
               <td><div style="font-weight:500;color:#067C83">${r.name}</div><div style="font-size:10.5px;color:var(--gray-400);margin-top:2px">Click to expand ↗</div></td>
               <td style="font-weight:500;color:var(--navy-900)">${pol}</td>
               <td style="font-weight:500;color:var(--green-700)">${fmtK(prem)}</td>
@@ -6866,7 +6866,7 @@ function renderRptCarriers(sc) {
               <td style="font-family:var(--font-display);font-weight:500;font-size:17px;color:#fff;padding:13px 14px">${totPol}</td>
               <td style="color:#5FD9DF;font-weight:500;padding:13px 14px">${fmtK(totPrm)}</td>
               <td style="color:rgba(255,255,255,0.65);font-weight:500;padding:13px 14px">${fmt$(avgPrm)}</td>
-              <td style="color:#A8BFD4;font-weight:500;padding:13px 14px">${avgBR}%</td>
+              <td style="color:#D9D9D9;font-weight:500;padding:13px 14px">${avgBR}%</td>
               <td style="color:#5FD9DF;font-weight:500;padding:13px 14px">${totNC}</td>
               <td style="color:rgba(255,255,255,0.65);font-weight:500;padding:13px 14px">${totRen}</td>
               <td style="color:${totCan>10?'#FCA5A5':'rgba(255,255,255,0.5)'};font-weight:500;padding:13px 14px">${totCan}</td>
@@ -7087,7 +7087,7 @@ function renderRptFinancial(sc, totalFeeCollected, totalFeeExtended, totalPremiu
       <div class="card-body" style="padding:14px 16px">
         ${catSorted.map(([cat,total]) => {
           const bw  = Math.round(total/maxCat*100);
-          const col = CAT_COLORS[cat] || '#64748B';
+          const col = CAT_COLORS[cat] || '#696969';
           return `<div style="margin-bottom:11px">
             <div style="display:flex;justify-content:space-between;margin-bottom:3px">
               <span style="font-size:12px;font-weight:500;color:var(--gray-700)">${cat}</span>
@@ -7275,7 +7275,7 @@ function renderRptActivity(sc) {
   // Mini progress bar helper
   const miniBar = (val, max, color) => {
     const w = max ? Math.min(100, Math.round(val/max*100)) : 0;
-    return `<div style="height:4px;background:#F3F4F6;border-radius:99px;margin-top:3px;overflow:hidden"><div style="width:${w}%;height:100%;background:${color};border-radius:99px"></div></div>`;
+    return `<div style="height:4px;background:#EFEFEF;border-radius:99px;margin-top:3px;overflow:hidden"><div style="width:${w}%;height:100%;background:${color};border-radius:99px"></div></div>`;
   };
 
   // Group header style
@@ -7316,7 +7316,7 @@ function renderRptActivity(sc) {
             <th rowspan="2" style="${shStyle}">Tier</th>
             <th colspan="5" style="${ghStyle('#E6F9FA','#067C83')}">📞 CALLS</th>
             <th colspan="3" style="${ghStyle('#E6F9FA','#067C83')}">💬 TEXTS</th>
-            <th colspan="3" style="${ghStyle('#F8F9FC','#444444')}">🎯 LEADS</th>
+            <th colspan="3" style="${ghStyle('#F7F7F7','#444444')}">🎯 LEADS</th>
             <th colspan="3" style="${ghStyle('#E6F9FA','#067C83')}">✅ CLOSING</th>
             <th colspan="2" style="${ghStyle('#F0F0F0','#067C83')}">⏱ PRODUCTIVITY</th>
           </tr>
@@ -7556,7 +7556,7 @@ function renderRptFees(sc, totalFeeCollected, totalFeeExtended) {
       <div class="kpi-value green">${fmt$(ppCollected)}</div>
       ${mtdRow(fmt$(mtdCollected),'var(--green-700)')}
     </div>
-    <div class="kpi-card" style="border-left:4px solid #696969;background:linear-gradient(135deg,#F8F9FC,#F0F0F0);padding:14px 16px">
+    <div class="kpi-card" style="border-left:4px solid #696969;background:linear-gradient(135deg,#F7F7F7,#F0F0F0);padding:14px 16px">
       <div class="kpi-label">Fee Extended</div>
       ${ppTag}
       <div class="kpi-value" style="color:#2E2E2E">${fmt$(ppExtended)}</div>
@@ -7628,7 +7628,7 @@ function renderRptFees(sc, totalFeeCollected, totalFeeExtended) {
           ${FEE_AGING_DATA.map((r,i) => {
             const pct2   = outstanding ? Math.round(r.amount/outstanding*100) : 0;
             const colors = ['var(--green-500)','#696969','#696969','var(--red)'];
-            return `<tr style="cursor:pointer" onclick="openFeeAgingModal('${r.bucket}')" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background=''">
+            return `<tr style="cursor:pointer" onclick="openFeeAgingModal('${r.bucket}')" onmouseenter="this.style.background='#F0F0F0'" onmouseleave="this.style.background=''">
               <td style="font-weight:500;color:#067C83">${r.bucket} <span style="font-size:10px;font-weight:500">↗</span></td>
               <td style="font-weight:500;color:var(--navy-900)">${fmt$(r.amount)}</td>
               <td style="color:var(--gray-600)">${r.count}</td>
@@ -7664,7 +7664,7 @@ function renderRptFees(sc, totalFeeCollected, totalFeeExtended) {
         ${MONTHLY_REVENUE.map(r => {
           const total = r.collected + r.extended;
           const rate  = total ? Math.round(r.collected/total*100) : 0;
-          return `<tr style="cursor:pointer" onclick="openMonthFeeBreakdown('${r.month}')" onmouseenter="this.style.background='#F0F7FF'" onmouseleave="this.style.background=''">
+          return `<tr style="cursor:pointer" onclick="openMonthFeeBreakdown('${r.month}')" onmouseenter="this.style.background='#F0F0F0'" onmouseleave="this.style.background=''">
             <td style="font-weight:500;color:#067C83">${r.month} 2026 <span style="font-size:10px;font-weight:500">↗</span></td>
             <td style="color:var(--green-700);font-weight:500">${fmt$(r.collected)}</td>
             <td style="color:#2E2E2E;font-weight:500">${fmt$(r.extended)}</td>
@@ -7907,7 +7907,7 @@ function openFeeAgingModal(bucket) {
   </div>
   <div style="overflow-y:auto;flex:1">
     <table class="data-table" style="margin:0">
-      <thead style="position:sticky;top:0;z-index:1;background:#F8FAFC">
+      <thead style="position:sticky;top:0;z-index:1;background:#F7F7F7">
         <tr><th>Customer</th><th>Agent</th><th>Carrier</th><th>Days Overdue</th><th>Amount</th><th>Actions</th></tr>
       </thead>
       <tbody>
@@ -7996,11 +7996,11 @@ function openMonthFeeBreakdown(month) {
         <div style="font-size:10px;font-weight:500;color:#067C83;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Fee Collected</div>
         <div style="font-size:22px;font-weight:500;color:#05646A;font-family:var(--font-display)">${fmt$(r.collected)}</div>
       </div>
-      <div style="background:linear-gradient(135deg,#F8F9FC,#F0F0F0);border:1px solid #B5B5B5;border-radius:var(--radius-md);padding:14px 16px;text-align:center">
+      <div style="background:linear-gradient(135deg,#F7F7F7,#F0F0F0);border:1px solid #B5B5B5;border-radius:var(--radius-md);padding:14px 16px;text-align:center">
         <div style="font-size:10px;font-weight:500;color:#2E2E2E;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Fee Extended</div>
         <div style="font-size:22px;font-weight:500;color:#2E2E2E;font-family:var(--font-display)">${fmt$(r.extended)}</div>
       </div>
-      <div style="background:linear-gradient(135deg,#E6F9FA,#E4EEF7);border:1px solid #A8BFD4;border-radius:var(--radius-md);padding:14px 16px;text-align:center">
+      <div style="background:linear-gradient(135deg,#E6F9FA,#F0F0F0);border:1px solid #D9D9D9;border-radius:var(--radius-md);padding:14px 16px;text-align:center">
         <div style="font-size:10px;font-weight:500;color:#067C83;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px">Total Booked</div>
         <div style="font-size:22px;font-weight:500;color:#1F1F1F;font-family:var(--font-display)">${fmt$(total)}</div>
       </div>
@@ -8084,8 +8084,8 @@ function renderAgentProfilePage() {
   const label = rptDateLabel(s);
   const fmtDur = s2 => { const m=Math.floor(s2/60),sec=s2%60; return m+'m '+(sec<10?'0':'')+sec+'s'; };
 
-  const tc = {'Tier 1':'#fff','Tier 2':'#1F1F1F','Tier 3':'#1F1F1F','Tier 4':'#475569'}[a.tier]||'#475569';
-  const tb = {'Tier 1':'#262626','Tier 2':'#F0F0F0','Tier 3':'#F8F9FC','Tier 4':'#F8FAFC'}[a.tier]||'#F8FAFC';
+  const tc = {'Tier 1':'#fff','Tier 2':'#1F1F1F','Tier 3':'#1F1F1F','Tier 4':'#555555'}[a.tier]||'#555555';
+  const tb = {'Tier 1':'#262626','Tier 2':'#F0F0F0','Tier 3':'#F7F7F7','Tier 4':'#F7F7F7'}[a.tier]||'#F7F7F7';
   const tc2 = p>=100?'var(--green-500)':p>=70?'var(--amber-500)':'var(--red)';
   const fc2 = feeP>=100?'var(--green-500)':feeP>=70?'var(--amber-500)':'var(--red)';
 
@@ -8638,7 +8638,7 @@ function renderAgentProfile(idx) {
         ${field('Last Login', 'Today at 8:42 AM')}
         ${field('Two-Factor Auth (2FA)', a._2fa
           ? '<span style="color:#067C83;font-weight:500">● Enabled</span>'
-          : '<span style="color:#6B7280">○ Disabled</span>')}
+          : '<span style="color:#696969">○ Disabled</span>')}
         ${field('Inbound Calls', a._inboundDisabled
           ? '<span style="color:#DC2626;font-weight:500">⊘ Disabled</span>'
           : '<span style="color:#067C83;font-weight:500">● Enabled</span>')}
@@ -9025,7 +9025,7 @@ function renderPayPeriodsPanel() {
       </div>
       <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px">
         <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px">Recent Pay Periods</div>
-        ${[['Jul 28 – Aug 10, 2026','Current','#067C83','#C6F1F3'],['Jul 14 – Jul 27, 2026','Closed','#6B7280','#F3F4F6'],['Jun 30 – Jul 13, 2026','Closed','#6B7280','#F3F4F6']].map(([period,status,color,bg])=>`
+        ${[['Jul 28 – Aug 10, 2026','Current','#067C83','#C6F1F3'],['Jul 14 – Jul 27, 2026','Closed','#696969','#EFEFEF'],['Jun 30 – Jul 13, 2026','Closed','#696969','#EFEFEF']].map(([period,status,color,bg])=>`
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)">
           <div style="font-size:13.5px;font-weight:500;color:var(--navy-900)">${period}</div>
           <div style="display:flex;align-items:center;gap:12px">
@@ -9199,7 +9199,7 @@ function renderTiersPanel() {
       </div>
     </div>
 
-    <div style="background:#F8F9FC;border:1px solid #D9D9D9;border-radius:var(--radius-md);padding:10px 16px;font-size:13px;color:#1F1F1F;margin-bottom:14px">
+    <div style="background:#F7F7F7;border:1px solid #D9D9D9;border-radius:var(--radius-md);padding:10px 16px;font-size:13px;color:#1F1F1F;margin-bottom:14px">
       <strong>How it works:</strong> An agent's tier is determined at the end of each pay period. They must meet ALL three thresholds (apps, fee, and premium) to qualify for that tier. Tier 1 is the highest.
     </div>
 
@@ -9243,8 +9243,8 @@ function renderCarriersPanel() {
   }
 
   const rows = carriers.map((c, i) => {
-    const statusBg    = c.active ? '#C6F1F3' : '#F3F4F6';
-    const statusColor = c.active ? '#067C83'  : '#6B7280';
+    const statusBg    = c.active ? '#C6F1F3' : '#EFEFEF';
+    const statusColor = c.active ? '#067C83'  : '#696969';
     const statusLabel = c.active ? 'Active'   : 'Inactive';
     return `
     <tr>
@@ -9525,7 +9525,7 @@ function renderLeadsPanel() {
   const typeBadge = t => {
     if (t === 'Live Transfers') return '<span style="background:#E6F9FA;color:#067C83;border:1px solid #5FD9DF;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:500">⚡ Live Transfers</span>';
     if (t === 'Data Leads')     return '<span style="background:#E6F9FA;color:#067C83;border:1px solid #CCCCCC;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:500">📋 Data Leads</span>';
-    return '<span style="background:#F8F9FC;color:#2E2E2E;border:1px solid #D9D9D9;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:500">📞 Inbound Calls</span>';
+    return '<span style="background:#F7F7F7;color:#2E2E2E;border:1px solid #D9D9D9;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:500">📞 Inbound Calls</span>';
   };
 
   const rows = vendors.map((v, i) => `
@@ -9540,7 +9540,7 @@ function renderLeadsPanel() {
     <td><div style="font-weight:500;color:var(--navy-900)">${v.closeGoal || 0}%</div><div style="font-size:10.5px;color:var(--gray-400)">target</div></td>
     <td><div style="font-weight:500;color:var(--navy-900)">${v.dailyCap || 0}/day</div><div style="font-size:10.5px;color:var(--gray-400)">$${(v.weeklyBudget||0).toLocaleString()}/wk</div></td>
     <td style="font-size:12px;color:var(--gray-600)">${escAttr(v.payTerms || '—')}</td>
-    <td>${v.active ? '<span style="background:#C6F1F3;color:#067C83;border:1px solid #5FD9DF;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:500">● Active</span>' : '<span style="background:#F3F4F6;color:#6B7280;border:1px solid #D1D5DB;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:500">○ Paused</span>'}</td>
+    <td>${v.active ? '<span style="background:#C6F1F3;color:#067C83;border:1px solid #5FD9DF;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:500">● Active</span>' : '<span style="background:#EFEFEF;color:#696969;border:1px solid #CCCCCC;padding:2px 9px;border-radius:var(--radius-full);font-size:11px;font-weight:500">○ Paused</span>'}</td>
     <td>
       <div style="display:flex;gap:5px">
         <button onclick="openVendorModal(${i})" style="background:#E6F9FA;color:#067C83;border:1px solid #CCCCCC;border-radius:6px;padding:5px 12px;font-size:11.5px;font-weight:500;cursor:pointer;font-family:var(--font-body)">✏ Edit</button>
@@ -9564,7 +9564,7 @@ function renderLeadsPanel() {
         <div style="font-size:28px;font-weight:500;color:#067C83;font-family:var(--font-display)">$${avgPPL}</div>
         <div style="font-size:12px;font-weight:500;color:#067C83;margin-top:3px">Avg Price / Lead</div>
       </div>
-      <div style="background:#F8F9FC;border:1px solid #D9D9D9;border-radius:var(--radius-lg);padding:14px 16px;text-align:center">
+      <div style="background:#F7F7F7;border:1px solid #D9D9D9;border-radius:var(--radius-lg);padding:14px 16px;text-align:center">
         <div style="font-size:28px;font-weight:500;color:#2E2E2E;font-family:var(--font-display)">$${totalWkBudget.toLocaleString()}</div>
         <div style="font-size:12px;font-weight:500;color:#2E2E2E;margin-top:3px">Weekly Budget</div>
       </div>
@@ -9599,12 +9599,12 @@ function renderLeadsPanel() {
           ${[
             {label:'New Lead',         color:'#067C83', bg:'#E6F9FA'},
             {label:'Contacted',        color:'#067C83', bg:'#F0F0F0'},
-            {label:'Quoted',           color:'#2E2E2E', bg:'#F8F9FC'},
+            {label:'Quoted',           color:'#2E2E2E', bg:'#F7F7F7'},
             {label:'Appointment Set',  color:'#444444', bg:'#E6F9FA'},
             {label:'Sold',             color:'#067C83', bg:'#E6F9FA'},
             {label:'Bad Lead',         color:'#DC2626', bg:'#FEF2F2'},
-            {label:'Do Not Call',      color:'#6B7280', bg:'#F3F4F6'},
-            {label:'Follow Up',        color:'#444444', bg:'#F8F9FC'},
+            {label:'Do Not Call',      color:'#696969', bg:'#EFEFEF'},
+            {label:'Follow Up',        color:'#444444', bg:'#F7F7F7'},
           ].map(s => `<span style="background:${s.bg};color:${s.color};border:1.5px solid ${s.color}40;padding:5px 14px;border-radius:var(--radius-full);font-size:13px;font-weight:500;cursor:pointer" onclick="alert('Edit status: ${s.label} — coming soon.')">${s.label}</span>`).join('')}
         </div>
       </div>
@@ -9776,7 +9776,7 @@ window.LEAD_SOURCES = window.LEAD_SOURCES || [
   { name:'Google Ads',   active:false, color:'#DC2626' },
   { name:'Referral',     active:true,  color:'#2E2E2E' },
   { name:'Direct Call',  active:true,  color:'#444444' },
-  { name:'Cold Call',    active:false, color:'#6B7280' },
+  { name:'Cold Call',    active:false, color:'#696969' },
 ];
 
 function toggleLeadSource(idx) {
@@ -9901,12 +9901,12 @@ function renderLifecyclePanel() {
 
   const tcMap = tl => {
     if (tl.includes('created'))   return { bg:'#E6F9FA',color:'#067C83',border:'#CCCCCC' };
-    if (tl.includes('Quoted'))    return { bg:'#F8F9FC',color:'#2E2E2E',border:'#D9D9D9' };
+    if (tl.includes('Quoted'))    return { bg:'#F7F7F7',color:'#2E2E2E',border:'#D9D9D9' };
     if (tl.includes('expires'))   return { bg:'#FEF2F2',color:'#DC2626',border:'#FCA5A5' };
-    if (tl.includes('unpaid'))    return { bg:'#F8F9FC',color:'#2E2E2E',border:'#D9D9D9' };
+    if (tl.includes('unpaid'))    return { bg:'#F7F7F7',color:'#2E2E2E',border:'#D9D9D9' };
     if (tl.includes('birthday'))  return { bg:'#E6F9FA',color:'#067C83',border:'#5FD9DF' };
-    if (tl.includes('Bad Lead'))  return { bg:'#F3F4F6',color:'#374151',border:'#D1D5DB' };
-    return { bg:'#F9FAFB',color:'#374151',border:'#E5E7EB' };
+    if (tl.includes('Bad Lead'))  return { bg:'#EFEFEF',color:'#3D3D3D',border:'#CCCCCC' };
+    return { bg:'#F7F7F7',color:'#3D3D3D',border:'#E2E2E2' };
   };
   const aIcon = a => ({'Send Text':'💬','Send Email':'📧','Create Task':'✅'})[a]||'⚙️';
 
@@ -9921,8 +9921,8 @@ function renderLifecyclePanel() {
           <input type="checkbox" ${r.active?'checked':''} onchange="toggleLifecycleRule(${r.id})" style="width:17px;height:17px;cursor:pointer;accent-color:#067C83">
         </label>
         <div style="font-weight:500;font-size:15px;color:var(--navy-900);flex:1">${r.name}</div>
-        <span style="background:${r.active?'#C6F1F3':'#F3F4F6'};color:${r.active?'#067C83':'#6B7280'};border:1px solid ${r.active?'#5FD9DF':'#D1D5DB'};padding:2px 10px;border-radius:var(--radius-full);font-size:11.5px;font-weight:500;white-space:nowrap">${r.active?'● Active':'○ Paused'}</span>
-        <button onclick="openLifecycleEditor(${r.id})" style="background:#F9FAFB;border:1px solid var(--border);border-radius:var(--radius-md);padding:6px 14px;font-size:12.5px;font-weight:500;color:var(--navy-900);cursor:pointer;font-family:var(--font-body);flex-shrink:0">✏ Edit</button>
+        <span style="background:${r.active?'#C6F1F3':'#EFEFEF'};color:${r.active?'#067C83':'#696969'};border:1px solid ${r.active?'#5FD9DF':'#CCCCCC'};padding:2px 10px;border-radius:var(--radius-full);font-size:11.5px;font-weight:500;white-space:nowrap">${r.active?'● Active':'○ Paused'}</span>
+        <button onclick="openLifecycleEditor(${r.id})" style="background:#F7F7F7;border:1px solid var(--border);border-radius:var(--radius-md);padding:6px 14px;font-size:12.5px;font-weight:500;color:var(--navy-900);cursor:pointer;font-family:var(--font-body);flex-shrink:0">✏ Edit</button>
       </div>
       <div style="margin-bottom:10px">
         <span style="background:${tc.bg};color:${tc.color};border:1px solid ${tc.border};padding:3px 12px;border-radius:var(--radius-full);font-size:12px;font-weight:500">⚡ ${r.triggerLabel}</span>
@@ -10010,7 +10010,7 @@ function openLifecycleEditor(id) {
       </div>
     </div>
 
-    <div style="background:#F8F9FC;border:1px solid #D9D9D9;border-radius:var(--radius-md);padding:10px 14px;font-size:12.5px;color:#1F1F1F;margin-bottom:18px">
+    <div style="background:#F7F7F7;border:1px solid #D9D9D9;border-radius:var(--radius-md);padding:10px 14px;font-size:12.5px;color:#1F1F1F;margin-bottom:18px">
       <strong>Tip:</strong> Day 1 = the day the trigger fires. Day 2 = next day. Texts go at the send time you choose. Emails can include a subject line and a longer body.
       Available tokens: <strong>{{name}}</strong> · <strong>{{agent}}</strong> · <strong>{{amount}}</strong> · <strong>{{policy}}</strong>
     </div>
@@ -10408,7 +10408,7 @@ function showOnboardingModal(name, email, role) {
     </div>
     <div style="font-size:11.5px;color:var(--gray-400);margin-bottom:20px">This link expires in 72 hours. The agent will use it to set their password on first login.</div>
 
-    <div style="background:#F8F9FC;border:1px solid #D9D9D9;border-radius:var(--radius-md);padding:11px 14px;font-size:12.5px;color:#1F1F1F;margin-bottom:20px">
+    <div style="background:#F7F7F7;border:1px solid #D9D9D9;border-radius:var(--radius-md);padding:11px 14px;font-size:12.5px;color:#1F1F1F;margin-bottom:20px">
       <strong>All metrics start at zero.</strong> Policies, fees, and premium will only update when sales are recorded in the system. Goals were set to the values you entered during onboarding.
     </div>
 
@@ -10519,8 +10519,8 @@ function buildAgentDashboard() {
     const p   = Math.min(100, Math.round(_aApps / (g||1) * 100));
     const ini = a.name.split(' ').map(w=>w[0]).join('').slice(0,2);
     const isMe    = a.name === cu.name;
-    const rankBg  = i < 3 ? rankColorsA[i] : '#E5E7EB';
-    const rankClr = i < 3 ? '#fff' : '#374151';
+    const rankBg  = i < 3 ? rankColorsA[i] : '#E2E2E2';
+    const rankClr = i < 3 ? '#fff' : '#3D3D3D';
     return `<div style="display:flex;align-items:center;gap:12px;padding:11px ${isMe?'20px':'0'};border-bottom:1px solid var(--border);${isMe?'background:rgba(6,124,131,0.06);margin:0 -20px;border-radius:8px':''}">
       <div style="width:28px;height:28px;border-radius:50%;background:${rankBg};color:${rankClr};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0">${i+1}</div>
       <div style="flex:1;min-width:0">
@@ -10528,7 +10528,7 @@ function buildAgentDashboard() {
           <span style="font-size:13px;font-weight:${isMe?'800':'700'};color:${isMe?'#067C83':'var(--navy-900)'}">${a.name}${isMe?' (You)':''}</span>
           <span style="font-size:12px;font-weight:500;color:${p>=100?'#067C83':p>=75?'#2E2E2E':'var(--navy-700)'}">${_aApps} / ${g} &nbsp;<span style="color:${p>=100?'#067C83':p>=75?'#696969':'#067C83'}">${p}%</span></span>
         </div>
-        <div style="height:7px;background:#F3F4F6;border-radius:99px;overflow:hidden">
+        <div style="height:7px;background:#EFEFEF;border-radius:99px;overflow:hidden">
           <div style="height:100%;width:${p}%;background:${p>=100?'#067C83':p>=75?'#696969':'#067C83'};border-radius:99px;transition:width 0.4s ease"></div>
         </div>
       </div>
@@ -10558,25 +10558,25 @@ function buildAgentDashboard() {
 
   <!-- PERSONAL KPI CARDS -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
-    <div style="background:#fff;border:1.5px solid #E5E7EB;border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
-      <div style="font-size:12px;font-weight:500;color:#6B7280;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">My Policies</div>
-      <div style="font-family:var(--font-display);font-size:30px;font-weight:500;color:#111827;letter-spacing:-0.5px">${apps}</div>
-      <div style="font-size:12px;color:#6B7280;margin-top:5px">Goal: <strong>${goal} apps</strong></div>
+    <div style="background:#fff;border:1.5px solid #E2E2E2;border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12px;font-weight:500;color:#696969;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">My Policies</div>
+      <div style="font-family:var(--font-display);font-size:30px;font-weight:500;color:#111111;letter-spacing:-0.5px">${apps}</div>
+      <div style="font-size:12px;color:#696969;margin-top:5px">Goal: <strong>${goal} apps</strong></div>
     </div>
     <div style="background:#E6F9FA;border:1.5px solid #5FD9DF;border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
       <div style="font-size:12px;font-weight:500;color:#067C83;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Fees Collected</div>
-      <div style="font-family:var(--font-display);font-size:30px;font-weight:500;color:#111827;letter-spacing:-0.5px">${fmt$a(fee)}</div>
-      <div style="font-size:12px;color:${feeGoal?( feePct>=100?'#067C83':feePct>=75?'#444444':'#6B7280'):'#6B7280'};margin-top:5px">${feeGoal?'Goal: <strong>'+fmt$a(feeGoal)+'</strong> &nbsp;('+feePct+'%)':'No fee goal set'}</div>
+      <div style="font-family:var(--font-display);font-size:30px;font-weight:500;color:#111111;letter-spacing:-0.5px">${fmt$a(fee)}</div>
+      <div style="font-size:12px;color:${feeGoal?( feePct>=100?'#067C83':feePct>=75?'#444444':'#696969'):'#696969'};margin-top:5px">${feeGoal?'Goal: <strong>'+fmt$a(feeGoal)+'</strong> &nbsp;('+feePct+'%)':'No fee goal set'}</div>
     </div>
-    <div style="background:#fff;border:1.5px solid #E5E7EB;border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
-      <div style="font-size:12px;font-weight:500;color:#6B7280;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Premium Written</div>
-      <div style="font-family:var(--font-display);font-size:30px;font-weight:500;color:#111827;letter-spacing:-0.5px">${fmt$a(prem)}</div>
-      <div style="font-size:12px;color:#6B7280;margin-top:5px">${premGoal?'Goal: <strong>'+fmt$a(premGoal)+'</strong>':'No premium goal set'}</div>
+    <div style="background:#fff;border:1.5px solid #E2E2E2;border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12px;font-weight:500;color:#696969;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Premium Written</div>
+      <div style="font-family:var(--font-display);font-size:30px;font-weight:500;color:#111111;letter-spacing:-0.5px">${fmt$a(prem)}</div>
+      <div style="font-size:12px;color:#696969;margin-top:5px">${premGoal?'Goal: <strong>'+fmt$a(premGoal)+'</strong>':'No premium goal set'}</div>
     </div>
-    <div style="background:#fff;border:1.5px solid #E5E7EB;border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
-      <div style="font-size:12px;font-weight:500;color:#6B7280;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Goal Progress</div>
-      <div style="font-family:var(--font-display);font-size:30px;font-weight:500;color:${pct>=100?'#067C83':pct>=75?'#444444':'#111827'};letter-spacing:-0.5px">${pct}%</div>
-      <div style="font-size:12px;color:#6B7280;margin-top:5px">${pct>=100?'Goal exceeded!':goal-apps+' left to goal'}</div>
+    <div style="background:#fff;border:1.5px solid #E2E2E2;border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
+      <div style="font-size:12px;font-weight:500;color:#696969;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">Goal Progress</div>
+      <div style="font-family:var(--font-display);font-size:30px;font-weight:500;color:${pct>=100?'#067C83':pct>=75?'#444444':'#111111'};letter-spacing:-0.5px">${pct}%</div>
+      <div style="font-size:12px;color:#696969;margin-top:5px">${pct>=100?'Goal exceeded!':goal-apps+' left to goal'}</div>
     </div>
   </div>
 
@@ -10605,7 +10605,7 @@ function buildAgentDashboard() {
             <span style="font-size:12px;font-weight:500;color:var(--gray-500)">Fee Goal</span>
             <span style="font-size:12px;font-weight:500;color:${feePct>=100?'#067C83':feePct>=75?'#444444':'var(--navy-700)'}">${fmt$a(fee)} / ${fmt$a(feeGoal)} &nbsp;(${feePct}%)</span>
           </div>
-          <div style="height:8px;background:#F3F4F6;border-radius:99px;overflow:hidden">
+          <div style="height:8px;background:#EFEFEF;border-radius:99px;overflow:hidden">
             <div style="height:100%;width:${feePct}%;background:${feePct>=100?'#067C83':feePct>=75?'#696969':'#067C83'};border-radius:99px;transition:width 0.4s ease"></div>
           </div>
         </div>` : ''}
@@ -10614,7 +10614,7 @@ function buildAgentDashboard() {
             <span style="font-size:12px;font-weight:500;color:var(--gray-500)">Premium Goal</span>
             <span style="font-size:12px;font-weight:500;color:var(--navy-700)">${fmt$a(prem)} / ${fmt$a(premGoal)}</span>
           </div>
-          <div style="height:8px;background:#F3F4F6;border-radius:99px;overflow:hidden">
+          <div style="height:8px;background:#EFEFEF;border-radius:99px;overflow:hidden">
             <div style="height:100%;width:${Math.min(100,premGoal?Math.round(prem/premGoal*100):0)}%;background:#067C83;border-radius:99px;transition:width 0.4s ease"></div>
           </div>
         </div>` : ''}
@@ -10660,14 +10660,14 @@ function buildAdminDashboard() {
 
   // KPI cards
   const kpi = (label, value, sub, bg, color, border) => `
-  <div style="background:${bg||'#fff'};border:1.5px solid ${border||'#E5E7EB'};border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
-    <div style="font-size:12px;font-weight:500;color:${color||'#6B7280'};text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">${label}</div>
-    <div style="font-family:var(--font-display);font-size:30px;font-weight:500;color:${color==='#fff'?'#fff':'#111827'};letter-spacing:-0.5px">${value}</div>
-    <div style="font-size:12px;color:${color==='#fff'?'rgba(255,255,255,0.65)':'#6B7280'};margin-top:5px">${sub}</div>
+  <div style="background:${bg||'#fff'};border:1.5px solid ${border||'#E2E2E2'};border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm)">
+    <div style="font-size:12px;font-weight:500;color:${color||'#696969'};text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px">${label}</div>
+    <div style="font-family:var(--font-display);font-size:30px;font-weight:500;color:${color==='#fff'?'#fff':'#111111'};letter-spacing:-0.5px">${value}</div>
+    <div style="font-size:12px;color:${color==='#fff'?'rgba(255,255,255,0.65)':'#696969'};margin-top:5px">${sub}</div>
   </div>`;
 
   // Filter tabs
-  const tab = (key, label) => `<button onclick="window.DASH_ADMIN_STATE.range='${key}';refreshDashboard()" style="padding:8px 18px;border:1.5px solid ${s.range===key?'#067C83':'#E5E7EB'};background:${s.range===key?'#067C83':'#fff'};color:${s.range===key?'#fff':'#374151'};border-radius:var(--radius-md);font-size:13px;font-weight:${s.range===key?'700':'500'};cursor:pointer;font-family:var(--font-body);transition:all 0.15s">${label}</button>`;
+  const tab = (key, label) => `<button onclick="window.DASH_ADMIN_STATE.range='${key}';refreshDashboard()" style="padding:8px 18px;border:1.5px solid ${s.range===key?'#067C83':'#E2E2E2'};background:${s.range===key?'#067C83':'#fff'};color:${s.range===key?'#fff':'#3D3D3D'};border-radius:var(--radius-md);font-size:13px;font-weight:${s.range===key?'700':'500'};cursor:pointer;font-family:var(--font-body);transition:all 0.15s">${label}</button>`;
 
   // Agent breakdown rows (sorted by policies desc)
   const sortedAgents = Object.entries(agentMap).sort((a,b)=>b[1].policies - a[1].policies);
@@ -10679,12 +10679,12 @@ function buildAdminDashboard() {
       </td>
       <td style="padding:12px 16px;text-align:center;font-weight:500;font-size:15px;color:var(--navy-900)">${m.policies}</td>
       <td style="padding:12px 16px;text-align:center;font-weight:500;color:#067C83">${fmt$(m.feeCollected)}</td>
-      <td style="padding:12px 16px;text-align:center;color:#6B7280">${fmt$(m.feeExtended)}</td>
-      <td style="padding:12px 16px;text-align:center;color:#374151">${fmt$(m.premium)}</td>
+      <td style="padding:12px 16px;text-align:center;color:#696969">${fmt$(m.feeExtended)}</td>
+      <td style="padding:12px 16px;text-align:center;color:#3D3D3D">${fmt$(m.premium)}</td>
       <td style="padding:12px 16px">
         <div style="display:flex;align-items:center;gap:8px">
-          <div style="flex:1;height:7px;background:#F3F4F6;border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:#067C83;border-radius:99px"></div></div>
-          <span style="font-size:12px;font-weight:500;color:#6B7280;min-width:32px">${pct}%</span>
+          <div style="flex:1;height:7px;background:#EFEFEF;border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:#067C83;border-radius:99px"></div></div>
+          <span style="font-size:12px;font-weight:500;color:#696969;min-width:32px">${pct}%</span>
         </div>
       </td>
     </tr>`;
@@ -10724,8 +10724,8 @@ function buildAdminDashboard() {
     const _lbApps = _agentAppsLb[a.name] || 0;
     const pct  = Math.min(100, Math.round(_lbApps / (goal||1) * 100));
     const ini  = a.name.split(' ').map(w=>w[0]).join('').slice(0,2);
-    const rankBg  = i < 3 ? rankColors[i] : '#E5E7EB';
-    const rankClr = i < 3 ? '#fff' : '#374151';
+    const rankBg  = i < 3 ? rankColors[i] : '#E2E2E2';
+    const rankClr = i < 3 ? '#fff' : '#3D3D3D';
     return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">
       <div style="width:28px;height:28px;border-radius:50%;background:${rankBg};color:${rankClr};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0">${i+1}</div>
       <div style="flex:1;min-width:0">
@@ -10733,7 +10733,7 @@ function buildAdminDashboard() {
           <span style="font-size:13px;font-weight:500;color:var(--navy-900)">${a.name}</span>
           <span style="font-size:12px;font-weight:500;color:${pct>=100?'#067C83':pct>=75?'#2E2E2E':'var(--navy-700)'}">${_lbApps} / ${goal} apps &nbsp; <span style="color:${pct>=100?'#067C83':pct>=75?'#696969':'#067C83'}">${pct}%</span></span>
         </div>
-        <div style="height:7px;background:#F3F4F6;border-radius:99px;overflow:hidden">
+        <div style="height:7px;background:#EFEFEF;border-radius:99px;overflow:hidden">
           <div style="height:100%;width:${pct}%;background:${pct>=100?'#067C83':pct>=75?'#696969':'#067C83'};border-radius:99px;transition:width 0.4s ease"></div>
         </div>
       </div>
@@ -10843,7 +10843,7 @@ function buildAdminDashboard() {
             <td style="padding:12px 16px;font-weight:500;color:var(--navy-900)">Agency Total</td>
             <td style="padding:12px 16px;text-align:center;font-weight:500;font-size:16px;color:var(--navy-900)">${totalPolicies}</td>
             <td style="padding:12px 16px;text-align:center;font-weight:500;color:#067C83">${fmt$(totalFeeCollected)}</td>
-            <td style="padding:12px 16px;text-align:center;font-weight:500;color:#6B7280">${fmt$(totalFeeExtended)}</td>
+            <td style="padding:12px 16px;text-align:center;font-weight:500;color:#696969">${fmt$(totalFeeExtended)}</td>
             <td style="padding:12px 16px;text-align:center;font-weight:500">${fmt$(totalPremium)}</td>
             <td style="padding:12px 16px;font-weight:500">100%</td>
           </tr></tfoot>` : ''}
@@ -10916,7 +10916,7 @@ function buildAdminDashboard() {
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
           ${(window.TIER_DATA||[]).map((tier,ti)=>`
           <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 14px;background:#fff">
-            <div style="width:8px;height:8px;border-radius:50%;background:${['#09C4CD','#067C83','#696969','#B5B5B5'][ti]||'#6B7280'};margin-bottom:9px"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:${['#09C4CD','#067C83','#696969','#B5B5B5'][ti]||'#696969'};margin-bottom:9px"></div>
             <div style="font-family:var(--font-display);font-weight:500;font-size:15px;color:var(--navy-900);margin-bottom:3px">${tier.name}</div>
             <div style="font-size:12.5px;color:var(--gray-500);margin-bottom:2px">${tier.minApps}+ apps</div>
             <div style="font-size:12px;color:var(--gray-400);margin-bottom:8px">${fmt$(tier.minFee||0)} fee · ${fmt$(tier.minPremium||0)} prem</div>

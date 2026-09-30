@@ -86,7 +86,7 @@
       '</div>' + inner + '</div>';
     o.style.display = 'flex';
   }
-  const inputCss = 'width:100%;padding:11px 13px;border:1px solid #D1D5DB;border-radius:9px;font-size:14px;font-family:inherit;margin-bottom:12px;box-sizing:border-box;color:#111111';
+  const inputCss = 'width:100%;padding:11px 13px;border:1px solid #CCCCCC;border-radius:9px;font-size:14px;font-family:inherit;margin-bottom:12px;box-sizing:border-box;color:#111111';
   const btnCss = 'width:100%;padding:12px;border:none;border-radius:9px;background:#09C4CD;color:#000;font-weight:500;font-size:14px;cursor:pointer;font-family:inherit';
 
   function showLogin(msg) {
@@ -122,7 +122,7 @@
   function showSetPassword() {
     authShell(
       '<div style="font-size:15px;font-weight:500;color:#111111;margin-bottom:6px">Welcome! Set your password</div>' +
-      '<div style="font-size:12.5px;color:#6B7280;margin-bottom:14px">Choose a password to finish setting up your MaxSaveHub login.</div>' +
+      '<div style="font-size:12.5px;color:#696969;margin-bottom:14px">Choose a password to finish setting up your MaxSaveHub login.</div>' +
       '<form id="msihubPwForm">' +
       '<input id="pwName" type="text" placeholder="Your full name (as agents will see it)" autocomplete="name" required style="' + inputCss + '">' +
       '<input id="pw1" type="password" placeholder="New password (8+ characters)" autocomplete="new-password" required minlength="8" style="' + inputCss + '">' +
@@ -146,7 +146,7 @@
   }
 
   function showBlocked(title, text) {
-    authShell('<div style="font-size:15px;font-weight:500;color:#111111;margin-bottom:8px">' + esc(title) + '</div><div style="font-size:13px;color:#6B7280;margin-bottom:16px">' + esc(text) + '</div><button id="authBack" style="' + btnCss + '">Back to sign in</button>');
+    authShell('<div style="font-size:15px;font-weight:500;color:#111111;margin-bottom:8px">' + esc(title) + '</div><div style="font-size:13px;color:#696969;margin-bottom:16px">' + esc(text) + '</div><button id="authBack" style="' + btnCss + '">Back to sign in</button>');
     $('authBack').onclick = async () => { await M.sb.auth.signOut(); showLogin(); };
   }
   function hideAuth() { const o = $('msihubAuth'); if (o) o.style.display = 'none'; }
@@ -652,7 +652,7 @@
   // ---- Lead detail page (data-driven) ----
   const field = (label, value, color, mono) => {
     const v = (value == null || value === '') ? '—' : String(value);
-    return '<div style="padding:10px 0;border-bottom:1px solid #E5E7EB"><div style="font-size:11.5px;color:#6B7280;font-weight:500;margin-bottom:4px">' + label + '</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:' + (mono ? '15' : '16') + 'px;font-weight:500;color:' + (color || '#111111') + (mono ? ';font-family:monospace' : '') + '">' + esc(v) + '</span>' + (v !== '—' ? '<button onclick="copyToClipboard(' + JSON.stringify(v).replace(/"/g, '&quot;') + ',this)" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:5px;color:#9CA3AF;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button>' : '') + '</div></div>';
+    return '<div style="padding:10px 0;border-bottom:1px solid #E2E2E2"><div style="font-size:11.5px;color:#696969;font-weight:500;margin-bottom:4px">' + label + '</div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:' + (mono ? '15' : '16') + 'px;font-weight:500;color:' + (color || '#111111') + (mono ? ';font-family:monospace' : '') + '">' + esc(v) + '</span>' + (v !== '—' ? '<button onclick="copyToClipboard(' + JSON.stringify(v).replace(/"/g, '&quot;') + ',this)" style="background:#EFEFEF;border:1px solid #E2E2E2;border-radius:5px;color:#9A9A9A;cursor:pointer;padding:2px 8px;font-size:11px;font-family:var(--font-body)">📋</button>' : '') + '</div></div>';
   };
   const secHdr = (t) => '<div style="font-size:11px;font-weight:500;color:#fff;text-transform:uppercase;letter-spacing:1px;background:#111111;padding:9px 14px;border-radius:6px;margin-bottom:14px;margin-top:20px">' + t + '</div>';
   const grid = (inner) => '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 36px;margin-bottom:10px">' + inner + '</div>';
@@ -773,7 +773,7 @@
         '<div><div style="' + LABEL + ';margin-bottom:6px">Agent</div><select id="ldAgent" style="' + SEL + '">' + agentOpts + '</select></div>' +
         '<div><div style="' + LABEL + ';margin-bottom:6px">Stage</div><select id="ldStage" style="' + SEL + '">' + stages.map((s) => '<option' + (L.status === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select></div>' +
         '<div><div style="' + LABEL + ';margin-bottom:6px">Disposition</div><select id="dispositionSelect" style="' + SEL + '"><option value="">— None —</option>' + dispOpts.map((x) => '<option' + (L.disposition === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div>' +
-        '<button onclick="MSIHub.applyLeadHeader(\'' + L.id + '\')" style="padding:12px 26px;border-radius:10px;border:none;background:var(--green-500);color:#fff;font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer">Update</button>' +
+        '<button onclick="MSIHub.applyLeadHeader(\'' + L.id + '\')" style="padding:12px 26px;border-radius:10px;border:none;background:var(--green-500);color:#000;font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer">Update</button>' +
       '</div>';
 
     const tabBar = '<div style="display:flex;gap:4px;border-bottom:1px solid var(--border);padding:0 8px;overflow-x:auto">' + tabs.map(([k, label, ico]) => '<button onclick="MSIHub.setLeadTab(\'' + k + '\')" style="background:none;border:none;border-bottom:2px solid ' + (tab === k ? 'var(--green-500)' : 'transparent') + ';padding:16px 14px;font-family:var(--font-body);font-size:14px;color:' + (tab === k ? 'var(--green-700)' : 'var(--gray-600)') + ';cursor:pointer;white-space:nowrap"><span style="margin-right:6px;opacity:0.8">' + ico + '</span>' + label + '</button>').join('') + '</div>';
@@ -1097,7 +1097,7 @@
   // ------------------------------------------------------------------
   function custMatch(c, x) { return x.customer_id === c.id || (c.lead_id && x.lead_id === c.lead_id) || (x.phone && fmtPhone(x.phone) === c.phone); }
   M.customerCallLog = function (c) {
-    return M.data.calls.filter((x) => custMatch(c, x)).slice(0, 25).map((x) => ({ disp: x.missed ? 'No Answer' : (x.direction === 'inbound' ? 'Inbound Call' : 'Completed'), dc: x.missed ? '#6b7280' : '#067C83', db: x.missed ? '#f3f4f6' : '#dcfce7', agent: agentName(x.agent_id), dur: Math.floor((x.duration_sec || 0) / 60) + ':' + String((x.duration_sec || 0) % 60).padStart(2, '0'), ts: new Date(x.created_at).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: 'numeric', minute: '2-digit' }), ok: !x.missed }));
+    return M.data.calls.filter((x) => custMatch(c, x)).slice(0, 25).map((x) => ({ disp: x.missed ? 'No Answer' : (x.direction === 'inbound' ? 'Inbound Call' : 'Completed'), dc: x.missed ? '#696969' : '#067C83', db: x.missed ? '#EFEFEF' : '#E6F9FA', agent: agentName(x.agent_id), dur: Math.floor((x.duration_sec || 0) / 60) + ':' + String((x.duration_sec || 0) % 60).padStart(2, '0'), ts: new Date(x.created_at).toLocaleString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric', hour: 'numeric', minute: '2-digit' }), ok: !x.missed }));
   };
   M.customerTextBubbles = function (c) {
     const msgs = M.data.messages.filter((x) => custMatch(c, x));
