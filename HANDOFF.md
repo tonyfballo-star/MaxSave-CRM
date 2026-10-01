@@ -15,9 +15,9 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 ## What is live
 - **App:** https://msihub-maxsave.netlify.app/ (Netlify project id ba46785b-f37b-4cc9-80c8-b92ddc7dd684). Deploy via API — never by dragging (drops on the Netlify home page create new sites): `curl -X POST https://api.netlify.com/api/v1/sites/<id>/deploys -H 'Authorization: Bearer <token>' -H 'Content-Type: application/zip' --data-binary @msihub-site.zip`. Token is held locally by Claude, not in this repo. Public URL, sign-in required, `noindex`.
 - **Database:** Supabase project `xcwkkynxgojmabxdrngm` (see `supabase/CONFIG.md`). `schema.sql`, `schema-v2.sql` and `schema-v3.sql` have all been run.
-- **Source of truth:** `maxsave_crm.html` + `msihub-data.js` + `msihub-data-2.js` + `docs/*.pdf` + `fonts/*.ttf`. Rebuild the deploy copy with:
-  `cp maxsave_crm.html site/index.html && cp msihub-data.js msihub-data-2.js site/ && mkdir -p site/fonts && cp fonts/*.ttf site/fonts/` then zip `site/*` → `msihub-site.zip`.
-- **Tests:** `tools/smoke.js fake` (in-memory stub, 44 steps) and `tools/live.js <url> <email> <password>` (real sign-in walkthrough). Need `npm i puppeteer-core@23` inside `tools/` and Microsoft Edge.
+- **Source of truth:** `maxsave_crm.html` + `msihub-data.js` + `msihub-data-2.js` + `msihub-telnyx.js` + `docs/*.pdf` + `fonts/*.ttf`. Rebuild the deploy copy with:
+  `cp maxsave_crm.html site/index.html && cp msihub-data.js msihub-data-2.js msihub-telnyx.js site/ && mkdir -p site/fonts && cp fonts/*.ttf site/fonts/` then zip `site/*` → `msihub-site.zip`.
+- **Tests:** `tools/smoke.js fake` (in-memory stub, 58 steps incl. 14 Telnyx steps against stand-ins), `node tools/telnyx-fn-test.mjs` (the edge function against a fake Telnyx + database, 33 checks, Node 24+) and `tools/live.js <url> <email> <password>` (real sign-in walkthrough). Need `npm i puppeteer-core@23` inside `tools/` and Microsoft Edge.
 
 ## Brand (standing rule, 2026-09-30)
 - Follows the MaxSaveHub brand guide: Turquoise `#09C4CD` (fills only, black text on it), Black `#000`, Charcoal `#696969`, White; text-safe turquoise for links is `#067C83`. Black sidebar, light pages, dark mode = full black. Typeface TT Hoves (400/500/600) via `@font-face` from `fonts/`. Logo = X mark + MAXSAVEHUB wordmark as inline SVG (sidebar, login, favicon); vector sources in `OneDrive/Desktop/LOGO/PDF`, converted with `tools/pdf2svg.js`.
@@ -54,11 +54,47 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 - Repeat procedure for the next top-up: move aside `DYL Export/<Type>/<current month>.csv`, `node dyl.js login …`, `node dyl-pull.js YYYY-MM YYYY-MM all`, `node dyl-parse.js`, `node dyl-import.js --scope=recommended --months=24 --email=<admin> --password=…`. New leads land unassigned; re-run schema-v3.sql section 3 to map `details.dyl_assigned` → agent once agent logins exist.
 - Tony's admin password was set to a temporary value in the SQL editor on 2026-09-30 (not stored here); he should change it. Supabase built-in email does NOT deliver to tonyb@maxsaveins.com ("Error sending recovery email") → Brevo SMTP is now the blocker for any password reset.
 
+## Telnyx — real texting + browser calling (built 2026-10-01, NOT yet connected or deployed)
+Code is written and passes its tests against stand-ins. It has never talked to the real Telnyx API: no API key has been supplied, the function is not deployed, `schema-v4.sql` has not been run, and `site/` has not been rebuilt with it. Until an admin switches it on in Settings, the CRM behaves exactly as before (texts/calls logged only).
+
+**Pieces**
+- `supabase/schema-v4.sql` — delivery columns on `messages`, call details on `call_log`, `profiles.telnyx_*`, `phone_presence`, `sms_opt_outs`.
+- `supabase/functions/telnyx/index.ts` — one edge function, one URL (`https://xcwkkynxgojmabxdrngm.supabase.co/functions/v1/telnyx`). Signed-in users call it with `{action:'sms'|'token'|'status'}`; Telnyx posts webhooks to the same URL (accepted by URL secret or Ed25519 signature). Must be deployed with JWT verification OFF.
+- `msihub-telnyx.js` — third data-layer file. Overrides `M.recordText`, `sendTextReply`, `inboxSendText`, `sendBulkText`, `doCall`, `hudEndCall`, `showTextPopup`, `renderCallSettingsPanel`; each falls through to the old behaviour while the matching switch is off. Settings live in `agency_settings` key `telnyx` (`sms_enabled`, `voice_enabled`, `sms_number`, `caller_id`, `fallback_number`; optional `ring_secs`, `inbound_agent_id`, `unavailable_message`, `caller_name`).
+
+**What it does**
+- Texts: sent through Telnyx from the agent's direct number or the agency number; delivery status shown under the bubble; replies arrive live, matched to the lead/customer and to the agent who last texted them; STOP/START handled (server refuses opted-out numbers); texted photos are copied into storage and added to the lead's Files; outbound pictures up to 1 MB; bulk text capped at 500 with a confirm.
+- Calls: browser phone (Telnyx WebRTC SDK 2.27.10 from jsDelivr, pinned with an integrity hash). Outbound calls are logged by the browser with real duration. Inbound calls are logged by the server and ring one agent at a time (number owner → last texter → lead's agent → anyone available; max 3), then the forwarding number, then a spoken "we'll call you back". Agents count as available when their browser reported in within 90 s (`phone_presence`) and Live View status is not DND/Offline.
+- Not built: voicemail, recording, real transfer/parking (Live View drag-and-drop is still visual only), power dialer, scheduled texts, Live View showing other agents' real status.
+
+**Telnyx account state (checked by API 2026-10-01)**
+- **Number: (619) 535-2168** (`+16195352168`, San Diego, voice + SMS + MMS), ordered by API 2026-10-01 at Tony's request (one new number). Active, already attached to the MaxSaveHub messaging profile and the MaxSaveHub Inbound Calls application. Balance went to -$0.10, so the account needs funds.
+- Account was created 2026-10-01 and is still at the restricted (free) account level: browser-phone logins (`/telephony_credentials`), 10DLC registration and porting all answer "Feature not permitted at this account level" until the account is upgraded at telnyx.com/upgrade.
+- Tony supplied the API key in chat (held locally by Claude, never in this repo).
+- Created by API, all pointing at the function URL, nothing attached to them yet:
+  - Messaging Profile "MaxSaveHub" — `4001a0f9-0c72-4476-859a-1a52820fbc5e` (US + CA, webhook v2)
+  - Voice API Application "MaxSaveHub Inbound Calls" — `3061331374049854629` (webhook v2, outbound profile Default)
+  - Credentials SIP Connection "MaxSaveHub Browser Phones" — `3061331386850870439` ← this is `TELNYX_CONNECTION_ID` (SIP URI calls: internal, outbound profile Default `3061318111610275331`)
+- The account's auto-created connection "Forward Only" was left untouched.
+
+**To connect — only two things need Tony**
+1. **Telnyx account upgrade** at telnyx.com/upgrade (payment card + verification, add funds). Nobody else can do this. It unlocks browser-phone logins and 10DLC registration.
+2. **A Supabase access token** (supabase.com/dashboard/account/tokens → Generate new token). There is no Supabase login on the desktop PC.
+
+Everything else is one command (safe to re-run):
+`SUPABASE_ACCESS_TOKEN=sbp_… NETLIFY_TOKEN=nfp_… node tools/telnyx-go-live.mjs [--sms] [--voice]`
+It runs `schema-v4.sql`, sets the function secrets, deploys the function with JWT verification off and checks it answers, points the Telnyx messaging profile and inbound-call application at it, saves the phone settings with (619) 535-2168 pre-filled, then builds the site from the last commit and deploys it to Netlify. Texting/calling are only switched on with `--sms` / `--voice`. The script has not been run yet (no token), so its first run is its first test.
+
+- Webhooks are authenticated by a secret in the URL (`?k=…`, `TELNYX_WEBHOOK_SECRET`), so the Telnyx Public Key is no longer required. If `TELNYX_PUBLIC_KEY` is ever set, signed webhooks are accepted too.
+- Local-only values (Telnyx API key, webhook secret, IDs) are in `supabase/local-telnyx.json`, gitignored.
+- After the upgrade: register the 10DLC brand + campaign by API and attach the number (needs the legal business name, EIN, address and a contact), then re-run with `--sms --voice`.
+- First live test still owed: text own cell and reply; call own cell; call (619) 535-2168 from a cell with the CRM open. Inbound call routing in particular has only been tested against a stand-in.
+
 ## Next steps (agreed order)
 1. Finish live verification, fix anything it finds.
 2. Brevo SMTP (above).
 3. Domain (above).
-4. **Telnyx** (not Twilio) for real calling/texting — Tony will say when the account is ready. `messages.provider_sid` and `call_log` are ready for it.
+4. **Telnyx** — built, waiting on the account details; see the Telnyx section above.
 5. Data import of past customers/policies — Tony will supply a file "in the coming days". Needs: customer name, phone, agent, carrier, policy #, effective date, premium, broker fee.
 6. Agent logins: created in Supabase → Authentication → Users → Add user (Auto Confirm). Tony will do this later.
 

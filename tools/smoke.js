@@ -36,7 +36,14 @@ const FAKE_CLIENT = `
     from: q,
     auth: { getSession: async()=>({data:{session:{user:{id:'u1',email:'qa@test'}}}}), onAuthStateChange(){}, signOut: async()=>({}), signInWithPassword: async()=>({data:{},error:null}) },
     storage: { from(){ return { upload: async()=>({error:null}), createSignedUrl: async()=>({data:{signedUrl:'about:blank'},error:null}) }; } },
-    channel(){ const c={ on(){return c;}, subscribe(){return c;} }; return c; },
+    channel(){ const c={ on(ev, filter, cb){ (window.__rt=window.__rt||[]).push([filter, cb]); return c; }, subscribe(){return c;} }; return c; },
+    // "telnyx" edge function stand-in: records every call; set window.__smsFail to make the next text fail
+    functions: { invoke: async (name, opts) => { const b=(opts&&opts.body)||{}; (window.__invokes=window.__invokes||[]).push([name,b]);
+      if(b.action==='token') return {data:{token:'tok',sip_username:'gencredX',caller_id:'+16195550000',fresh:false},error:null};
+      if(b.action==='status') return {data:{api_key:true,public_key:true,connection_id:true,schema:true,webhook_url:'https://x/functions/v1/telnyx',numbers:[{number:'+16195550000',status:'active',texting:true}],error:null},error:null};
+      if(b.action==='sms'){ if(window.__smsFail){ window.__smsFail=false; return {data:{error:'This number opted out of texts (they replied STOP)'},error:null}; }
+        const r={id:'tx'+Date.now()+Math.random().toString(36).slice(2,6),agent_id:'u1',lead_id:b.lead_id,customer_id:b.customer_id,contact_name:b.contact_name,phone:b.to,direction:'outbound',body:b.text,status:'queued',provider_sid:'sid'+Date.now(),created_at:new Date().toISOString()}; (rows.messages=rows.messages||[]).push(r); return {data:{ok:true,row:r},error:null}; }
+      return {data:{error:'Unknown action'},error:null}; } },
   }; } };
 })();`;
 
@@ -109,6 +116,98 @@ async function run(mode) {
       ['agentprofile', () => nav('agentprofile', null)],
       ['finance', () => nav('finance', null)],
       ['admin', () => nav('admin', null)],
+      // ---- Telnyx (msihub-telnyx.js): everything above ran with it switched off; now switch it on against stand-ins ----
+      ['telnyx-off', () => { if ((window.__invokes || []).length) throw new Error('edge function was called while Telnyx is off'); if (document.querySelector('#msihubPhone .mph-pill')) throw new Error('phone widget visible while calling is off'); }],
+      ['telnyx-on', async () => {
+        window.TelnyxWebRTC = { TelnyxRTC: class { constructor(o) { this.o = o; this.h = {}; window.__rtc = this; } on(e, f) { (this.h[e] = this.h[e] || []).push(f); return this; } off(e) { delete this.h[e]; } emit(e, a) { (this.h[e] || []).slice().forEach((f) => f(a)); } connect() { setTimeout(() => this.emit('telnyx.ready'), 10); } disconnect() {}
+          newCall(opts) { const self = this; const call = { direction: 'outbound', state: 'new', options: opts, telnyxIDs: { telnyxSessionId: 'sess-out' }, hangup() { call.state = 'hangup'; self.emit('telnyx.notification', { type: 'callUpdate', call }); }, toggleAudioMute() {}, toggleHold() {}, dtmf(d) { (window.__dtmf = window.__dtmf || []).push(d); } }; window.__call = call; return call; } } };
+        MSIHub.data.agency_settings.push({ key: 'telnyx', value: { sms_enabled: true, voice_enabled: true, sms_number: '+16195550000', caller_id: '+16195550000' } });
+        await MSIHub.reload([]); await new Promise((r) => setTimeout(r, 300));
+        if (MSIHub.telnyx.phone.state !== 'ready') throw new Error('phone state ' + MSIHub.telnyx.phone.state + ' ' + MSIHub.telnyx.phone.error);
+        if (!/Phone ready/.test(document.getElementById('msihubPhone').textContent)) throw new Error('no ready pill');
+      }],
+      ['telnyx-text', async () => {
+        leadText('L1'); document.getElementById('textThreadInput').value = 'real text'; await sendTextReply();
+        const sms = window.__invokes.filter((x) => x[1].action === 'sms'); const last = sms[sms.length - 1][1];
+        if (last.to !== '(619) 555-0100' || last.text !== 'real text' || last.lead_id !== 'L1') throw new Error('bad sms payload ' + JSON.stringify(last));
+        if (!MSIHub.data.messages.find((m) => m.body === 'real text' && m.provider_sid)) throw new Error('sent row not in memory');
+        if (!/real text/.test(document.getElementById('textThread').textContent) || !/Sending…/.test(document.getElementById('textThread').textContent)) throw new Error('thread not showing the queued text');
+        if (window.__writes.find((w) => w[0] === 'messages' && w[1] === 'insert' && w[2].body === 'real text')) throw new Error('browser also inserted the message');
+      }],
+      ['telnyx-text-fail', async () => {
+        window.__smsFail = true; document.getElementById('textThreadInput').value = 'blocked text'; await sendTextReply();
+        if (!/Not sent — This number opted out/.test(document.getElementById('textThread').textContent)) throw new Error('failure not shown in thread');
+        if (MSIHub.data.messages.find((m) => m.body === 'blocked text')) throw new Error('failed text was recorded');
+        closeTextThread();
+      }],
+      ['telnyx-inbox-send', async () => { nav('inbox', null); await new Promise((r) => setTimeout(r, 200)); window.INBOX_STATE.tab = 'Texts'; window.INBOX_STATE.textThread = '(619) 555-0100'; refreshInbox(); document.getElementById('inboxTextInput_6195550100').value = 'inbox text'; await inboxSendText('(619) 555-0100'); if (!MSIHub.data.messages.find((m) => m.body === 'inbox text')) throw new Error('inbox text not sent'); }],
+      ['telnyx-customer-text', async () => { openCustomerDetail('C1'); await new Promise((r) => setTimeout(r, 200)); cdTab('cd-text'); document.getElementById('cdTextInput').value = 'cust real'; await MSIHub.sendCustomerText(); const s = window.__invokes.filter((x) => x[1].action === 'sms').pop()[1]; if (s.text !== 'cust real' || s.customer_id !== 'C1') throw new Error('bad customer sms ' + JSON.stringify(s)); }],
+      ['telnyx-bulk', async () => { nav('leads', null); await new Promise((r) => setTimeout(r, 200)); const before = window.__invokes.length; toggleSelectLead('(619) 555-0100', true); openBulkText(); document.getElementById('bulkTextMessage').value = 'bulk real {{name}}'; await sendBulkText(); const s = window.__invokes.slice(before).filter((x) => x[1].action === 'sms'); if (s.length !== 1 || s[0][1].text !== 'bulk real Test') throw new Error('bulk sent ' + JSON.stringify(s)); }],
+      ['telnyx-status-labels', async () => {
+        const m = MSIHub.data.messages.find((x) => x.body === 'real text'); m.status = 'delivered'; await MSIHub.reload([]);
+        leadText('L1'); const t = document.getElementById('textThread').textContent; closeTextThread();
+        if (!/Delivered/.test(t)) throw new Error('no Delivered label: ' + t.slice(-200));
+      }],
+      ['telnyx-inbound-text', async () => {
+        const cbs = (window.__rt || []).filter((x) => x[0] && x[0].table === 'messages'); if (cbs.length < 2) throw new Error('telnyx realtime handler not subscribed');
+        const fire = (row) => cbs.forEach((x) => x[1]({ eventType: 'INSERT', new: row }));
+        fire({ id: 'in1', agent_id: 'u2', direction: 'inbound', phone: '(619) 555-0177', contact_name: 'Other Agent Lead', body: 'not mine', created_at: new Date().toISOString() });
+        if (document.getElementById('textNotifPopup')) throw new Error('popup shown for another agent’s text');
+        fire({ id: 'in2', agent_id: null, direction: 'inbound', phone: '(619) 555-0100', contact_name: 'Test Lead', body: '<img src=x onerror="window.__xss=1"> hi', created_at: new Date().toISOString() });
+        await new Promise((r) => setTimeout(r, 150));
+        const p = document.getElementById('textNotifPopup'); if (!p) throw new Error('no popup for my inbound text');
+        if (p.querySelector('img') || window.__xss) throw new Error('inbound text was rendered as HTML');
+        if (!/<img src=x/.test(p.textContent)) throw new Error('popup text missing');
+        p.remove();
+      }],
+      ['telnyx-call', async () => {
+        const before = window.__writes.length;
+        doCall('Test Lead', '(619) 555-0100');
+        const c = window.__call; if (!c) throw new Error('no call placed');
+        if (c.options.destinationNumber !== '+16195550100' || c.options.callerNumber !== '+16195550000') throw new Error('bad dial ' + JSON.stringify(c.options));
+        const up = (s) => { c.state = s; window.__rtc.emit('telnyx.notification', { type: 'callUpdate', call: c }); };
+        up('trying'); up('early'); if (!/Ringing/.test(document.getElementById('msihubPhone').textContent)) throw new Error('not ringing');
+        up('active'); await new Promise((r) => setTimeout(r, 1100));
+        if (!/0:0[01]/.test(document.getElementById('mphStatus').textContent)) throw new Error('no timer: ' + document.getElementById('mphStatus').textContent);
+        MSIHub.telnyx.keypad(); MSIHub.telnyx.key('5'); MSIHub.telnyx.mute(); MSIHub.telnyx.hold();
+        if ((window.__dtmf || [])[0] !== '5') throw new Error('dtmf not sent');
+        MSIHub.telnyx.hangup(); await new Promise((r) => setTimeout(r, 300));
+        if (MSIHub.telnyx.phone.call) throw new Error('call still open');
+        const w = window.__writes.slice(before).filter((x) => x[0] === 'call_log');
+        const ins = w.find((x) => x[1] === 'insert'), upd = w.find((x) => x[1] === 'update');
+        if (!ins || ins[2].direction !== 'outbound' || ins[2].lead_id !== 'L1' || ins[2].to_number !== '+16195550100') throw new Error('bad call insert ' + JSON.stringify(ins));
+        if (!upd || upd[2].status !== 'completed' || !(upd[2].duration_sec >= 1) || upd[2].provider_call_id !== 'sess-out') throw new Error('bad call update ' + JSON.stringify(upd));
+      }],
+      ['telnyx-call-inbound', async () => {
+        const before = window.__writes.length;
+        const call = { direction: 'inbound', state: 'ringing', options: { remoteCallerNumber: '+16195550101' }, answer() { call.state = 'active'; window.__rtc.emit('telnyx.notification', { type: 'callUpdate', call }); }, hangup() { call.state = 'hangup'; window.__rtc.emit('telnyx.notification', { type: 'callUpdate', call }); } };
+        window.__rtc.emit('telnyx.notification', { type: 'callUpdate', call });
+        const txt = document.getElementById('msihubPhone').textContent;
+        if (!/Incoming call/.test(txt) || !/Test Customer/.test(txt) || !/Answer/.test(txt)) throw new Error('inbound not shown: ' + txt);
+        const second = { direction: 'inbound', state: 'ringing', options: { remoteCallerNumber: '+16195550188' }, hangup() { second.declined = true; } };
+        window.__rtc.emit('telnyx.notification', { type: 'callUpdate', call: second }); if (!second.declined) throw new Error('second inbound call not declined while busy');
+        MSIHub.telnyx.answer(); if (!/Hang up/.test(document.getElementById('msihubPhone').textContent)) throw new Error('not connected after answer');
+        MSIHub.telnyx.hangup(); await new Promise((r) => setTimeout(r, 200));
+        if (MSIHub.telnyx.phone.call) throw new Error('inbound call still open');
+        if (window.__writes.slice(before).find((x) => x[0] === 'call_log')) throw new Error('browser logged an inbound call (the server does that)');
+      }],
+      ['telnyx-dnc', () => { const l = LEADS.find((x) => x.id === 'L1'); l.doNotCall = true; window.__call = null; doCall('Test Lead', '(619) 555-0100'); l.doNotCall = false; if (window.__call) throw new Error('called a DO NOT CALL lead'); }],
+      ['telnyx-settings', async () => {
+        nav('admin', null); await new Promise((r) => setTimeout(r, 200)); window.ADMIN_STATE.panel = 'callsettings'; refreshAdminPage();
+        await MSIHub.telnyx.check(); const txt = document.getElementById('content').textContent;
+        if (!/Telnyx account linked/.test(txt) || !/1 phone number on the account/.test(txt)) throw new Error('status not shown');
+        if (document.getElementById('tx_sms_number').value !== '+16195550000') throw new Error('number not preselected');
+        document.getElementById('tx_fallback').value = '619-555-0142';
+        const before = window.__writes.length; await MSIHub.telnyx.save();
+        const w = window.__writes.slice(before).find((x) => x[0] === 'agency_settings' && x[1] === 'upsert');
+        if (!w || w[2].key !== 'telnyx' || w[2].value.fallback_number !== '+16195550142' || !w[2].value.sms_enabled) throw new Error('settings not saved ' + JSON.stringify(w));
+      }],
+      ['telnyx-switch-off', async () => {
+        document.getElementById('tx_sms_on').checked = false; document.getElementById('tx_voice_on').checked = false; await MSIHub.telnyx.save();
+        if (MSIHub.telnyx.phone.state !== 'off' || document.querySelector('#msihubPhone .mph-pill')) throw new Error('phone still on');
+        const n = window.__invokes.length; leadText('L1'); document.getElementById('textThreadInput').value = 'logged only'; sendTextReply(); closeTextThread();
+        if (window.__invokes.length !== n) throw new Error('text went to Telnyx while switched off');
+      }],
     ];
     out.steps = [];
     for (const [name, fn] of steps) {
