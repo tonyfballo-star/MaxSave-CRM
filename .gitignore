@@ -2,3 +2,4 @@
 *.xlsx
 fonts/
 msihub-site.zip
+supabase/local-*
