@@ -905,6 +905,7 @@
     const p = phone || (lead && lead.phone) || '';
     if (lead && lead.doNotCall) { M.toast('This lead is marked DO NOT CALL', 'error'); return; }
     logCall({ leadName: leadName || (lead && lead.name), phone: p, lead, direction: 'outbound' });
+    if (typeof hudStartCall === 'function') hudStartCall(leadName || (lead && lead.name), p, 'outbound');   // show the caller in Live View > On live calls
     const digits = String(p).replace(/\D/g, '');
     if (digits) { try { window.location.href = 'tel:' + digits; } catch (e) { /* ignore */ } }
     M.toast('Call logged' + (leadName ? ' — ' + leadName : '') + (p ? ' · ' + p : ''));

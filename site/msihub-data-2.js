@@ -149,7 +149,10 @@
   // ------------------------------------------------------------------
   function mapLive() {
     const me = H.me();
-    window.AGENT_LIVE = M.data.profiles.filter((p) => p.active).map((p) => ({ name: p.full_name, ext: p.ext || '', status: p.id === H.myId() ? 'available' : 'offline', callDuration: 0, callDirection: null, leadName: null, leadPhone: null, team: p.team || '' }));
+    const prevLive = {}; (window.AGENT_LIVE || []).forEach((a) => { prevLive[a.name] = a; });   // keep live call/status state across data reloads
+    window.AGENT_LIVE = M.data.profiles.filter((p) => p.active).map((p) => { const o = prevLive[p.full_name];
+      return Object.assign({ name: p.full_name, ext: p.ext || '', status: p.id === H.myId() ? 'available' : 'offline', callDuration: 0, callDirection: null, leadName: null, leadPhone: null, callStartedAt: null, team: p.team || '' },
+        o ? { status: o.status, callDuration: o.callDuration, callDirection: o.callDirection, leadName: o.leadName, leadPhone: o.leadPhone, callStartedAt: o.callStartedAt || null } : {}); });
     window.CALL_HISTORY = M.data.calls.map((c) => ({ id: c.id, agent: H.agentName(c.agent_id), time: H.fmtTime(c.created_at), date: H.fmtDay(c.created_at), contact: c.contact_name || 'Unknown', phone: H.fmtPhone(c.phone), direction: c.direction, duration: c.duration_sec || 0, status: c.missed ? 'missed' : 'connected', recording: false, outcome: c.missed ? 'Missed' : '' }));
     window.TEXT_HISTORY = M.data.messages.slice().reverse().map((m) => ({ id: m.id, agent: H.agentName(m.agent_id), time: H.fmtDay(m.created_at) === 'Today' ? H.fmtTime(m.created_at) : H.fmtDay(m.created_at), contact: m.contact_name || H.fmtPhone(m.phone), phone: H.fmtPhone(m.phone), direction: m.direction, preview: (m.body || '').slice(0, 70) }));
     window.EMAILS = [];

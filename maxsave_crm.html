@@ -2027,6 +2027,7 @@ function logText(opts) {
 }
 function doCall(leadName, phone) {
   logCall({ agentName: (window.CURRENT_USER||{}).name||'', leadName: leadName||window._currentLeadName||'', direction:'outbound' });
+  if (typeof hudStartCall === 'function') hudStartCall(leadName, phone, 'outbound');
   alert('Calling ' + (leadName||phone||'lead') + '…');
 }
 
@@ -4279,9 +4280,10 @@ function renderLiveView() {
       <div class="hud-agent-body">
         <div class="hud-agent-name">${esc(a.name)}${isMe ? '<span class="hud-you">YOU</span>' : ''}${a.status === 'wrap-up' ? '<span class="hud-tag">Wrap-up</span>' : ''}</div>
         ${onCall
-          ? `<div class="hud-call"><span>${a.callDirection === 'outbound' ? '↗' : '↙'}</span><span class="hud-lead">${esc(a.leadName || 'Unknown')}</span><span class="hud-phone">${esc(a.leadPhone || '')}</span><span class="hud-dur">${fmtCallDuration(a.callDuration || 0)}</span></div>`
+          ? `<div class="hud-call"><span>${a.callDirection === 'outbound' ? '↗' : '↙'}</span><span class="hud-lead">${esc(a.leadName || 'Unknown')}</span><span class="hud-phone">${esc(a.leadPhone || '')}</span><span class="hud-dur" data-started="${a.callStartedAt || ''}">${fmtCallDuration(hudCallSecs(a))}</span></div>`
           : `<div class="hud-sub">${[a.ext ? 'Ext ' + esc(a.ext) : '', ls].filter(Boolean).join(' · ') || '&nbsp;'}</div>`}
       </div>
+      ${onCall && isMe ? '<button type="button" class="hud-end" onclick="hudEndCall()">End call</button>' : ''}
       ${onCall ? '<span class="hud-grip">⠿</span>' : ''}
     </div>`;
   };
@@ -4351,6 +4353,7 @@ function renderLiveView() {
     .hud-slot-n{font-size:10px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px}
     .hud-slot-lead{font-weight:500;font-size:13.5px;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
     .hud-mini{margin-top:auto;align-self:flex-start;background:var(--green-500);color:#000;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font-body)}
+    .hud-end{background:var(--red);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font-body);flex-shrink:0;white-space:nowrap}
     @media (max-width:1100px){.hud-cols{grid-template-columns:repeat(2,minmax(0,1fr))}.hud-row2{grid-template-columns:1fr}.hud-slots{grid-template-columns:repeat(3,minmax(0,1fr))}}
   </style>
 
@@ -4511,8 +4514,39 @@ function renderLiveView() {
   `;
 }
 
-// Drag handlers for live call transfer. A drag carries either a live call from an agent card
-// or a parked call from a parking slot; any agent card, parking slot, or Transfer to All can receive it.
+// ---- Phone HUD call state ----
+// Calls placed from anywhere in the CRM (doCall) put the caller's card in "On live calls".
+function hudMe() { return (window.AGENT_LIVE || []).find(a => a.name === window.LIVEVIEW_STATE.loggedInAgent) || null; }
+function hudCallSecs(a) { return a.callStartedAt ? Math.max(0, Math.floor((Date.now() - a.callStartedAt) / 1000)) : (a.callDuration || 0); }
+function hudRefresh() { if (window.CURRENT_PAGE === 'liveview' && typeof refreshLiveView === 'function') refreshLiveView(); }
+function hudClearCall(a) { a.callDuration = 0; a.leadName = null; a.leadPhone = null; a.callDirection = null; a.callStartedAt = null; }
+// After a call leaves an agent they sit in wrap-up briefly, then return to Available.
+function hudWrapUp(name) {
+  const a = (window.AGENT_LIVE || []).find(x => x.name === name); if (!a) return;
+  hudClearCall(a); a.status = 'wrap-up';
+  setTimeout(() => { const b = (window.AGENT_LIVE || []).find(x => x.name === name); if (b && b.status === 'wrap-up') { b.status = 'available'; hudRefresh(); } }, 15000);
+}
+function hudStartCall(leadName, phone, direction) {
+  const me = hudMe(); if (!me) return;
+  me.status = 'on-call'; me.leadName = leadName || phone || 'Unknown'; me.leadPhone = phone || ''; me.callDirection = direction || 'outbound';
+  me.callStartedAt = Date.now(); me.callDuration = 0;
+  hudRefresh();
+}
+function hudEndCall() {
+  const me = hudMe(); if (!me || me.status !== 'on-call') return;
+  const secs = hudCallSecs(me), who = me.leadName || me.leadPhone || 'Call';
+  hudWrapUp(me.name);
+  alert(who + ' ended · ' + fmtCallDuration(secs));
+  hudRefresh();
+}
+// Live timers tick in place (no re-render, so an in-progress drag is never interrupted).
+if (!window._hudTick) window._hudTick = setInterval(() => {
+  document.querySelectorAll('.hud-dur[data-started]').forEach(el => { const t = +el.dataset.started; if (t) el.textContent = fmtCallDuration(Math.max(0, Math.floor((Date.now() - t) / 1000))); });
+}, 1000);
+
+// ---- Drag and drop ----
+// A drag carries either a live call from an agent card or a parked call from a parking slot;
+// any agent card, parking slot, or Transfer to All can receive it.
 window._dragCall = null;   // { kind:'agent', name } | { kind:'park', idx }
 function onAgentCallDragStart(ev, agentName) {
   window._dragCall = { kind: 'agent', name: agentName };
@@ -4530,18 +4564,17 @@ function onAgentCallDragEnd(ev) {
   ev.currentTarget.classList.remove('dragging');
   document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('dragover'));
 }
-// Resolve whatever is being dragged into { lead, phone, direction, from, release() }.
+// Resolve whatever is being dragged into { lead, phone, direction, startedAt, from, release() }.
 function _draggedCall() {
   const d = window._dragCall; if (!d) return null;
   const lot = window.LIVEVIEW_STATE.parkingLot;
   if (d.kind === 'park') {
     const slot = lot[d.idx]; if (!slot) return null;
-    return { lead: slot.lead, phone: slot.phone, direction: slot.direction || 'outbound', from: 'slot:' + d.idx, release() { lot[d.idx] = null; } };
+    return { lead: slot.lead, phone: slot.phone, direction: slot.direction || 'outbound', startedAt: slot.startedAt || Date.now(), from: 'slot:' + d.idx, release() { lot[d.idx] = null; } };
   }
   const from = window.AGENT_LIVE.find(a => a.name === d.name);
   if (!from || from.status !== 'on-call') return null;
-  return { lead: from.leadName, phone: from.leadPhone, direction: from.callDirection, from: 'agent:' + from.name,
-    release() { from.status = 'wrap-up'; from.callDuration = 0; from.leadName = null; from.leadPhone = null; from.callDirection = null; } };
+  return { lead: from.leadName, phone: from.leadPhone, direction: from.callDirection, startedAt: from.callStartedAt || (Date.now() - (from.callDuration || 0) * 1000), from: 'agent:' + from.name, release() { hudWrapUp(from.name); } };
 }
 function onTransferDrop(ev, type, target) {
   ev.preventDefault();
@@ -4554,7 +4587,7 @@ function onTransferDrop(ev, type, target) {
     if (!to || call.from === 'agent:' + to.name) return;
     if (to.status === 'on-call') { alert(to.name + ' is already on a call.'); return; }
     call.release();
-    to.status = 'on-call'; to.callDuration = 1; to.callDirection = call.direction; to.leadName = call.lead; to.leadPhone = call.phone;
+    to.status = 'on-call'; to.callDuration = 0; to.callStartedAt = call.startedAt; to.callDirection = call.direction; to.leadName = call.lead; to.leadPhone = call.phone;
     alert('↪ ' + who + ' transferred to ' + to.name + (to.ext ? ' (Ext ' + to.ext + ')' : ''));
   } else if (type === 'park') {
     const i = target;
@@ -4562,7 +4595,7 @@ function onTransferDrop(ev, type, target) {
     if (window.LIVEVIEW_STATE.parkingLot[i]) { alert('Slot ' + (i + 1) + ' is already holding a call.'); return; }
     const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     call.release();
-    window.LIVEVIEW_STATE.parkingLot[i] = { lead: call.lead, phone: call.phone, direction: call.direction, parkedAt: time };
+    window.LIVEVIEW_STATE.parkingLot[i] = { lead: call.lead, phone: call.phone, direction: call.direction, startedAt: call.startedAt, parkedAt: time };
     alert('🅿 ' + who + ' parked in slot ' + (i + 1));
   } else if (type === 'all-extensions') {
     call.release();
@@ -4573,16 +4606,16 @@ function onTransferDrop(ev, type, target) {
 function retrieveParkedCall(idx) {
   const slot = window.LIVEVIEW_STATE.parkingLot[idx];
   if (!slot) return;
-  const me = window.AGENT_LIVE.find(a => a.name === window.LIVEVIEW_STATE.loggedInAgent);
+  const me = hudMe();
   if (!me) return;
   if (me.status === 'on-call') { alert('Finish your current call first.'); return; }
-  me.status = 'on-call'; me.callDuration = 1; me.callDirection = slot.direction || 'outbound'; me.leadName = slot.lead; me.leadPhone = slot.phone;
+  me.status = 'on-call'; me.callDuration = 0; me.callStartedAt = slot.startedAt || Date.now(); me.callDirection = slot.direction || 'outbound'; me.leadName = slot.lead; me.leadPhone = slot.phone;
   window.LIVEVIEW_STATE.parkingLot[idx] = null;
   alert('▶ Retrieved ' + (slot.lead || slot.phone || 'the call') + ' from slot ' + (idx + 1));
   refreshLiveView();
 }
 function setMyLiveStatus(status) {
-  const me = window.AGENT_LIVE.find(a => a.name === window.LIVEVIEW_STATE.loggedInAgent);
+  const me = hudMe();
   if (!me || me.status === 'on-call') return;
   me.status = status;
   refreshLiveView();
