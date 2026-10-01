@@ -17,6 +17,9 @@ create table if not exists public.lead_intake (
   error       text
 );
 create index if not exists lead_intake_received_idx on public.lead_intake(received_at desc);
+-- The duplicate check below must be index-backed: outside callers get a ~3 second statement timeout and leads has 150k+ rows.
+create index if not exists leads_vendor_lead_id_idx on public.leads ((details ->> 'vendor_lead_id'));
+create index if not exists leads_phone_idx          on public.leads (phone);
 alter table public.lead_intake enable row level security;
 drop policy if exists "intake admin read" on public.lead_intake;
 create policy "intake admin read" on public.lead_intake for select to authenticated using ((select public.is_admin()));
@@ -89,11 +92,13 @@ begin
       raise exception 'no name, phone or email found in payload';
     end if;
 
-    select id into v_dup from leads
-     where source = p_source
-       and ((v_ext is not null and details ->> 'vendor_lead_id' = v_ext)
-         or (v_phone is not null and phone = v_phone and received_at > now() - interval '12 hours'))
-     limit 1;
+    -- Two separate lookups (never an OR) so each one uses its own index.
+    if v_ext is not null then
+      select id into v_dup from leads where details ->> 'vendor_lead_id' = v_ext and source = p_source limit 1;
+    end if;
+    if v_dup is null and v_phone is not null then
+      select id into v_dup from leads where phone = v_phone and source = p_source and received_at > now() - interval '12 hours' limit 1;
+    end if;
     if v_dup is not null then
       update lead_intake set status = 'duplicate', lead_id = v_dup where id = v_intake;
       return jsonb_build_object('ok', true, 'duplicate', true, 'lead_id', v_dup);

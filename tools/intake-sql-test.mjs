@@ -78,7 +78,28 @@ const st = (await one('select public.hook_status_sttest() as r')).r;
 ok('status: totals + per-vendor counts', st.total === 8 && st.last_24h['everquote:inserted'] === 3 && st.last_24h['mediaalpha:inserted'] === 1, st.last_24h);
 ok('status: shape shows types only, never values', JSON.stringify(st.latest_shape).includes('"string"') && !/Maria|555|Solo/.test(JSON.stringify(st)), st.latest_shape);
 
-console.log('7. permissions');
+console.log('7. production-sized table: lookups stay indexed and fast');
+await db.exec(`
+  insert into public.leads (first_name, last_name, phone, source, received_at, details)
+  select 'Bulk', 'Lead ' || g, '(619) ' || lpad((g % 900 + 100)::text, 3, '0') || '-' || lpad((g % 10000)::text, 4, '0'),
+         case when g % 3 = 0 then 'Everquote' else 'usmg' end, now() - (g || ' minutes')::interval,
+         case when g % 2 = 0 then jsonb_build_object('dyl_id', g::text) else '{}'::jsonb end
+  from generate_series(1, 150000) g;
+  analyze public.leads;
+`);
+const plan = async (q) => (await db.query('explain ' + q)).rows.map((r) => r['QUERY PLAN']).join(' ');
+const p1 = await plan("select id from leads where details ->> 'vendor_lead_id' = 'EQ-1001' and source = 'Everquote' limit 1");
+ok('vendor-lead-id lookup uses its index, no full scan', /leads_vendor_lead_id_idx/.test(p1) && !/Seq Scan/.test(p1), p1);
+const p2 = await plan("select id from leads where phone = '(619) 555-0110' and source = 'Everquote' and received_at > now() - interval '12 hours' limit 1");
+ok('phone lookup uses an index, no full scan', /Index/.test(p2) && !/Seq Scan/.test(p2), p2);
+let t0 = Date.now();
+r = await hook('hook_eq_eqtest', { lead_id: 'EQ-BIG-1', first_name: 'After', last_name: 'Seeding', phone: '858-555-0142' });
+let ms = Date.now() - t0;
+ok('new lead on 150k rows inserts quickly (' + ms + ' ms)', r.ok && !!r.lead_id && ms < 1500, [r, ms]);
+t0 = Date.now(); r = await hook('hook_eq_eqtest', { lead_id: 'EQ-BIG-1', first_name: 'After', phone: '858-555-0142' }); ms = Date.now() - t0;
+ok('duplicate on 150k rows detected quickly (' + ms + ' ms)', r.ok && r.duplicate === true && ms < 1500, [r, ms]);
+
+console.log('8. permissions');
 const priv = async (role, sig) => (await one('select has_function_privilege($1, $2, $3) as p', [role, sig, 'execute'])).p;
 ok('anon may call the EverQuote hook', await priv('anon', 'public.hook_eq_eqtest(jsonb)'));
 ok('anon may call the MediaAlpha hook', await priv('anon', 'public.hook_ma_matest(jsonb)'));
