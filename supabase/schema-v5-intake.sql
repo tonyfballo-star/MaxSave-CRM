@@ -4,7 +4,7 @@
 --   https://<project>.supabase.co/rest/v1/rpc/hook_eq___EQ_SECRET__?apikey=<publishable key>
 -- The secret is the function name. This file is a TEMPLATE: the real names live in
 -- supabase/local-intake.sql (gitignored). Never commit the filled-in version; the repo is public.
--- Safe to re-run.
+-- Safe to re-run. Revision 2 (2026-10-01): EverQuote-specific mapping (vehicles, drivers, consent) + backfill.
 
 -- 1. Every payload is kept verbatim, so a mapping gap never loses a lead.
 create table if not exists public.lead_intake (
@@ -17,6 +17,7 @@ create table if not exists public.lead_intake (
   error       text
 );
 create index if not exists lead_intake_received_idx on public.lead_intake(received_at desc);
+create index if not exists lead_intake_lead_idx     on public.lead_intake(lead_id);
 -- The duplicate check below must be index-backed: outside callers get a ~3 second statement timeout and leads has 150k+ rows.
 create index if not exists leads_vendor_lead_id_idx on public.leads ((details ->> 'vendor_lead_id'));
 create index if not exists leads_phone_idx          on public.leads (phone);
@@ -24,8 +25,9 @@ alter table public.lead_intake enable row level security;
 drop policy if exists "intake admin read" on public.lead_intake;
 create policy "intake admin read" on public.lead_intake for select to authenticated using ((select public.is_admin()));
 
--- 2. Flatten any JSON shape into { normalisedkey: "value" }. Keys are lower-cased with punctuation removed
---    (first_name, firstName, "First Name" -> firstname). Shallower keys win; arrays contribute their first element.
+-- 2. Helpers.
+-- Flatten any JSON shape into { normalisedkey: "value" }. Keys are lower-cased with punctuation removed
+-- (first_name, firstName, "First Name" -> firstname). Shallower keys win; arrays contribute their first element.
 create or replace function public.intake_flat(p jsonb, depth int default 0) returns jsonb
 language plpgsql immutable as $$
 declare outp jsonb := '{}'::jsonb; r record; nk text;
@@ -52,6 +54,15 @@ language sql immutable as $$
   select f ->> k from unnest(keys) with ordinality as t(k, n) where f ? k order by n limit 1;
 $$;
 
+create or replace function public.intake_bool(t text) returns boolean
+language sql immutable as $$ select lower(coalesce(t, '')) in ('true', 't', 'yes', 'y', '1') $$;
+
+-- 1990-01-05 (with or without a time part) -> 01/05/1990, the format the lead profile already uses. Anything else passes through.
+create or replace function public.intake_date(t text) returns text
+language sql immutable as $$
+  select case when t ~ '^\d{4}-\d{2}-\d{2}' then substr(t, 6, 2) || '/' || substr(t, 9, 2) || '/' || substr(t, 1, 4) else nullif(t, '') end;
+$$;
+
 -- Same structure with every value replaced by its type: lets us study a vendor's format without exposing customer data.
 create or replace function public.intake_shape(p jsonb, depth int default 0) returns jsonb
 language plpgsql immutable as $$
@@ -66,29 +77,98 @@ begin
   return to_jsonb(jsonb_typeof(p));
 end $$;
 
--- 3. Store the payload, map it to a lead, skip duplicates. Always answers with JSON and never raises,
+-- 3. Payload -> { first, last, phone, email, ext, prior, sr22, details }.
+--    Generic mapping first (works for any vendor), then EverQuote's known structure fills in vehicles, drivers and consent.
+create or replace function public.intake_map(p_vendor text, p jsonb) returns jsonb
+language plpgsql immutable as $$
+declare f jsonb := public.intake_flat(p);
+        v_first text; v_last text; v_name text; v_digits text; v_phone text; v_ext text; v_sr22 boolean;
+        d jsonb; ai jsonb; veh jsonb; drv jsonb;
+begin
+  v_first := public.intake_pick(f, 'firstname', 'first', 'fname', 'contactfirstname', 'givenname');
+  v_last  := public.intake_pick(f, 'lastname', 'last', 'lname', 'contactlastname', 'surname', 'familyname');
+  if v_first is null then
+    v_name  := trim(coalesce(public.intake_pick(f, 'fullname', 'name', 'contactname', 'customername'), ''));
+    v_first := nullif(split_part(v_name, ' ', 1), '');
+    v_last  := nullif(trim(substr(v_name, length(split_part(v_name, ' ', 1)) + 1)), '');
+  end if;
+  v_digits := regexp_replace(coalesce(public.intake_pick(f, 'phone', 'phonenumber', 'primaryphone', 'homephone', 'mobilephone', 'cellphone', 'dayphone', 'phone1', 'contactphone', 'mobile', 'cell', 'telephone'), ''), '\D', '', 'g');
+  if length(v_digits) = 11 and left(v_digits, 1) = '1' then v_digits := substr(v_digits, 2); end if;
+  v_phone := case when length(v_digits) = 10 then '(' || substr(v_digits, 1, 3) || ') ' || substr(v_digits, 4, 3) || '-' || substr(v_digits, 7) else nullif(v_digits, '') end;
+  v_ext   := public.intake_pick(f, 'eqleadid', 'leadid', 'leaduuid', 'uuid', 'externalid', 'transactionid', 'leadtoken', 'universalleadid', 'id');
+  v_sr22  := public.intake_bool(public.intake_pick(f, 'sr22required', 'sr22'));
+
+  d := jsonb_strip_nulls(jsonb_build_object(
+    'vendor', p_vendor, 'vendor_lead_id', v_ext,
+    'dob', public.intake_date(public.intake_pick(f, 'dob', 'dateofbirth', 'birthdate', 'birthday')),
+    'gender', public.intake_pick(f, 'gender', 'sex'),
+    'marital', public.intake_pick(f, 'maritalstatus', 'marital'),
+    'license', public.intake_pick(f, 'licensestatus', 'license'),
+    'address', public.intake_pick(f, 'address', 'address1', 'street', 'streetaddress', 'addressline1'),
+    'city', public.intake_pick(f, 'city'),
+    'state', coalesce(public.intake_pick(f, 'state', 'statecode', 'stateabbr'), 'CA'),
+    'zip', public.intake_pick(f, 'zip', 'zipcode', 'postalcode', 'postal'),
+    'vehicle', nullif(jsonb_strip_nulls(jsonb_build_object(
+        'year', public.intake_pick(f, 'vehicleyear', 'modelyear', 'year'),
+        'make', public.intake_pick(f, 'vehiclemake', 'make'),
+        'model', public.intake_pick(f, 'vehiclemodel', 'model'),
+        'vin', public.intake_pick(f, 'vin', 'vinnumber'))), '{}'::jsonb),
+    'current_carrier', public.intake_pick(f, 'currentcarrier', 'currentinsurer', 'currentinsurancecompany', 'insurancecompany', 'carrier', 'insurer'),
+    'insured', public.intake_pick(f, 'currentlyinsured', 'insured', 'hasinsurance'),
+    'home_ownership', public.intake_pick(f, 'homeownership', 'ownhome', 'residencetype', 'homeowner'),
+    'credit', public.intake_pick(f, 'creditrating', 'credit', 'creditscore')));
+
+  -- EverQuote "Generic Webhook" JSON: lead.contact, lead.autoInsurance.{vehicles[],drivers[],customerProfile}, consent.
+  ai := p #> '{lead,autoInsurance}';
+  if jsonb_typeof(ai) = 'object' then
+    if jsonb_typeof(ai -> 'vehicles') = 'array' then
+      select jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+               'year', case when (v ->> 'year') ~ '^\d{4}$' then to_jsonb((v ->> 'year')::int) else v -> 'year' end,
+               'make', initcap(v ->> 'make'), 'model', v ->> 'model', 'trim', v ->> 'submodel', 'vin', v ->> 'vin',
+               'use', v ->> 'primaryUse', 'mileage', (v ->> 'annualMileage') || ' mi/yr',
+               'ownership', v ->> 'ownership', 'garaging', v ->> 'garageType', 'coverage', v ->> 'coveragePackage')) order by n)
+        into veh from jsonb_array_elements(ai -> 'vehicles') with ordinality as t(v, n);
+    end if;
+    if jsonb_typeof(ai -> 'drivers') = 'array' then
+      select jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+               'name', nullif(trim(initcap(coalesce(x ->> 'firstName', '') || ' ' || coalesce(x ->> 'lastName', ''))), ''),
+               'dob', public.intake_date(x ->> 'dateOfBirth'), 'gender', x ->> 'gender', 'marital', x ->> 'maritalStatus',
+               'license', x ->> 'licenseStatus', 'relationship', x ->> 'relationshipToContact', 'occupation', x ->> 'occupation',
+               'education', x ->> 'educationLevel',
+               'violations', case when public.intake_bool(x ->> 'licenseEverSuspendedOrRevoked') then 'Suspension' end,
+               'sr22', public.intake_bool(x ->> 'sr22Required'), 'primary', n = 1)) order by n),
+             coalesce(bool_or(public.intake_bool(x ->> 'sr22Required')), false)
+        into drv, v_sr22 from jsonb_array_elements(ai -> 'drivers') with ordinality as t(x, n);
+    end if;
+    d := d || jsonb_strip_nulls(jsonb_build_object(
+      'dob', public.intake_date(coalesce(ai #>> '{customerProfile,dateOfBirth}', drv #>> '{0,dob}')),
+      'gender', coalesce(ai #>> '{customerProfile,gender}', drv #>> '{0,gender}'),
+      'marital', coalesce(ai #>> '{customerProfile,maritalStatus}', drv #>> '{0,marital}'),
+      'license', drv #>> '{0,license}', 'violations', drv #>> '{0,violations}', 'occupation', drv #>> '{0,occupation}',
+      'vehicles', veh, 'drivers', drv, 'driver2', drv -> 1,
+      'vehicle', case when veh is not null then jsonb_strip_nulls(jsonb_build_object('year', veh #> '{0,year}', 'make', veh #> '{0,make}', 'model', veh #> '{0,model}', 'vin', veh #> '{0,vin}', 'use', veh #> '{0,use}', 'mileage', veh #> '{0,mileage}')) end,
+      'coverage', case when veh #>> '{0,coverage}' is not null then jsonb_build_object('type', veh #>> '{0,coverage}') end,
+      'credit', ai #>> '{customerProfile,credit,rating}', 'bankruptcy', ai #>> '{customerProfile,credit,bankruptcy}',
+      'home_ownership', ai #>> '{customerProfile,residence,own}', 'residency_years', ai #>> '{customerProfile,residence,years}',
+      'consent', nullif(jsonb_strip_nulls(jsonb_build_object('universal_lead_id', p #>> '{consent,universal_lead_id}', 'trusted_form_cert_url', p #>> '{consent,trusted_form_cert_url}')), '{}'::jsonb),
+      'traffic_tier', p #>> '{lead,traffic_tier}', 'products', p #>> '{lead,products}'));
+  end if;
+
+  return jsonb_build_object('first', v_first, 'last', v_last, 'phone', v_phone,
+    'email', lower(public.intake_pick(f, 'email', 'emailaddress', 'contactemail')), 'ext', v_ext, 'sr22', coalesce(v_sr22, false),
+    'prior', public.intake_pick(f, 'currentcarrier', 'currentinsurer', 'currentinsurancecompany', 'insurancecompany'), 'details', d);
+end $$;
+
+-- 4. Store the payload, map it to a lead, skip duplicates. Always answers with JSON and never raises,
 --    so the vendor sees a success response and does not retry-storm.
 create or replace function public.intake_lead(p_vendor text, p_source text, p jsonb) returns jsonb
 language plpgsql security definer set search_path = public as $$
-declare f jsonb; v_first text; v_last text; v_name text; v_digits text; v_phone text; v_email text; v_ext text;
-        v_lead uuid; v_dup uuid; v_intake bigint; v_details jsonb;
+declare m jsonb; v_phone text; v_ext text; v_lead uuid; v_dup uuid; v_intake bigint;
 begin
   insert into lead_intake(vendor, payload) values (p_vendor, coalesce(p, '{}'::jsonb)) returning id into v_intake;
   begin
-    f := intake_flat(p);
-    v_first := intake_pick(f, 'firstname', 'first', 'fname', 'contactfirstname', 'givenname');
-    v_last  := intake_pick(f, 'lastname', 'last', 'lname', 'contactlastname', 'surname', 'familyname');
-    if v_first is null then
-      v_name  := trim(coalesce(intake_pick(f, 'fullname', 'name', 'contactname', 'customername'), ''));
-      v_first := nullif(split_part(v_name, ' ', 1), '');
-      v_last  := nullif(trim(substr(v_name, length(split_part(v_name, ' ', 1)) + 1)), '');
-    end if;
-    v_digits := regexp_replace(coalesce(intake_pick(f, 'phone', 'phonenumber', 'primaryphone', 'homephone', 'mobilephone', 'cellphone', 'dayphone', 'phone1', 'contactphone', 'mobile', 'cell', 'telephone'), ''), '\D', '', 'g');
-    if length(v_digits) = 11 and left(v_digits, 1) = '1' then v_digits := substr(v_digits, 2); end if;
-    v_phone := case when length(v_digits) = 10 then '(' || substr(v_digits, 1, 3) || ') ' || substr(v_digits, 4, 3) || '-' || substr(v_digits, 7) else nullif(v_digits, '') end;
-    v_email := lower(intake_pick(f, 'email', 'emailaddress', 'contactemail'));
-    v_ext   := intake_pick(f, 'leadid', 'leaduuid', 'uuid', 'externalid', 'transactionid', 'leadtoken', 'universalleadid', 'id');
-    if v_phone is null and v_email is null and coalesce(v_first, '') = '' then
+    m := intake_map(p_vendor, p); v_phone := m ->> 'phone'; v_ext := m ->> 'ext';
+    if v_phone is null and m ->> 'email' is null and coalesce(m ->> 'first', '') = '' then
       raise exception 'no name, phone or email found in payload';
     end if;
 
@@ -104,28 +184,9 @@ begin
       return jsonb_build_object('ok', true, 'duplicate', true, 'lead_id', v_dup);
     end if;
 
-    v_details := jsonb_strip_nulls(jsonb_build_object(
-      'vendor', p_vendor, 'vendor_lead_id', v_ext, 'intake_id', v_intake,
-      'dob', intake_pick(f, 'dob', 'dateofbirth', 'birthdate', 'birthday'),
-      'gender', intake_pick(f, 'gender', 'sex'),
-      'marital', intake_pick(f, 'maritalstatus', 'marital'),
-      'address', intake_pick(f, 'address', 'address1', 'street', 'streetaddress', 'addressline1'),
-      'city', intake_pick(f, 'city'),
-      'state', coalesce(intake_pick(f, 'state', 'statecode', 'stateabbr'), 'CA'),
-      'zip', intake_pick(f, 'zip', 'zipcode', 'postalcode', 'postal'),
-      'vehicle', nullif(jsonb_strip_nulls(jsonb_build_object(
-          'year', intake_pick(f, 'vehicleyear', 'modelyear', 'year'),
-          'make', intake_pick(f, 'vehiclemake', 'make'),
-          'model', intake_pick(f, 'vehiclemodel', 'model'),
-          'vin', intake_pick(f, 'vin', 'vinnumber'))), '{}'::jsonb),
-      'current_carrier', intake_pick(f, 'currentcarrier', 'currentinsurer', 'currentinsurancecompany', 'insurancecompany', 'carrier', 'insurer'),
-      'insured', intake_pick(f, 'currentlyinsured', 'insured', 'hasinsurance'),
-      'home_ownership', intake_pick(f, 'homeownership', 'ownhome', 'residencetype', 'homeowner'),
-      'credit', intake_pick(f, 'credit', 'creditrating', 'creditscore')));
-
-    insert into leads(first_name, last_name, phone, email, status, policy_type, source, received_at, language, prior_coverage, details)
-    values (initcap(coalesce(v_first, '')), initcap(coalesce(v_last, '')), v_phone, v_email, 'New Lead', 'Auto', p_source, now(), 'English',
-            intake_pick(f, 'currentcarrier', 'currentinsurer', 'currentinsurancecompany', 'insurancecompany'), v_details)
+    insert into leads(first_name, last_name, phone, email, status, policy_type, source, received_at, language, prior_coverage, sr22, details)
+    values (initcap(coalesce(m ->> 'first', '')), initcap(coalesce(m ->> 'last', '')), v_phone, m ->> 'email', 'New Lead', 'Auto', p_source, now(), 'English',
+            m ->> 'prior', coalesce((m ->> 'sr22')::boolean, false), (m -> 'details') || jsonb_build_object('intake_id', v_intake))
     returning id into v_lead;
     update lead_intake set status = 'inserted', lead_id = v_lead where id = v_intake;
     return jsonb_build_object('ok', true, 'lead_id', v_lead);
@@ -135,7 +196,7 @@ begin
   end;
 end $$;
 
--- 4. Public endpoints. The single unnamed jsonb parameter receives the whole request body.
+-- 5. Public endpoints. The single unnamed jsonb parameter receives the whole request body.
 create or replace function public.hook_eq___EQ_SECRET__(jsonb) returns jsonb
 language sql security definer set search_path = public as $$ select public.intake_lead('everquote', 'Everquote', $1) $$;
 
@@ -152,15 +213,28 @@ language sql stable security definer set search_path = public as $$
     'latest_shape', coalesce((select jsonb_object_agg(vendor, public.intake_shape(payload)) from (select distinct on (vendor) vendor, payload from lead_intake order by vendor, id desc) s), '{}'::jsonb));
 $$;
 
--- 5. Lock down: only the three hook functions are callable from outside.
+-- 6. Lock down: only the three hook functions are callable from outside.
 revoke execute on function public.intake_lead(text, text, jsonb) from public, anon, authenticated;
+revoke execute on function public.intake_map(text, jsonb) from public, anon, authenticated;
 revoke execute on function public.intake_flat(jsonb, int) from public, anon, authenticated;
 revoke execute on function public.intake_pick(jsonb, text[]) from public, anon, authenticated;
+revoke execute on function public.intake_bool(text) from public, anon, authenticated;
+revoke execute on function public.intake_date(text) from public, anon, authenticated;
 revoke execute on function public.intake_shape(jsonb, int) from public, anon, authenticated;
 grant execute on function public.hook_eq___EQ_SECRET__(jsonb) to anon, authenticated;
 grant execute on function public.hook_ma___MA_SECRET__(jsonb) to anon, authenticated;
 grant execute on function public.hook_status___ST_SECRET__() to anon, authenticated;
 
+-- 7. Backfill: re-map every lead that came in through a hook with the current mapping (vendor values win over the
+--    earlier, thinner mapping; anything an agent added under other keys is kept). Idempotent.
+update public.leads l
+   set details = l.details || (x.m -> 'details'),
+       sr22 = l.sr22 or coalesce((x.m ->> 'sr22')::boolean, false),
+       prior_coverage = coalesce(l.prior_coverage, x.m ->> 'prior')
+  from public.lead_intake i
+ cross join lateral (select public.intake_map(i.vendor, i.payload) as m) x
+ where i.lead_id = l.id and i.status = 'inserted';
+
 notify pgrst, 'reload schema';
 
-select 'lead intake ready' as result;
+select 'lead intake ready (rev 2)' as result;

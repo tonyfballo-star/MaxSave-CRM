@@ -1,11 +1,13 @@
 // Generic headless-browser driver for lead-vendor portals. One persistent Edge profile per vendor name,
 // so a session survives between commands. Credentials are passed on the command line, never stored.
 // Usage: node portal.js <vendor> <command> [args]
-//   goto <url>              navigate, then dump
+//   newtab <url>            open in a fresh tab, close the old ones (preferred for EverQuote; see note in code)
+//   goto <url>              navigate in place, then dump (can freeze EverQuote's app; prefer newtab + click)
 //   dump                    print url, title, inputs, buttons, links, visible text
 //   fill <selector> <text>  type into a field
 //   click <selector>        click (CSS selector, or text=Visible Label)
 //   press <key>             keyboard key (Enter, Tab, ...)
+//   dryclick <sel> [host]   click but block and print the write requests it triggers (safe preview of a Save)
 //   eval "<js>"             run JS in the page and print the result
 //   shot [name]             screenshot to SHOT_DIR
 //   net <seconds>           log XHR/fetch requests seen during the next N seconds (method, url, status)
@@ -52,7 +54,20 @@ async function dump(p) {
   });
   console.log(JSON.stringify(info, null, 1));
 }
+// newtab <url>: open the URL in a brand-new tab and close the others, using only the DevTools HTTP API.
+// EverQuote's app freezes a tab after a puppeteer-driven page load; a fresh tab + clicks does not.
+async function newTab(url) {
+  if (!(await version())) await browser().then((b) => b.disconnect());   // only start Edge if it is not running; never attach to a possibly frozen tab
+  const get = (pth, method) => new Promise((res) => { const rq = http.request({ host: '127.0.0.1', port: PORT, path: pth, method: method || 'GET' }, (r) => { let d = ''; r.on('data', (c) => d += c); r.on('end', () => res(d)); }); rq.on('error', () => res('')); rq.end(); });
+  const old = JSON.parse(await get('/json/list') || '[]').filter((t) => t.type === 'page').map((t) => t.id);
+  const made = JSON.parse(await get('/json/new?' + url, 'PUT') || '{}');
+  for (const id of old) await get('/json/close/' + id);
+  await wait(7000);
+  const now = JSON.parse(await get('/json/list') || '[]').filter((t) => t.type === 'page');
+  console.log('new tab:', made.id ? 'ok' : 'FAILED', '|', now.map((t) => t.title.slice(0, 40) + ' @ ' + t.url.slice(0, 110)).join(' ; '));
+}
 (async () => {
+  if (cmd === 'newtab') { await newTab(a1); return; }
   const b = await browser(); const p = await page(b);
   if (cmd === 'goto') { await p.goto(a1, { waitUntil: 'networkidle2', timeout: 90000 }).catch((e) => console.log('goto:', e.message)); await wait(2500); await dump(p); }
   else if (cmd === 'dump') { await dump(p); }
@@ -61,6 +76,25 @@ async function dump(p) {
     if (a1.startsWith('text=')) { const t = a1.slice(5); const ok = await p.evaluate((t) => { const els = [...document.querySelectorAll('button,a,[role=button],[role=tab],[role=menuitem],input[type=submit],span,div,li')].filter((e) => (e.innerText || e.value || '').trim() === t); const el = els[els.length - 1]; if (!el) return false; el.click(); return true; }, t); console.log(ok ? 'clicked ' + a1 : 'NOT FOUND ' + a1); }
     else { await p.waitForSelector(a1, { timeout: 20000 }); await p.click(a1); console.log('clicked', a1); }
     await wait(2500);
+  }
+  // dryclick <selector|text=Label> [hostFilter]: click, but BLOCK every non-GET request the click triggers and print what it
+  // would have sent. Lets us see exactly what a Save would write without writing anything.
+  else if (cmd === 'dryclick') {
+    const hostFilter = a2 || '';
+    const captured = [];
+    await p.setRequestInterception(true);
+    p.on('request', (q) => {
+      const m = q.method(); const u = q.url();
+      if (m !== 'GET' && m !== 'OPTIONS' && (!hostFilter || u.includes(hostFilter))) { captured.push({ method: m, url: u, body: q.postData() || '' }); q.abort('blockedbyclient').catch(() => {}); }
+      else q.continue().catch(() => {});
+    });
+    if (a1.startsWith('text=')) { const t = a1.slice(5); await p.evaluate((t) => { const els = [...document.querySelectorAll('button,a,[role=button],input[type=submit]')].filter((e) => (e.innerText || e.value || '').trim() === t); const el = els[els.length - 1]; if (el) el.click(); }, t); }
+    else await p.click(a1);
+    await wait(6000);
+    await p.setRequestInterception(false).catch(() => {});
+    const redact = (v) => String(v).replace(/(token|key|secret|apikey|cid)=([^&"\s]+)/gi, '$1=<redacted>');
+    console.log(JSON.stringify(captured.map((c) => ({ method: c.method, url: redact(c.url).slice(0, 200), body: (() => { try { return JSON.parse(redact(c.body)); } catch (_) { return redact(c.body).slice(0, 2000); } })() })), null, 1));
+    console.log('blocked requests:', captured.length);
   }
   else if (cmd === 'press') { await p.keyboard.press(a1); await wait(3000); console.log('pressed', a1, '→', p.url()); }
   else if (cmd === 'eval') { const r = await p.evaluate(a1); console.log(typeof r === 'string' ? r : JSON.stringify(r, null, 1)); }

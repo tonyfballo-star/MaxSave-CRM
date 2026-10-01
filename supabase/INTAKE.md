@@ -44,12 +44,27 @@ payload (field names and types only, never customer values).
 
 **Unknown:** September data shows a source called `usmg` (~1,440 leads/month). Tony to say which vendor/portal that is.
 
-## Status
-- [x] Intake SQL written and tested locally (27/27)
-- [ ] Tony runs `supabase/local-intake.sql` in the Supabase SQL Editor
-- [ ] Live test post + health check
-- [ ] Add Generic Webhook to the 4 EverQuote campaigns
-- [ ] MediaAlpha: get past the email code, find its delivery settings, point it at the MediaAlpha URL
-- [ ] Watch the first real payloads (`latest_shape`) and tighten the field mapping
-- [ ] Once webhooks are live, DYL top-up imports must dedupe against webhook leads (they have no `dyl_id`):
-      match on phone + received date before inserting, or stop the top-ups.
+## Status (updated 2026-10-01, 4:30 PM PT)
+- [x] Intake SQL written and tested locally (`node tools/intake-sql-test.mjs`, 46 checks incl. a 150k-row table)
+- [x] Tony ran `supabase/local-intake.sql` (rev 1) in the SQL Editor. First live test hit the anon statement timeout: the duplicate
+      check was an OR across an unindexed jsonb expression on 150k leads. Fixed with two indexed lookups; re-run; live test passes.
+- [x] **EverQuote is LIVE.** Generic Webhook (JSON → EverQuote URL) added to all 4 campaigns on 2026-10-01 ~4:10 PM PT.
+      Ricochet, DYL, PL Rater and the three email recipients are unchanged. First real leads arrived 4:14 PM.
+- [ ] Tony runs rev 2 of `supabase/local-intake.sql` (EverQuote-specific mapping: all vehicles + drivers, license, coverage,
+      credit, home ownership, SR-22, TrustedForm consent URL; includes a backfill of the leads already received).
+- [ ] Delete the test lead "Webhook Test Delete Me" (admin only).
+- [ ] MediaAlpha and "usmg": parked by Tony 2026-10-01 ("EverQuote is the priority").
+- [ ] **DYL top-ups now double up EverQuote leads** (webhook leads have no `dyl_id`). Before any further `dyl-import` run, add
+      phone + received-date matching, or exclude source Everquote for dates after 2026-10-01, or retire the top-ups.
+- [ ] Lead distribution: webhook leads arrive unassigned (visible to every agent). Decide on round-robin / assignment rules.
+
+## EverQuote notes for whoever touches this next
+- Real payload shape: `lead.contact{firstName,lastName,primaryPhone,email,addressLine1,city,state,zipCode}`, `lead.eqLeadId`,
+  `lead.autoInsurance.{drivers[],vehicles[],customerProfile{credit,residence,…}}`, `consent{universal_lead_id,trusted_form_cert_url,…}`.
+- Campaign → Delivery tab is one edit form; Save sends a single PATCH with only `locationSet`, `leadTypes`, `deliverySettings`.
+  Campaign hours/timezone are NOT in that request (the form shows "Eastern" regardless; the saved hours stay Pacific).
+- `tools/vendor/portal.js` has `dryclick`: clicks a button but blocks and prints the write requests, a safe preview of any Save.
+  `tools/vendor/eq-add-webhook.sh <campaignId>` repeats the whole verified sequence (dry-run check, exact-URL check, save, verify).
+- EverQuote's app freezes a headless tab after a puppeteer page load. Use `portal.js everquote newtab <url>` then clicks.
+- Login: Okta, username then password, no MFA prompt so far. Session cookies do not survive closing the browser.
+- Check the feed any time: `node tools/vendor/intake-ping.js status`.
