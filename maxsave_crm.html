@@ -4252,161 +4252,138 @@ function renderLiveView() {
   const selectedThread = selectedPhone && window.TEXT_THREADS ? window.TEXT_THREADS[selectedPhone] : null;
   const textThreadList = window.TEXT_THREADS ? Object.values(window.TEXT_THREADS) : [];
 
-  // Dot: green = on phone, red = not on phone
-  function dotColor(status) { return status === 'on-call' ? '#09C4CD' : '#EF4444'; }
-  function dotGlow(status)  { return status === 'on-call' ? '0 0 0 3px rgba(34,197,94,0.22)' : '0 0 0 3px rgba(239,68,68,0.14)'; }
+  // ---- Phone HUD ----
+  const esc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  const safeN = n => String(n).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const lastSeen = name => {
+    const ts = [...(window.CALL_LOG || []), ...(window.TEXT_LOG || [])].filter(x => x.agentName === name && x.timestamp).map(x => new Date(x.timestamp).getTime()).filter(n => !isNaN(n));
+    if (!ts.length) return '';
+    const d = Math.floor((Date.now() - Math.max(...ts)) / 86400000);
+    return d <= 0 ? 'Today' : d === 1 ? '1 Day ago' : d + ' Days ago';
+  };
+  const dnd = allAgents.filter(a => a.status === 'dnd').length;
+  const offline = allAgents.filter(a => a.status === 'offline').length;
+  const cols = [
+    { key: 'live',      title: 'On live calls', agents: allAgents.filter(a => a.status === 'on-call') },
+    { key: 'available', title: 'Available',     agents: allAgents.filter(a => a.status === 'available' || a.status === 'wrap-up') },
+    { key: 'dnd',       title: 'On DND',        agents: allAgents.filter(a => a.status === 'dnd') },
+    { key: 'offline',   title: 'Offline',       agents: allAgents.filter(a => a.status === 'offline') },
+  ];
+  const agentCard = a => {
+    const onCall = a.status === 'on-call', isMe = me && a.name === me.name, safe = safeN(a.name), ls = lastSeen(a.name);
+    const canDrop = !onCall;
+    return `<div class="hud-agent${isMe ? ' me' : ''}${onCall ? ' live' : ''}${canDrop ? ' drop-zone' : ''}"
+        ${onCall ? `draggable="true" ondragstart="onAgentCallDragStart(event,'${safe}')" ondragend="onAgentCallDragEnd(event)" title="Drag this call to an agent, the parking lot, or Transfer to All"` : ''}
+        ${canDrop ? `ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'agent','${safe}')"` : ''}>
+      <span class="hud-dot" style="background:${liveStatusColor(a.status)}"></span>
+      <div class="hud-agent-body">
+        <div class="hud-agent-name">${esc(a.name)}${isMe ? '<span class="hud-you">YOU</span>' : ''}${a.status === 'wrap-up' ? '<span class="hud-tag">Wrap-up</span>' : ''}</div>
+        ${onCall
+          ? `<div class="hud-call"><span>${a.callDirection === 'outbound' ? '↗' : '↙'}</span><span class="hud-lead">${esc(a.leadName || 'Unknown')}</span><span class="hud-phone">${esc(a.leadPhone || '')}</span><span class="hud-dur">${fmtCallDuration(a.callDuration || 0)}</span></div>`
+          : `<div class="hud-sub">${[a.ext ? 'Ext ' + esc(a.ext) : '', ls].filter(Boolean).join(' · ') || '&nbsp;'}</div>`}
+      </div>
+      ${onCall ? '<span class="hud-grip">⠿</span>' : ''}
+    </div>`;
+  };
+  const slotHTML = (p, i) => `<div class="hud-slot drop-zone${p ? ' full' : ''}" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'park',${i})"
+      ${p ? `draggable="true" ondragstart="onParkDragStart(event,${i})" ondragend="onAgentCallDragEnd(event)" title="Drag onto an agent to hand the call to them"` : ''}>
+    <div class="hud-slot-n">Slot ${i + 1}</div>
+    ${p ? `<div class="hud-slot-lead">${esc(p.lead)}</div><div class="hud-sub">${esc(p.phone || '')}${p.phone ? ' · ' : ''}parked ${esc(p.parkedAt)}</div><button type="button" class="hud-mini" onclick="retrieveParkedCall(${i})">Retrieve</button>` : '<div class="hud-sub hud-empty">empty</div>'}
+  </div>`;
+  const myStatus = me ? me.status : 'offline';
+  const statusBtn = (key, label) => `<button type="button" class="${myStatus === key ? 'on ' + key : ''}" ${me && me.status === 'on-call' ? 'disabled' : ''} onclick="setMyLiveStatus('${key}')">${label}</button>`;
 
   return `
   <style>
     @keyframes liveDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
-    .live-dot { display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;animation:liveDot 1.4s ease-in-out infinite }
-    .agent-card { transition:background 0.12s; }
-    .agent-card[draggable="true"] { cursor:grab; }
-    .agent-card[draggable="true"]:active { cursor:grabbing; }
     .drop-zone { transition:all 0.15s; }
-    .drop-zone.dragover { background:var(--green-50) !important; border-color:var(--green-500) !important; transform:scale(1.02); }
+    .drop-zone.dragover { background:var(--green-50) !important; border-color:var(--green-500) !important; }
+    .hud{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-xl);padding:18px;box-shadow:var(--shadow-sm);margin-bottom:16px}
+    .hud-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+    .hud-title{font-family:var(--font-display);font-weight:600;font-size:20px;color:var(--navy-900);display:flex;align-items:center;gap:9px}
+    .hud-live{width:9px;height:9px;border-radius:50%;background:var(--green-500);animation:liveDot 1.4s ease-in-out infinite}
+    .hud-sub2{font-size:12.5px;color:var(--gray-500);margin-top:2px}
+    .hud-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .hud-lbl{font-size:11px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px}
+    .hud-seg{display:flex;border:1px solid var(--border-strong);border-radius:var(--radius-md);overflow:hidden;background:var(--white)}
+    .hud-seg button{height:38px;padding:0 16px;border:none;background:transparent;font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--navy-900);cursor:pointer}
+    .hud-seg button:disabled{opacity:.5;cursor:not-allowed}
+    .hud-seg button.on{background:var(--green-500);color:#000}
+    .hud-seg button.on.dnd{background:var(--navy-900);color:#fff}
+    .hud-seg button.on.offline{background:var(--gray-300);color:var(--navy-900)}
+    .hud-cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+    .hud-col{background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;display:flex;flex-direction:column;min-width:0}
+    .hud-col-title{font-family:var(--font-display);font-weight:600;font-size:19px;color:var(--navy-900);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .hud-count{min-width:24px;height:24px;padding:0 7px;border-radius:12px;background:var(--white);border:1px solid var(--border-strong);font-family:var(--font-body);font-size:11.5px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;color:var(--navy-900)}
+    .hud-col-body{background:var(--gray-100);border-radius:var(--radius-md);padding:10px;min-height:400px;display:flex;flex-direction:column;gap:8px;flex:1}
+    .hud-col.live .hud-col-body{background:var(--green-50)}
+    .hud-none{margin:auto;font-size:12.5px;color:var(--gray-400)}
+    .hud-agent{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--gray-300);border-radius:var(--radius-md);padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-sm);min-width:0}
+    .hud-agent.me{border-color:var(--green-300);border-left-color:var(--green-500)}
+    .hud-agent.live{border-left-color:var(--green-500);cursor:grab}
+    .hud-agent.live:active{cursor:grabbing}
+    .hud-agent.dragging{opacity:.45}
+    .hud-agent.drop-zone.dragover{box-shadow:0 0 0 3px var(--green-100);transform:scale(1.02)}
+    .hud-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .hud-agent.live .hud-dot{animation:liveDot 1.4s ease-in-out infinite}
+    .hud-agent-body{flex:1;min-width:0}
+    .hud-agent-name{font-family:var(--font-display);font-weight:600;font-size:16px;color:var(--navy-900);display:flex;align-items:center;gap:7px;flex-wrap:wrap;line-height:1.2}
+    .hud-you{font-size:9px;font-weight:500;background:var(--green-500);color:#000;padding:1px 7px;border-radius:var(--radius-full);letter-spacing:.5px}
+    .hud-tag{font-size:9.5px;font-weight:500;background:var(--amber-light);color:var(--amber);padding:1px 7px;border-radius:var(--radius-full)}
+    .hud-sub{font-size:12px;color:var(--gray-500);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hud-empty{color:var(--gray-400);font-style:italic}
+    .hud-call{font-size:12.5px;color:var(--navy-800);margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .hud-lead{font-weight:500}
+    .hud-phone{color:var(--gray-500)}
+    .hud-dur{font-family:var(--font-display);font-weight:600;color:var(--navy-900)}
+    .hud-grip{color:var(--gray-400);font-size:16px;user-select:none;flex-shrink:0}
+    .hud-row2{display:grid;grid-template-columns:300px 1fr;gap:14px;margin-top:14px}
+    .hud-transfer{border:2px dashed var(--border-strong);background:var(--gray-50);border-radius:var(--radius-lg);padding:22px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+    .hud-transfer-ic{font-size:28px;margin-bottom:4px}
+    .hud-transfer-t{font-family:var(--font-display);font-weight:600;font-size:17px;color:var(--navy-900)}
+    .hud-transfer-s{font-size:12px;color:var(--gray-500)}
+    .hud-park{background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px}
+    .hud-park-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+    .hud-park-head b{font-family:var(--font-display);font-weight:600;font-size:17px;color:var(--navy-900)}
+    .hud-slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+    .hud-slot{background:var(--white);border:1.5px dashed var(--border-strong);border-radius:var(--radius-md);padding:10px 12px;min-height:92px;display:flex;flex-direction:column;gap:2px;min-width:0}
+    .hud-slot.full{border-style:solid;border-color:var(--green-300);cursor:grab}
+    .hud-slot-n{font-size:10px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px}
+    .hud-slot-lead{font-weight:500;font-size:13.5px;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+    .hud-mini{margin-top:auto;align-self:flex-start;background:var(--green-500);color:#000;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font-body)}
+    @media (max-width:1100px){.hud-cols{grid-template-columns:repeat(2,minmax(0,1fr))}.hud-row2{grid-template-columns:1fr}.hud-slots{grid-template-columns:repeat(3,minmax(0,1fr))}}
   </style>
 
-  <div class="page-header">
-    <div class="page-header-left">
-      <h1><span class="live-dot" style="background:#09C4CD"></span>Live View</h1>
-      <p>Real-time agent activity &middot; ${onCalls} on calls &middot; ${available} available &middot; ${inboundQ} in queue &middot; Updated 2s ago</p>
-    </div>
-    <div class="btn-group">
-      <select class="filter-select" style="font-family:var(--font-body);font-size:13px" onchange="window.LIVEVIEW_STATE.filterStatus=this.value;refreshLiveView()">
-        <option ${s.filterStatus==='All'?'selected':''}>All</option>
-        <option ${s.filterStatus==='Available'?'selected':''}>Available</option>
-        <option ${s.filterStatus==='On Call'?'selected':''}>On Call</option>
-        <option ${s.filterStatus==='Do Not Disturb'?'selected':''}>Do Not Disturb</option>
-        <option ${s.filterStatus==='Wrap-Up'?'selected':''}>Wrap-Up</option>
-        <option ${s.filterStatus==='Offline'?'selected':''}>Offline</option>
-      </select>
-      <select class="filter-select" style="font-family:var(--font-body);font-size:13px" onchange="window.LIVEVIEW_STATE.filterTeam=this.value;refreshLiveView()">
-        <option ${s.filterTeam==='All'?'selected':''}>All Teams</option>
-        <option ${s.filterTeam==='Alpha'?'selected':''}>Alpha</option>
-        <option ${s.filterTeam==='Beta'?'selected':''}>Beta</option>
-      </select>
-      <button class="btn btn-ghost">⚙ Settings</button>
-      <button class="btn btn-primary">📞 Dial</button>
-    </div>
-  </div>
-
-  <!-- STATS ROW -->
-  <div class="kpi-grid" style="margin-bottom:16px">
-    <div class="kpi-card accent-red"><div class="kpi-label">Currently On Calls</div><div class="kpi-value red">${onCalls}</div><div class="kpi-sub">of ${allAgents.length} agents</div></div>
-    <div class="kpi-card accent"><div class="kpi-label">Available</div><div class="kpi-value green">${available}</div><div class="kpi-sub">Ready to take calls</div></div>
-    <div class="kpi-card accent-amber"><div class="kpi-label">Inbound Queue</div><div class="kpi-value amber">${inboundQ}</div><div class="kpi-sub">Avg wait: 18s</div></div>
-    <div class="kpi-card accent-navy"><div class="kpi-label">Calls Today</div><div class="kpi-value">187</div><div class="kpi-sub">62% answer rate</div></div>
-  </div>
-
-  <!-- AGENT LIST + TRANSFER ZONES -->
-  <div style="display:grid;grid-template-columns:1fr 284px;gap:14px;margin-bottom:16px">
-
-    <!-- AGENT LIST -->
-    <div class="card" style="overflow:hidden">
-      <div class="card-header" style="padding:12px 16px">
-        <div>
-          <div class="card-title">Agents</div>
-          <div style="font-size:11px;color:var(--gray-400);margin-top:2px">${available} available &middot; ${onCalls} on calls &middot; drag a call row to transfer</div>
-        </div>
+  <div class="hud">
+    <div class="hud-bar">
+      <div>
+        <div class="hud-title"><span class="hud-live"></span>Phone HUD</div>
+        <div class="hud-sub2">${onCalls} on calls &middot; ${available} available &middot; ${dnd} on DND &middot; ${offline} offline &middot; drag a live call onto an agent, a parking slot, or Transfer to All</div>
       </div>
-      <div style="padding:0">
-        ${agentList.map(a => {
-          const onCall  = a.status === 'on-call';
-          const isMe    = a.name === me.name;
-          const isAvail = a.status === 'available';
-          const canDrag = onCall || isMe;
-          const dot     = dotColor(a.status);
-          const glow    = dotGlow(a.status);
-          const rowBg   = isMe ? '#E6F9FA' : 'var(--white)';
-          const divBg   = isMe ? '#F0F0F0' : 'var(--gray-50)';
-          const safe    = a.name.replace(/'/g,"\\'");
-          return `
-          <div class="agent-card" ${canDrag ? `draggable="true" ondragstart="onAgentCallDragStart(event,'${safe}');this.style.opacity='0.5'" ondragend="onAgentCallDragEnd(event);this.style.opacity='1'"` : ''}
-            style="display:grid;grid-template-columns:260px 190px 1fr;min-height:68px;border-bottom:1px solid var(--border);background:${rowBg};">
-
-            <!-- Left info -->
-            <div style="display:flex;align-items:center;gap:12px;padding:0 16px;min-width:0;">
-              <div style="font-size:14px;color:${canDrag?'var(--gray-300)':'transparent'};flex-shrink:0;user-select:none;width:14px;text-align:center">⠿</div>
-              <div style="width:10px;height:10px;border-radius:50%;background:${dot};flex-shrink:0;box-shadow:${glow}"></div>
-              <div style="flex:1;min-width:0;">
-                <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
-                  <div style="font-weight:500;font-size:15px;color:var(--navy-900);">${a.name}</div>
-                  <div style="font-size:11px;color:var(--gray-400);">Ext ${a.ext}</div>
-                  ${isMe ? '<span style="font-size:9px;font-weight:500;background:#067C83;color:#fff;padding:1px 7px;border-radius:var(--radius-full);letter-spacing:0.5px;">YOU</span>' : ''}
-                  <span style="font-size:11px;color:var(--gray-500);font-weight:500;">${liveStatusLabel(a.status)}</span>
-                </div>
-                ${onCall ? `<div style="display:flex;align-items:center;gap:7px;margin-top:4px;font-size:12px;color:var(--gray-600);">
-                  <span>${a.callDirection==='outbound'?'↗':'↙'}</span>
-                  <span style="font-weight:500;color:var(--navy-800);">${a.leadName}</span>
-                  <span style="color:var(--gray-400);">${a.leadPhone}</span>
-                  <span style="font-family:var(--font-display);font-weight:500;color:var(--navy-900);">${fmtCallDuration(a.callDuration)}</span>
-                </div>` : ''}
-              </div>
-            </div>
-
-            <!-- Divider box: active call name or status -->
-            <div style="border-left:1.5px solid var(--border);border-right:1.5px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:center;background:${divBg};">
-              ${onCall
-                ? `<div style="text-align:center;"><div style="font-size:9.5px;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;font-weight:500;margin-bottom:3px;">Active Call</div><div style="font-size:13.5px;font-weight:500;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:158px;">${a.leadName}</div></div>`
-                : `<span style="font-size:12px;color:var(--gray-400);font-style:italic;">${liveStatusLabel(a.status)}</span>`
-              }
-            </div>
-
-            <!-- CTA -->
-            <div style="display:flex;gap:6px;align-items:center;justify-content:center;padding:0 16px;">
-              ${onCall ? `
-                <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="alert('Whispering to ${safe}…')">🤫 Whisper</button>
-                <button type="button" class="btn btn-ghost" style="font-size:11px;padding:5px 10px;" onclick="alert('Barging into call…')">🎙 Barge</button>
-              ` : isAvail ? `
-                <button type="button" onclick="alert('${isMe ? 'Dialing…' : 'Calling ' + safe + ' at Ext ' + a.ext + '…'}')" style="background:var(--navy-900);color:#fff;border:none;border-radius:var(--radius-md);padding:7px 16px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:var(--font-body);display:inline-flex;align-items:center;gap:5px;">
-                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 16 16"><path d="M2 2.5C2 2.5 3.5 1 5 1s2.5 1.5 3 3-1 2-1 3 2 2.5 3 3 3-1.5 3-3 1 3 1 3-1.5 2-3 2c-2 0-4-1-6-3S1 5.5 1 3.5C1 2.5 2 2.5 2 2.5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  ${isMe ? 'Dial' : 'Call'}
-                </button>
-              ` : `<span style="font-size:11px;color:var(--gray-300);font-style:italic;">${liveStatusLabel(a.status)}</span>`}
-            </div>
-          </div>`;
-        }).join('')}
+      <div class="hud-tools">
+        <span class="hud-lbl">My status</span>
+        <div class="hud-seg">${statusBtn('available', 'Available')}${statusBtn('dnd', 'DND')}${statusBtn('offline', 'Offline')}</div>
       </div>
     </div>
 
-    <!-- RIGHT PANEL -->
-    <div style="display:flex;flex-direction:column;gap:12px">
+    <div class="hud-cols">
+      ${cols.map(c => `
+      <div class="hud-col ${c.key}">
+        <div class="hud-col-title"><span>${c.title}</span><span class="hud-count">${c.agents.length}</span></div>
+        <div class="hud-col-body">${c.agents.length ? c.agents.map(agentCard).join('') : '<div class="hud-none">No one here</div>'}</div>
+      </div>`).join('')}
+    </div>
 
-      <!-- TRANSFER TO ALL EXTENSIONS -->
-      <div class="card">
-        <div class="card-body" style="padding:12px">
-          <div class="drop-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'all-extensions','All Extensions')"
-            style="padding:16px 14px;background:var(--navy-50);border:2px dashed var(--navy-300);border-radius:var(--radius-md);text-align:center;cursor:pointer">
-            <div style="font-size:22px;margin-bottom:5px">📡</div>
-            <div style="font-weight:500;font-size:13px;color:var(--navy-900)">Transfer to All Extensions</div>
-            <div style="font-size:11px;color:var(--gray-500);margin-top:3px">Drop a call here to broadcast</div>
-          </div>
-        </div>
+    <div class="hud-row2">
+      <div class="hud-transfer drop-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'all-extensions','All Extensions')">
+        <div class="hud-transfer-ic">📡</div>
+        <div class="hud-transfer-t">Transfer to All</div>
+        <div class="hud-transfer-s">Drop a call here to ring every extension</div>
       </div>
-
-      <!-- PARKING LOT -->
-      <div class="card" style="flex:1">
-        <div class="card-header" style="padding:11px 14px">
-          <div class="card-title" style="font-size:13px">🅿 Parking Lot</div>
-          <span style="font-size:10.5px;color:var(--gray-400)">Drop to hold</span>
-        </div>
-        <div style="padding:10px;display:flex;flex-direction:column;gap:6px">
-          ${s.parkingLot.map((p, i) => `
-          <div class="drop-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'park',${i})"
-            style="padding:10px 12px;background:${p?'#F7F7F7':'var(--gray-50)'};border:1.5px ${p?'solid #B5B5B5':'dashed var(--border-strong)'};border-radius:var(--radius-md);display:flex;align-items:center;gap:9px;min-height:44px">
-            <div style="font-size:10px;font-weight:500;color:${p?'#2E2E2E':'var(--gray-400)'};text-transform:uppercase;letter-spacing:0.4px;min-width:40px">Slot ${i+1}</div>
-            ${p ? `
-              <div style="flex:1;min-width:0">
-                <div style="font-size:12px;font-weight:500;color:#1F1F1F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.lead}</div>
-                <div style="font-size:10px;color:#2E2E2E;margin-top:1px">parked ${p.parkedAt}</div>
-              </div>
-              <button type="button" onclick="retrieveParkedCall(${i})" style="background:var(--green-500);color:#000;border:none;border-radius:var(--radius-md);padding:4px 9px;font-size:10.5px;font-weight:500;cursor:pointer;font-family:var(--font-body);white-space:nowrap">Retrieve</button>
-            ` : `<div style="font-size:11px;color:var(--gray-300)">empty</div>`}
-          </div>`).join('')}
-        </div>
+      <div class="hud-park">
+        <div class="hud-park-head"><b>🅿 Parking Lot</b><span class="hud-sub2">Drop a call to hold it &middot; drag a slot onto an agent to hand it over</span></div>
+        <div class="hud-slots">${s.parkingLot.map(slotHTML).join('')}</div>
       </div>
-
     </div>
   </div>
 
@@ -4534,49 +4511,63 @@ function renderLiveView() {
   `;
 }
 
-// Drag handlers for live call transfer
-window._dragCallFrom = null;
+// Drag handlers for live call transfer. A drag carries either a live call from an agent card
+// or a parked call from a parking slot; any agent card, parking slot, or Transfer to All can receive it.
+window._dragCall = null;   // { kind:'agent', name } | { kind:'park', idx }
 function onAgentCallDragStart(ev, agentName) {
-  window._dragCallFrom = agentName;
+  window._dragCall = { kind: 'agent', name: agentName };
   ev.dataTransfer.effectAllowed = 'move';
-  try { ev.dataTransfer.setData('text/plain', agentName); } catch(_) {}
-  ev.currentTarget.style.opacity = '0.5';
+  try { ev.dataTransfer.setData('text/plain', 'agent:' + agentName); } catch (_) {}
+  ev.currentTarget.classList.add('dragging');
+}
+function onParkDragStart(ev, idx) {
+  window._dragCall = { kind: 'park', idx };
+  ev.dataTransfer.effectAllowed = 'move';
+  try { ev.dataTransfer.setData('text/plain', 'park:' + idx); } catch (_) {}
+  ev.currentTarget.classList.add('dragging');
 }
 function onAgentCallDragEnd(ev) {
-  ev.currentTarget.style.opacity = '';
+  ev.currentTarget.classList.remove('dragging');
   document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('dragover'));
+}
+// Resolve whatever is being dragged into { lead, phone, direction, from, release() }.
+function _draggedCall() {
+  const d = window._dragCall; if (!d) return null;
+  const lot = window.LIVEVIEW_STATE.parkingLot;
+  if (d.kind === 'park') {
+    const slot = lot[d.idx]; if (!slot) return null;
+    return { lead: slot.lead, phone: slot.phone, direction: slot.direction || 'outbound', from: 'slot:' + d.idx, release() { lot[d.idx] = null; } };
+  }
+  const from = window.AGENT_LIVE.find(a => a.name === d.name);
+  if (!from || from.status !== 'on-call') return null;
+  return { lead: from.leadName, phone: from.leadPhone, direction: from.callDirection, from: 'agent:' + from.name,
+    release() { from.status = 'wrap-up'; from.callDuration = 0; from.leadName = null; from.leadPhone = null; from.callDirection = null; } };
 }
 function onTransferDrop(ev, type, target) {
   ev.preventDefault();
   ev.currentTarget.classList.remove('dragover');
-  const fromName = window._dragCallFrom || (ev.dataTransfer && ev.dataTransfer.getData('text/plain'));
-  if (!fromName) return;
-  const fromAgent = window.AGENT_LIVE.find(a => a.name === fromName);
-  const isLoggedIn = fromAgent && fromAgent.name === window.LIVEVIEW_STATE.loggedInAgent;
-  if (!fromAgent || (fromAgent.status !== 'on-call' && !isLoggedIn)) return;
-  if (type === 'all-extensions') {
-    alert('📡 Broadcasting ' + fromAgent.leadName + ' to all extensions…');
-    fromAgent.status = 'wrap-up'; fromAgent.callDuration = 0; fromAgent.leadName = null; fromAgent.leadPhone = null; fromAgent.callDirection = null;
-  } else if (type === 'agent') {
-    const toAgent = window.AGENT_LIVE.find(a => a.name === target);
-    if (toAgent) {
-      alert('↪ Transferring ' + fromAgent.leadName + ' to ' + toAgent.name + ' (Ext ' + toAgent.ext + ')');
-      // simulate the transfer
-      toAgent.status = 'on-call';
-      toAgent.callDuration = 1;
-      toAgent.callDirection = fromAgent.callDirection;
-      toAgent.leadName = fromAgent.leadName;
-      toAgent.leadPhone = fromAgent.leadPhone;
-      fromAgent.status = 'wrap-up'; fromAgent.callDuration = 0; fromAgent.leadName = null; fromAgent.leadPhone = null; fromAgent.callDirection = null;
-    }
+  const call = _draggedCall(); window._dragCall = null;
+  if (!call) return;
+  const who = call.lead || call.phone || 'the call';
+  if (type === 'agent') {
+    const to = window.AGENT_LIVE.find(a => a.name === target);
+    if (!to || call.from === 'agent:' + to.name) return;
+    if (to.status === 'on-call') { alert(to.name + ' is already on a call.'); return; }
+    call.release();
+    to.status = 'on-call'; to.callDuration = 1; to.callDirection = call.direction; to.leadName = call.lead; to.leadPhone = call.phone;
+    alert('↪ ' + who + ' transferred to ' + to.name + (to.ext ? ' (Ext ' + to.ext + ')' : ''));
   } else if (type === 'park') {
-    const slotIdx = target;
-    const time = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-    window.LIVEVIEW_STATE.parkingLot[slotIdx] = { lead: fromAgent.leadName, phone: fromAgent.leadPhone, parkedAt: time };
-    alert('🅿 ' + fromAgent.leadName + ' parked in slot ' + (slotIdx+1));
-    fromAgent.status = 'wrap-up'; fromAgent.callDuration = 0; fromAgent.leadName = null; fromAgent.leadPhone = null; fromAgent.callDirection = null;
+    const i = target;
+    if (call.from === 'slot:' + i) return;
+    if (window.LIVEVIEW_STATE.parkingLot[i]) { alert('Slot ' + (i + 1) + ' is already holding a call.'); return; }
+    const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    call.release();
+    window.LIVEVIEW_STATE.parkingLot[i] = { lead: call.lead, phone: call.phone, direction: call.direction, parkedAt: time };
+    alert('🅿 ' + who + ' parked in slot ' + (i + 1));
+  } else if (type === 'all-extensions') {
+    call.release();
+    alert('📡 Ringing all extensions with ' + who + '…');
   }
-  window._dragCallFrom = null;
   refreshLiveView();
 }
 function retrieveParkedCall(idx) {
@@ -4584,13 +4575,16 @@ function retrieveParkedCall(idx) {
   if (!slot) return;
   const me = window.AGENT_LIVE.find(a => a.name === window.LIVEVIEW_STATE.loggedInAgent);
   if (!me) return;
-  me.status = 'on-call';
-  me.callDuration = 1;
-  me.callDirection = 'outbound';
-  me.leadName = slot.lead;
-  me.leadPhone = slot.phone;
+  if (me.status === 'on-call') { alert('Finish your current call first.'); return; }
+  me.status = 'on-call'; me.callDuration = 1; me.callDirection = slot.direction || 'outbound'; me.leadName = slot.lead; me.leadPhone = slot.phone;
   window.LIVEVIEW_STATE.parkingLot[idx] = null;
-  alert('▶ Retrieved ' + slot.lead + ' from parking');
+  alert('▶ Retrieved ' + (slot.lead || slot.phone || 'the call') + ' from slot ' + (idx + 1));
+  refreshLiveView();
+}
+function setMyLiveStatus(status) {
+  const me = window.AGENT_LIVE.find(a => a.name === window.LIVEVIEW_STATE.loggedInAgent);
+  if (!me || me.status === 'on-call') return;
+  me.status = status;
   refreshLiveView();
 }
 
