@@ -1,6 +1,6 @@
 // Puts the Telnyx integration live in one run. Safe to run again.
 //
-//   SUPABASE_ACCESS_TOKEN=sbp_...  NETLIFY_TOKEN=nfp_...  node tools/telnyx-go-live.mjs [--sms] [--voice] [--no-site]
+//   SUPABASE_ACCESS_TOKEN=sbp_...  NETLIFY_TOKEN=nfp_...  node tools/telnyx-go-live.mjs [--sms] [--voice] [--no-site | --site-only]
 //
 // Needs supabase/local-telnyx.json (gitignored: Telnyx API key, webhook secret, IDs) and Node 24+.
 //   1. runs supabase/schema-v4.sql
@@ -22,7 +22,7 @@ const L = JSON.parse(fs.readFileSync(path.join(ROOT, 'supabase/local-telnyx.json
 const HOOK = FN + '?k=' + encodeURIComponent(L.webhook_secret);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const step = (t) => console.log('\n— ' + t);
-if (!SB) { console.error('SUPABASE_ACCESS_TOKEN is not set.'); process.exit(1); }
+if (!SB && !args.has('--site-only')) { console.error('SUPABASE_ACCESS_TOKEN is not set.'); process.exit(1); }
 
 async function sb(method, p, body, raw) {
   const r = await fetch('https://api.supabase.com' + p, { method, headers: raw ? { Authorization: 'Bearer ' + SB } : { Authorization: 'Bearer ' + SB, 'Content-Type': 'application/json' }, body: raw ? body : body === undefined ? undefined : JSON.stringify(body) });
@@ -37,6 +37,8 @@ async function telnyx(method, p, body) {
   return { ok: r.ok, status: r.status, j, t };
 }
 
+const SITE_ONLY = args.has('--site-only');
+if (!SITE_ONLY) {
 step('Supabase project');
 const proj = await sb('GET', '/v1/projects/' + REF);
 console.log('  ' + proj.name + ' (' + proj.region + ', ' + proj.status + ')');
@@ -82,13 +84,15 @@ console.log('  texts + inbound calls now report to the function');
 console.log('  account: balance $' + (bal.j?.data?.balance ?? '?') + ' · browser phone ' + (canCall ? 'allowed' : 'NOT allowed at this account level') + ' · 10DLC ' + (canRegister ? 'allowed' : 'NOT allowed at this account level'));
 
 step('Phone settings');
-const wantSms = args.has('--sms'), wantVoice = args.has('--voice') && canCall;
+const setSms = args.has('--sms'), setVoice = args.has('--voice') && canCall;
 if (args.has('--voice') && !canCall) console.log('  --voice ignored: Telnyx refuses browser-phone logins until the account is upgraded');
-const value = { sms_number: L.number, caller_id: L.number, ...(wantSms ? { sms_enabled: true } : {}), ...(wantVoice ? { voice_enabled: true } : {}) };
+const value = { sms_number: L.number, caller_id: L.number, ...(setSms ? { sms_enabled: true } : {}), ...(setVoice ? { voice_enabled: true } : {}) };
 await sql("insert into public.agency_settings (key, value) values ('telnyx', '" + JSON.stringify({ sms_enabled: false, voice_enabled: false, ...value }).replace(/'/g, "''") + "'::jsonb) on conflict (key) do update set value = public.agency_settings.value || '" + JSON.stringify(value).replace(/'/g, "''") + "'::jsonb, updated_at = now()");
 const saved = await sql("select value from public.agency_settings where key = 'telnyx'");
 console.log('  ' + JSON.stringify(saved[0].value));
 
+}   // end of the Supabase + Telnyx part (skipped with --site-only)
+const wantSms = args.has('--sms'), wantVoice = args.has('--voice');
 if (args.has('--no-site') || !NF) { console.log('\nSite not deployed (' + (NF ? '--no-site' : 'NETLIFY_TOKEN not set') + ').'); }
 else {
   step('Site → Netlify (built from the last commit)');
@@ -100,14 +104,28 @@ else {
   for (const f of fs.readdirSync(path.join(ROOT, 'fonts')).filter((x) => x.endsWith('.ttf'))) fs.copyFileSync(path.join(ROOT, 'fonts', f), path.join(tmp, 'fonts', f));
   if (!fs.readFileSync(path.join(tmp, 'index.html'), 'utf8').includes('msihub-telnyx.js')) throw new Error('The last commit does not load msihub-telnyx.js — commit first.');
   const zip = path.join(os.tmpdir(), 'msihub-site-' + Date.now() + '.zip');
-  execFileSync('C:/Windows/System32/tar.exe', ['-a', '-c', '-f', zip, '-C', tmp, '.']);
-  const r = await fetch('https://api.netlify.com/api/v1/sites/' + NETLIFY_SITE + '/deploys', { method: 'POST', headers: { Authorization: 'Bearer ' + NF, 'Content-Type': 'application/zip' }, body: fs.readFileSync(zip) });
+  // Entry names must be bare ("index.html"), not "./index.html": Netlify reads a "./"-prefixed zip as an empty site.
+  execFileSync('C:/Windows/System32/tar.exe', ['-a', '-c', '-f', zip, ...fs.readdirSync(tmp)], { cwd: tmp });
+  const before = (await (await fetch('https://api.netlify.com/api/v1/sites/' + NETLIFY_SITE, { headers: { Authorization: 'Bearer ' + NF } })).json()).published_deploy?.id;
+  // Uploaded as a draft, checked on its own preview address, and only then published.
+  const r = await fetch('https://api.netlify.com/api/v1/sites/' + NETLIFY_SITE + '/deploys?draft=true', { method: 'POST', headers: { Authorization: 'Bearer ' + NF, 'Content-Type': 'application/zip' }, body: fs.readFileSync(zip) });
   const d = await r.json(); if (!r.ok) throw new Error('Netlify deploy failed: ' + r.status + ' ' + JSON.stringify(d).slice(0, 300));
   let state = d.state;
   for (let i = 0; i < 40 && state !== 'ready' && state !== 'error'; i++) { await sleep(3000); state = (await (await fetch('https://api.netlify.com/api/v1/deploys/' + d.id, { headers: { Authorization: 'Bearer ' + NF } })).json()).state; }
-  const live = await (await fetch(LIVE + '?t=' + Date.now())).text(); const js = await fetch(LIVE + 'msihub-telnyx.js?t=' + Date.now());
-  console.log('  deploy ' + d.id + ' → ' + state + ' · live page loads msihub-telnyx.js: ' + live.includes('msihub-telnyx.js') + ' · file served: ' + js.status);
   fs.rmSync(tmp, { recursive: true, force: true }); fs.rmSync(zip, { force: true });
   if (state !== 'ready') throw new Error('Netlify deploy did not finish: ' + state);
+  const pre = 'https://' + d.id + '--msihub-maxsave.netlify.app/';
+  const check = async (base) => { const out = {}; for (const p of ['', 'msihub-data.js', 'msihub-data-2.js', 'msihub-telnyx.js', 'fonts/TTHoves-Regular.ttf', 'docs/']) { if (p === 'docs/') continue; const x = await fetch(base + p + '?t=' + Date.now()); out[p || 'index'] = x.status; if (!p) out.loadsTelnyx = (await x.text()).includes('msihub-telnyx.js'); } return out; };
+  const draft = await check(pre);
+  console.log('  draft ' + d.id + ': ' + JSON.stringify(draft));
+  if (Object.entries(draft).some(([k, v]) => (k === 'loadsTelnyx' ? v !== true : v !== 200))) {
+    const now = (await (await fetch('https://api.netlify.com/api/v1/sites/' + NETLIFY_SITE, { headers: { Authorization: 'Bearer ' + NF } })).json()).published_deploy?.id;
+    if (before && now !== before) await fetch('https://api.netlify.com/api/v1/sites/' + NETLIFY_SITE + '/deploys/' + before + '/restore', { method: 'POST', headers: { Authorization: 'Bearer ' + NF } });   // it went live anyway: put the old one back
+    throw new Error('Draft looks wrong — not published' + (before && now !== before ? ' (previous deploy ' + before + ' restored)' : '') + '.');
+  }
+  const pub = await fetch('https://api.netlify.com/api/v1/sites/' + NETLIFY_SITE + '/deploys/' + d.id + '/restore', { method: 'POST', headers: { Authorization: 'Bearer ' + NF } });
+  if (!pub.ok) throw new Error('Could not publish the draft: ' + pub.status + ' ' + (await pub.text()).slice(0, 200));
+  await sleep(4000);
+  console.log('  published · live: ' + JSON.stringify(await check(LIVE)));
 }
 console.log('\nDone.' + (wantSms || wantVoice ? '' : ' Texting and calling are still switched off in Settings → Call & Text Settings.'));

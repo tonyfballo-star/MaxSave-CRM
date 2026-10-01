@@ -54,8 +54,8 @@ Read this first when picking up on another machine. Start Claude Code in this fo
 - Repeat procedure for the next top-up: move aside `DYL Export/<Type>/<current month>.csv`, `node dyl.js login …`, `node dyl-pull.js YYYY-MM YYYY-MM all`, `node dyl-parse.js`, `node dyl-import.js --scope=recommended --months=24 --email=<admin> --password=…`. New leads land unassigned; re-run schema-v3.sql section 3 to map `details.dyl_assigned` → agent once agent logins exist.
 - Tony's admin password was set to a temporary value in the SQL editor on 2026-09-30 (not stored here); he should change it. Supabase built-in email does NOT deliver to tonyb@maxsaveins.com ("Error sending recovery email") → Brevo SMTP is now the blocker for any password reset.
 
-## Telnyx — real texting + browser calling (built 2026-10-01, NOT yet connected or deployed)
-Code is written and passes its tests against stand-ins. It has never talked to the real Telnyx API: no API key has been supplied, the function is not deployed, `schema-v4.sql` has not been run, and `site/` has not been rebuilt with it. Until an admin switches it on in Settings, the CRM behaves exactly as before (texts/calls logged only).
+## Telnyx — real texting + browser calling (built and deployed 2026-10-01; switched off until the Telnyx account is upgraded)
+Deployed end to end, but no real text or call has gone through it yet. Until an admin switches it on in Settings, the CRM behaves exactly as before (texts/calls logged only).
 
 **Pieces**
 - `supabase/schema-v4.sql` — delivery columns on `messages`, call details on `call_log`, `profiles.telnyx_*`, `phone_presence`, `sms_opt_outs`.
@@ -77,18 +77,16 @@ Code is written and passes its tests against stand-ins. It has never talked to t
   - Credentials SIP Connection "MaxSaveHub Browser Phones" — `3061331386850870439` ← this is `TELNYX_CONNECTION_ID` (SIP URI calls: internal, outbound profile Default `3061318111610275331`)
 - The account's auto-created connection "Forward Only" was left untouched.
 
-**To connect — only two things need Tony**
-1. **Telnyx account upgrade** at telnyx.com/upgrade (payment card + verification, add funds). Nobody else can do this. It unlocks browser-phone logins and 10DLC registration.
-2. **A Supabase access token** (supabase.com/dashboard/account/tokens → Generate new token). There is no Supabase login on the desktop PC.
+**Went live 2026-10-01 (server side + site), switches still OFF**
+- `node tools/telnyx-go-live.mjs` was run with a Supabase access token Tony generated: `schema-v4.sql` applied, secrets set (`TELNYX_API_KEY`, `TELNYX_CONNECTION_ID`, `TELNYX_WEBHOOK_SECRET`), function `telnyx` deployed (JWT verification off), Telnyx messaging profile + inbound-call application pointed at it, settings row saved with (619) 535-2168 as text number and caller ID, `sms_enabled` / `voice_enabled` false.
+- Verified against the real function with the QA login: non-admin `status` → 403, `token`/`sms` → 409 "turned off", webhook with wrong secret → 401, right secret → 200, presence table writable under RLS.
+- Site deployed (deploy `6abef22b0ee2e25478482986`): includes `msihub-telnyx.js` plus the calendar / Live View / intake work committed since 09-30. Headless sign-in on the live site: loads, 0 errors, phone module dormant.
+- Incident: the first site deploy (23:50 UTC) published an empty site for about two minutes because the zip had `./`-prefixed entries; rolled back to `6abd9006`, script fixed. Site deploys from the script now go up as a draft, are checked on the preview address, and are only then published.
+- Webhooks are authenticated by a secret in the URL (`?k=…`); the Telnyx Public Key is not needed. Local-only values (Telnyx API key, webhook secret, IDs, Supabase token) are in `supabase/local-telnyx.json`, gitignored.
 
-Everything else is one command (safe to re-run):
-`SUPABASE_ACCESS_TOKEN=sbp_… NETLIFY_TOKEN=nfp_… node tools/telnyx-go-live.mjs [--sms] [--voice]`
-It runs `schema-v4.sql`, sets the function secrets, deploys the function with JWT verification off and checks it answers, points the Telnyx messaging profile and inbound-call application at it, saves the phone settings with (619) 535-2168 pre-filled, then builds the site from the last commit and deploys it to Netlify. Texting/calling are only switched on with `--sms` / `--voice`. The script has not been run yet (no token), so its first run is its first test.
+**Still blocked — only Tony can do it:** upgrade the Telnyx account at telnyx.com/upgrade (payment card + verification, add funds; balance is -$0.10). Until then Telnyx refuses browser-phone logins and 10DLC registration, so the switches stay off. Right now a call to (619) 535-2168 hears the "all agents are busy" message and is logged as missed; an inbound text is recorded.
 
-- Webhooks are authenticated by a secret in the URL (`?k=…`, `TELNYX_WEBHOOK_SECRET`), so the Telnyx Public Key is no longer required. If `TELNYX_PUBLIC_KEY` is ever set, signed webhooks are accepted too.
-- Local-only values (Telnyx API key, webhook secret, IDs) are in `supabase/local-telnyx.json`, gitignored.
-- After the upgrade: register the 10DLC brand + campaign by API and attach the number (needs the legal business name, EIN, address and a contact), then re-run with `--sms --voice`.
-- First live test still owed: text own cell and reply; call own cell; call (619) 535-2168 from a cell with the CRM open. Inbound call routing in particular has only been tested against a stand-in.
+**After the upgrade (Claude):** register the 10DLC brand + campaign by API and attach the number (needs legal business name, EIN, address, contact); run `node tools/telnyx-go-live.mjs --no-site --sms --voice`; first live test — text own cell and reply, call own cell, call (619) 535-2168 with the CRM open. Inbound call routing has only been tested against a stand-in.
 
 ## Next steps (agreed order)
 1. Finish live verification, fix anything it finds.
