@@ -3,6 +3,15 @@
 Read this first when picking up on another machine. Start Claude Code in this folder and say:
 "Continue MaxSaveHub from HANDOFF.md."
 
+## Picking up on the laptop (2026-09-30)
+- Clone/pull `tonyfballo-star/MaxSave-CRM`, or let OneDrive sync `OneDrive/Desktop/MSICRM` (the folder lives in OneDrive, so it syncs by itself).
+- `fonts/` (TT Hoves TTFs) is gitignored. OneDrive carries it; if cloning fresh, copy `fonts/` and `site/fonts/` from the desktop PC or build them from `OneDrive/Desktop/FONT/HOVES` (Regular, Medium, Demibold -> `TTHoves-Regular/Medium/DemiBold.ttf`).
+- `cd tools && npm i` (puppeteer-core + csv-parse are in package.json). Needs Microsoft Edge for smoke tests and DYL pulls.
+- Preview: `node tools/preview.js` -> http://localhost:8765/ (fonts need http, not file://).
+- Deploy: rebuild `site/` with the command under "What is live", zip with forward-slash paths, POST to the Netlify API. The token is NOT in the repo; Tony has it.
+- Credentials are never in the repo: Netlify token, DYL login, CRM admin login all come from Tony in chat.
+- **Next agreed project:** real-time lead intake from vendors (EverQuote ~3.4k/mo, USMG ~1.4k/mo). Plan: a Supabase endpoint per vendor that receives their lead-delivery POST and inserts into `leads`; vendors configured to post to it; keep DYL receiving in parallel for a couple of weeks. Not started.
+
 ## What is live
 - **App:** https://msihub-maxsave.netlify.app/ (Netlify project id ba46785b-f37b-4cc9-80c8-b92ddc7dd684). Deploy via API — never by dragging (drops on the Netlify home page create new sites): `curl -X POST https://api.netlify.com/api/v1/sites/<id>/deploys -H 'Authorization: Bearer <token>' -H 'Content-Type: application/zip' --data-binary @msihub-site.zip`. Token is held locally by Claude, not in this repo. Public URL, sign-in required, `noindex`.
 - **Database:** Supabase project `xcwkkynxgojmabxdrngm` (see `supabase/CONFIG.md`). `schema.sql`, `schema-v2.sql` and `schema-v3.sql` have all been run.
