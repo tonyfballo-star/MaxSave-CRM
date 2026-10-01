@@ -1020,6 +1020,14 @@
       PAGE_INIT.leaddetail();
     } catch (e) { fail('Saving appointment', e); }
   };
+  // Calendar: change an appointment status (e.g. Completed). Optimistic update, reverts on failure.
+  M.setAppointmentStatus = async function (id, status) {
+    const a = APPOINTMENTS.find((x) => x.id === id); const prev = a ? a.status : null; if (a) a.status = status;
+    if (typeof refreshCalendar === 'function') refreshCalendar();
+    const patch = { status }; if (status === 'Sold') patch.sold = true;
+    try { await update('appointments', id, patch); await M.reload(['appointments']); }
+    catch (e) { if (a) a.status = prev; if (typeof refreshCalendar === 'function') refreshCalendar(); fail('Updating appointment', e); }
+  };
   window.confirmAddAppt = async function () {
     const l = window._apptSelectedLead; if (!l) { M.toast('Search for and select a lead first.', 'warn'); return; }
     const date = $('addApptDate').value, time = $('addApptTime').value, type = ($('addApptType') || {}).value || 'Follow-Up', notes = ($('addApptNotes') || {}).value || '';

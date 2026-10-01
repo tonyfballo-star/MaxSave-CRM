@@ -3767,12 +3767,22 @@ window.PAGE_INIT.customerdetail = function(){
   document.head.appendChild(st);
 })();
 // ==================== CALENDAR ====================
-window.CALENDAR_STATE = { view:'month', cursor: new Date(), selectedDate: new Date().toISOString().slice(0,10), agentFilter:'All' };
+window.CALENDAR_STATE = { view:'week', weekStart: calShiftISO(calTodayISO(), -2), cursor: new Date(), selectedDate: calTodayISO(), agentFilter:'All', typeFilter:'All', hideCompleted:true, filtersOpen:false };
 
 const APPOINTMENTS = [];
 
+// ---- date helpers (local time; never toISOString, which is UTC) ----
+function calISO(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function calTodayISO(){ return calISO(new Date()); }
+function calParse(iso){ const p = String(iso||'').split('-').map(Number); return new Date(p[0], (p[1]||1)-1, p[2]||1); }
+function calShiftISO(iso, days){ const d = calParse(iso); d.setDate(d.getDate() + days); return calISO(d); }
+function calFmtMDY(iso){ const d = calParse(iso); return (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear(); }
+function calFmtMMDDYYYY(iso){ const d = calParse(iso); return String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0') + '/' + d.getFullYear(); }
+function calIsCompleted(a){ return !!a.sold || a.status === 'Sold' || a.status === 'Cancelled' || a.status === 'Completed'; }
+function calTimeKey(a){ const m = String(a.time||'').match(/(\d+):(\d+)\s*(AM|PM)/i); if (!m) return 0; let h = (+m[1]) % 12; if (/pm/i.test(m[3])) h += 12; return h*60 + (+m[2]); }
+
 function calendarNeedsFollowUp(a) {
-  if (a.sold) return false;
+  if (a.sold || calIsCompleted(a)) return false;
   if (a.status === 'No-Show') return true;
   if (a.status === 'Quoted' && a.daysSinceContact >= 2) return true;
   if (a.daysSinceContact >= 3) return true;
@@ -3780,8 +3790,7 @@ function calendarNeedsFollowUp(a) {
 }
 
 function statusBubbleColor(s) {
-  // Green = contacted (Quoted/Appt Set/Sold); Navy = not yet contacted or no-show
-  return ({ 'New':'#696969','Quoted':'#067C83','Appointment Set':'#2ECFD7','Sold':'#09C4CD','No-Show':'#3D3D3D' })[s] || '#3D3D3D';
+  return ({ 'New':'#696969','Confirmed':'#067C83','Quoted':'#067C83','Appointment Set':'#2ECFD7','Sold':'#09C4CD','Completed':'#09C4CD','No-Show':'#B45309','Cancelled':'#9A9A9A' })[s] || '#3D3D3D';
 }
 
 function refreshCalendar(){
@@ -3793,19 +3802,49 @@ function refreshCalendar(){
   c.appendChild(div);
 }
 
+// ---- navigation ----
+function setCalendarView(v) {
+  const s = window.CALENDAR_STATE; s.view = v;
+  if (v === 'month') { const d = calParse(calShiftISO(s.weekStart, 3)); s.cursor = new Date(d.getFullYear(), d.getMonth(), 1); }   // month that holds the middle of the week
+  refreshCalendar();
+}
 function setCalendarMonth(delta) {
-  const cur = window.CALENDAR_STATE.cursor;
-  window.CALENDAR_STATE.cursor = new Date(cur.getFullYear(), cur.getMonth()+delta, 1);
+  const s = window.CALENDAR_STATE;
+  if (s.view === 'week') s.weekStart = calShiftISO(s.weekStart, 7 * delta);
+  else s.cursor = new Date(s.cursor.getFullYear(), s.cursor.getMonth() + delta, 1);
   refreshCalendar();
 }
 function jumpToToday() {
-  const today = new Date();
-  window.CALENDAR_STATE.cursor = new Date(today.getFullYear(), today.getMonth(), 1);
-  window.CALENDAR_STATE.selectedDate = today.toISOString().slice(0,10);
+  const s = window.CALENDAR_STATE; const t = new Date();
+  s.cursor = new Date(t.getFullYear(), t.getMonth(), 1);
+  s.weekStart = calShiftISO(calTodayISO(), -2);
+  s.selectedDate = calTodayISO();
+  refreshCalendar();
+}
+function setCalendarStart(iso) {
+  if (!iso) return;
+  const s = window.CALENDAR_STATE; const d = calParse(iso);
+  s.weekStart = iso; s.cursor = new Date(d.getFullYear(), d.getMonth(), 1); s.selectedDate = iso;
   refreshCalendar();
 }
 function selectCalendarDay(iso) {
-  window.CALENDAR_STATE.selectedDate = iso;
+  const s = window.CALENDAR_STATE;
+  s.selectedDate = iso; s.weekStart = iso; s.view = 'week';
+  refreshCalendar();
+}
+function toggleCalendarCompleted() { const s = window.CALENDAR_STATE; s.hideCompleted = !s.hideCompleted; refreshCalendar(); }
+function toggleCalendarFilters() { const s = window.CALENDAR_STATE; s.filtersOpen = !s.filtersOpen; refreshCalendar(); }
+function clearCalendarFilters() { const s = window.CALENDAR_STATE; s.agentFilter = 'All'; s.typeFilter = 'All'; refreshCalendar(); }
+function calOpenLeadById(id) {
+  const a = APPOINTMENTS.find(x => x.id === id); if (!a) return;
+  if (a.lead_id && typeof openLeadDetail === 'function') openLeadDetail(a.lead_id);
+  else if (a.customer_id && typeof openCustomerDetail === 'function') openCustomerDetail(a.customer_id);
+}
+function calCall(id) { const a = APPOINTMENTS.find(x => x.id === id); if (a && typeof doCall === 'function') doCall(a.lead || '', a.phone || ''); }
+function calText(id) { const a = APPOINTMENTS.find(x => x.id === id); if (a && typeof openTextThread === 'function') openTextThread(a.lead || '', a.phone || ''); }
+async function markApptDone(id) {
+  if (window.MSIHub && MSIHub.setAppointmentStatus) { await MSIHub.setAppointmentStatus(id, 'Completed'); return; }
+  const a = APPOINTMENTS.find(x => x.id === id); if (a) a.status = 'Completed';
   refreshCalendar();
 }
 
@@ -3958,182 +3997,187 @@ function confirmAddAppt() {
 
 function renderCalendarPage() {
   const s = window.CALENDAR_STATE;
-  const today = new Date(); // 2026-05-02
-  const todayISO = today.toISOString().slice(0,10);
-  const cur = s.cursor;
-  const monthName = cur.toLocaleString('en-US',{month:'long',year:'numeric'});
+  const todayISO = calTodayISO();
+  const esc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 
-  // Filter by agent
+  // Filters
   let appts = APPOINTMENTS.slice();
   if (s.agentFilter !== 'All') appts = appts.filter(a => a.agent === s.agentFilter);
-  const apptsByDate = {};
-  appts.forEach(a => { (apptsByDate[a.date] = apptsByDate[a.date] || []).push(a); });
+  if (s.typeFilter !== 'All') appts = appts.filter(a => (a.type || '') === s.typeFilter);
+  if (s.hideCompleted) appts = appts.filter(a => !calIsCompleted(a));
+  const byDate = {};
+  appts.forEach(a => { (byDate[a.date] = byDate[a.date] || []).push(a); });
+  Object.values(byDate).forEach(list => list.sort((a, b) => calTimeKey(a) - calTimeKey(b)));
+  const types = [...new Set(APPOINTMENTS.map(a => a.type).filter(Boolean))].sort();
+  const agentNames = (typeof AGENTS !== 'undefined' ? AGENTS : []).map(a => a.name);
+  const activeFilters = (s.agentFilter !== 'All' ? 1 : 0) + (s.typeFilter !== 'All' ? 1 : 0);
 
-  // Stats
-  const todaysAppts = appts.filter(a => a.date === todayISO);
-  const startOfWeek = new Date(today); startOfWeek.setDate(today.getDate() - today.getDay());
-  const endOfWeek   = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate()+6);
-  const weekAppts = appts.filter(a => { const d = new Date(a.date); return d >= startOfWeek && d <= endOfWeek; });
-  const followUpAppts = appts.filter(calendarNeedsFollowUp);
-  const soldRate = appts.length > 0 ? Math.round(appts.filter(a=>a.sold).length / appts.length * 100) : 0;
+  const calIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>';
+  const slidersIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h8M16 18h4"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="14" cy="18" r="2"/></svg>';
 
-  // Month grid (6 rows × 7 cols)
+  const card = a => {
+    const c = statusBubbleColor(a.status);
+    const fu = calendarNeedsFollowUp(a);
+    const done = calIsCompleted(a);
+    return `
+      <div class="cal-card${fu ? ' fu' : ''}${done ? ' done' : ''}" style="border-left-color:${c}">
+        <div class="cal-card-top">
+          <span class="cal-time">${esc(a.time)}<span class="cal-dur"> · ${a.dur} min</span></span>
+          <span class="cal-status" style="color:${c};background:${c}18;border-color:${c}55">${esc(a.status)}</span>
+        </div>
+        <div class="cal-name" onclick="calOpenLeadById('${a.id}')" title="Open profile">${esc(a.lead) || '—'}</div>
+        <div class="cal-meta">${esc(a.phone)}${a.type ? ' · ' + esc(a.type) : ''}</div>
+        <div class="cal-meta">${esc(a.agent)}</div>
+        ${a.notes ? `<div class="cal-note">${esc(a.notes)}</div>` : ''}
+        ${fu ? `<div class="cal-fu">⚠ Follow up · ${a.daysSinceContact}d since contact</div>` : ''}
+        <div class="cal-actions">
+          <button type="button" class="cal-btn cal-btn-call" onclick="calCall('${a.id}')">📞 Call</button>
+          <button type="button" class="cal-btn" onclick="calText('${a.id}')">💬 Text</button>
+          ${done ? '' : `<button type="button" class="cal-btn cal-btn-done" title="Mark completed" onclick="markApptDone('${a.id}')">✓ Done</button>`}
+        </div>
+      </div>`;
+  };
+  const empty = `<div class="cal-empty"><span class="cal-empty-ic">${calIcon}</span>No Appointment</div>`;
+
+  // ---- Week view: 7 columns from weekStart ----
+  const days = []; for (let i = 0; i < 7; i++) days.push(calShiftISO(s.weekStart, i));
+  const weekHTML = `<div class="cal-week">${days.map(iso => {
+    const list = byDate[iso] || []; const d = calParse(iso); const isT = iso === todayISO;
+    return `<div class="cal-col${isT ? ' today' : ''}">
+      <div class="cal-col-head">
+        <div><div class="cal-dow">${d.toLocaleDateString('en-US', { weekday: 'long' })}</div><div class="cal-date">${calFmtMMDDYYYY(iso)}</div></div>
+        <div class="cal-count">${list.length}</div>
+      </div>
+      <div class="cal-col-body">
+        ${list.length ? list.map(card).join('') : empty}
+        <button type="button" class="cal-add" onclick="openAddApptModal('${iso}')">+ Add appointment</button>
+      </div>
+    </div>`; }).join('')}</div>`;
+
+  // ---- Month view: full grid ----
+  const cur = s.cursor;
+  const monthName = cur.toLocaleString('en-US', { month: 'long', year: 'numeric' });
   const first = new Date(cur.getFullYear(), cur.getMonth(), 1);
   const startDay = first.getDay();
-  const daysInMonth = new Date(cur.getFullYear(), cur.getMonth()+1, 0).getDate();
-  const prevMonthLast = new Date(cur.getFullYear(), cur.getMonth(), 0).getDate();
+  const daysInMonth = new Date(cur.getFullYear(), cur.getMonth() + 1, 0).getDate();
   const cells = [];
-  for (let i = startDay - 1; i >= 0; i--) cells.push({ d: new Date(cur.getFullYear(), cur.getMonth()-1, prevMonthLast - i), out:true });
-  for (let d = 1; d <= daysInMonth; d++) cells.push({ d: new Date(cur.getFullYear(), cur.getMonth(), d), out:false });
-  while (cells.length < 42) { const idx = cells.length - daysInMonth - startDay + 1; cells.push({ d: new Date(cur.getFullYear(), cur.getMonth()+1, idx), out:true }); }
+  for (let i = startDay; i > 0; i--) cells.push({ d: new Date(cur.getFullYear(), cur.getMonth(), 1 - i), out: true });
+  for (let d = 1; d <= daysInMonth; d++) cells.push({ d: new Date(cur.getFullYear(), cur.getMonth(), d), out: false });
+  while (cells.length % 7 !== 0) { const n = cells.length - startDay - daysInMonth + 1; cells.push({ d: new Date(cur.getFullYear(), cur.getMonth() + 1, n), out: true }); }
+  const monthHTML = `<div class="cal-month">
+    <div class="cal-month-head">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div>${d}</div>`).join('')}</div>
+    <div class="cal-month-grid">${cells.map(c => {
+      const iso = calISO(c.d); const list = byDate[iso] || []; const isT = iso === todayISO;
+      return `<div class="cal-mcell${c.out ? ' out' : ''}${isT ? ' today' : ''}" onclick="selectCalendarDay('${iso}')" title="Open this week">
+        <div class="cal-mcell-top"><span class="cal-mday">${c.d.getDate()}${isT ? '<span class="cal-today-tag">TODAY</span>' : ''}</span>${list.length ? `<span class="cal-count">${list.length}</span>` : ''}</div>
+        ${list.slice(0, 3).map(a => `<div class="cal-mitem" style="border-left-color:${statusBubbleColor(a.status)}" onclick="event.stopPropagation();calOpenLeadById('${a.id}')"><b>${esc(a.time)}</b> ${esc((a.lead || '').split(' ')[0])}</div>`).join('')}
+        ${list.length > 3 ? `<div class="cal-more">+${list.length - 3} more</div>` : ''}
+      </div>`; }).join('')}</div>
+  </div>`;
 
-  const dayCellHTML = cells.map(c => {
-    const iso = c.d.toISOString().slice(0,10);
-    const dayList = (apptsByDate[iso] || []);
-    const isToday = iso === todayISO;
-    const isSelected = iso === s.selectedDate;
-    const followUpCount = dayList.filter(calendarNeedsFollowUp).length;
-    return `<div onclick="selectCalendarDay('${iso}')" style="background:${isSelected?'var(--navy-50)':'var(--white)'};border:1px solid ${isSelected?'var(--navy-600)':'var(--border)'};border-radius:var(--radius-md);padding:8px 9px;min-height:96px;cursor:pointer;opacity:${c.out?'0.40':'1'};transition:all 0.12s;display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden">
-      ${isToday?'<div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--navy-700)"></div>':''}
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="font-family:var(--font-display);font-weight:${isToday?'800':'600'};font-size:13px;color:${isToday?'var(--navy-700)':'var(--navy-900)'};display:flex;align-items:center;gap:5px">
-          ${c.d.getDate()}
-          ${isToday?'<span style="background:var(--navy-700);color:#fff;font-size:8.5px;font-weight:500;padding:1px 5px;border-radius:var(--radius-full);letter-spacing:0.4px">TODAY</span>':''}
-        </div>
-        ${dayList.length>0?`<span style="background:var(--navy-50);color:var(--navy-700);font-size:9.5px;font-weight:500;padding:1px 6px;border-radius:var(--radius-full)">${dayList.length}</span>`:''}
-        ${followUpCount>0?`<span title="${followUpCount} need follow-up" style="background:var(--navy-700);color:#fff;font-size:9px;font-weight:500;padding:1px 5px;border-radius:var(--radius-full)">⚠ ${followUpCount}</span>`:''}
-      </div>
-      ${dayList.slice(0,2).map(a=>`<div style="background:${statusBubbleColor(a.status)}15;color:${statusBubbleColor(a.status)};border-left:3px solid ${statusBubbleColor(a.status)};padding:3px 5px;border-radius:3px;font-size:10.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><strong>${a.time}</strong> ${a.lead.split(' ')[0]}</div>`).join('')}
-      ${dayList.length>2?`<div style="font-size:10px;color:var(--gray-500);font-weight:500">+${dayList.length-2} more</div>`:''}
-    </div>`;
-  }).join('');
-
-  // Selected day appointments panel
-  const selDay = s.selectedDate;
-  const selAppts = (apptsByDate[selDay] || []).sort((a,b) => a.time.localeCompare(b.time));
-  const selDayLabel = new Date(selDay+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-
-  const selPanel = `
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">${selDayLabel}</div>
-          <div style="font-size:11px;color:var(--gray-400);margin-top:2px">${selAppts.length} appointment${selAppts.length===1?'':'s'} · ${selAppts.filter(calendarNeedsFollowUp).length} need follow-up</div>
-        </div>
-        <button class="btn btn-primary" style="font-size:11.5px" onclick="openAddApptModal('${selDay}')">+ Add</button>
-      </div>
-      <div class="card-body" style="padding:14px 16px;max-height:65vh;overflow-y:auto">
-        ${selAppts.length === 0
-          ? `<div style="text-align:center;padding:30px;color:var(--gray-400);font-size:12.5px">No appointments scheduled.<br><span style="opacity:0.7">Click "+ Add" to create one.</span></div>`
-          : selAppts.map(a => {
-              const fu = calendarNeedsFollowUp(a);
-              const c = statusBubbleColor(a.status);
-              return `
-              <div style="border:1px solid ${fu?'var(--navy-200)':'var(--border)'};border-left:4px solid ${c};border-radius:var(--radius-md);padding:12px 13px;margin-bottom:10px;background:${fu?'var(--navy-50)':'var(--white)'}">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
-                  <div style="font-family:var(--font-display);font-weight:500;font-size:14px;color:var(--navy-900)">${a.time} <span style="font-size:11px;color:var(--gray-400);font-weight:500;font-family:var(--font-body)">· ${a.dur} min</span></div>
-                  <span style="background:${c}15;color:${c};border:1px solid ${c}55;padding:2px 9px;border-radius:var(--radius-full);font-size:10.5px;font-weight:500">${a.status}</span>
-                </div>
-                <div class="lead-name-link" style="font-weight:500;font-size:14px;color:var(--navy-900);cursor:pointer" onclick="nav('leaddetail',null)">${a.lead} <span style="font-size:10.5px;color:var(--green-600);font-weight:500">→ View profile</span></div>
-                <div style="font-size:11.5px;color:var(--gray-500);margin-top:1px">${a.phone} · ${a.type}</div>
-
-                ${a.quotedCarrier?`<div style="margin-top:8px;padding:8px 10px;background:var(--green-50);border:1px solid var(--green-200);border-radius:var(--radius-md)">
-                  <div style="font-size:9.5px;font-weight:500;color:var(--green-700);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px">💰 Quoted</div>
-                  <div style="display:flex;gap:11px;flex-wrap:wrap;font-size:11.5px">
-                    <div><span style="color:var(--gray-500)">Carrier:</span> <strong style="color:var(--navy-900)">${a.quotedCarrier}</strong></div>
-                    <div><span style="color:var(--gray-500)">Premium:</span> <strong style="color:var(--navy-900)">${fmt$(a.quotedPremium)}/yr</strong></div>
-                    <div><span style="color:var(--gray-500)">Down:</span> <strong style="color:var(--navy-900)">${fmt$(a.quotedDown)}</strong></div>
-                    <div><span style="color:var(--gray-500)">Broker Fee:</span> <strong style="color:var(--green-700)">${fmt$(a.quotedFee)}</strong></div>
-                  </div>
-                </div>`:''}
-
-                <div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">
-                  <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--green-700);font-weight:500"><span>📞</span><span>${a.calls}</span></div>
-                  <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--navy-600);font-weight:500"><span>💬</span><span>${a.texts}</span></div>
-                  <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray-500)"><span>${a.agent}</span></div>
-                </div>
-
-                ${a.notes?`<div style="font-size:11.5px;color:var(--gray-600);margin-top:8px;padding:7px 10px;background:var(--gray-50);border-radius:var(--radius-sm);font-style:italic">"${a.notes}"</div>`:''}
-
-                ${fu?`<div style="margin-top:9px;padding:7px 10px;background:var(--navy-50);border:1px solid var(--navy-200);border-radius:var(--radius-md);display:flex;align-items:center;gap:7px">
-                  <span style="font-size:14px">⚠️</span>
-                  <div style="flex:1;font-size:11.5px;color:var(--navy-800);font-weight:500">Follow up needed — ${a.daysSinceContact}d since last contact${a.status==='Quoted'?', not yet sold':''}</div>
-                </div>`:''}
-                ${a.sold?`<div style="margin-top:9px;padding:7px 10px;background:var(--green-50);border:1px solid var(--green-200);border-radius:var(--radius-md);font-size:11.5px;color:var(--green-700);font-weight:500">✓ Sold — moved to Customers</div>`:''}
-
-                <div style="display:flex;gap:6px;margin-top:9px">
-                  <button class="btn" style="flex:1;justify-content:center;background:var(--green-500);color:#000;font-size:11.5px;padding:6px 0">📞 Call</button>
-                  <button class="btn" style="flex:1;justify-content:center;background:var(--navy-700);color:#fff;font-size:11.5px;padding:6px 0" onclick="openTextThread()">💬 Text</button>
-                  <button class="btn btn-ghost" style="flex:1;justify-content:center;font-size:11.5px;padding:6px 0" onclick="nav('leaddetail',null)">View Lead</button>
-                </div>
-              </div>`;
-            }).join('')}
-      </div>
-    </div>
-  `;
+  const rangeLabel = s.view === 'week' ? `${calFmtMDY(days[0])} – ${calFmtMDY(days[6])}` : monthName;
+  const pickerValue = s.view === 'week' ? s.weekStart : calISO(cur);
 
   return `
-  <div class="page-header">
-    <div class="page-header-left" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--border-strong);border-radius:var(--radius-md);padding:4px">
-        <button type="button" onclick="setCalendarMonth(-1)" style="background:transparent;border:none;cursor:pointer;padding:5px 11px;font-size:14px;color:var(--gray-600)">‹</button>
-        <div style="font-family:var(--font-display);font-weight:500;font-size:15px;color:var(--navy-900);min-width:140px;text-align:center">${monthName}</div>
-        <button type="button" onclick="setCalendarMonth(1)" style="background:transparent;border:none;cursor:pointer;padding:5px 11px;font-size:14px;color:var(--gray-600)">›</button>
-      </div>
-      <button type="button" class="btn btn-ghost" style="font-size:12px" onclick="jumpToToday()">📍 Today</button>
-      <select class="form-control" style="font-size:12.5px;width:auto;font-family:var(--font-body)" onchange="window.CALENDAR_STATE.agentFilter=this.value;refreshCalendar()">
-        <option ${s.agentFilter==='All'?'selected':''}>All</option>
-        ${AGENTS.map(a=>`<option ${s.agentFilter===a.name?'selected':''}>${a.name}</option>`).join('')}
-      </select>
+  <style>
+    .cal-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+    .cal-range,.cal-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .cal-nav,.cal-today,.cal-filter-btn,.cal-toggle,.cal-range-lbl,.cal-seg{height:42px;border:1px solid var(--border-strong);background:var(--white);border-radius:var(--radius-md);font-family:var(--font-body);color:var(--navy-900)}
+    .cal-nav{width:38px;cursor:pointer;font-size:19px;color:var(--gray-600);line-height:1}
+    .cal-nav:hover,.cal-today:hover,.cal-filter-btn:hover{border-color:var(--green-500)}
+    .cal-today{padding:0 14px;font-size:13.5px;font-weight:500;cursor:pointer}
+    .cal-range-lbl{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;font-family:var(--font-display);font-weight:500;font-size:14.5px;cursor:pointer;min-width:210px}
+    .cal-range-lbl .cal-ic{color:var(--gray-600);display:flex}
+    .cal-range-lbl input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+    .cal-seg{display:flex;overflow:hidden;padding:0}
+    .cal-seg button{height:100%;padding:0 20px;border:none;background:transparent;font-family:var(--font-body);font-size:14px;font-weight:500;color:var(--navy-900);cursor:pointer}
+    .cal-seg button.on{background:var(--green-500);color:#000}
+    .cal-toggle{display:flex;align-items:center;gap:10px;padding:0 14px;font-size:14px;font-weight:500;cursor:pointer;user-select:none}
+    .cal-switch{width:42px;height:24px;border-radius:100px;background:var(--gray-300);position:relative;transition:background .2s;flex-shrink:0}
+    .cal-switch.on{background:var(--green-700)}
+    .cal-knob{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+    .cal-switch.on .cal-knob{transform:translateX(18px)}
+    .cal-filter-btn{display:flex;align-items:center;gap:8px;padding:0 14px;font-size:14px;font-weight:500;cursor:pointer}
+    .cal-filter-btn.on{border-color:var(--green-500);box-shadow:0 0 0 3px var(--green-100)}
+    .cal-filter-badge{background:var(--green-500);color:#000;font-size:10.5px;font-weight:500;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
+    .cal-filters{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px}
+    .cal-filters label{font-size:11px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px}
+    .cal-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;min-height:calc(100vh - 160px)}
+    .cal-col{background:var(--gray-50);border-radius:var(--radius-md);display:flex;flex-direction:column;min-width:0;overflow:hidden}
+    .cal-col.today{background:var(--green-50)}
+    .cal-col-head{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 12px 12px;background:var(--gray-100)}
+    .cal-col.today .cal-col-head{background:var(--green-100)}
+    .cal-dow{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--navy-900)}
+    .cal-date{font-size:12px;color:var(--gray-500);margin-top:2px}
+    .cal-count{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--white);border:1px solid var(--border-strong);font-size:11px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;color:var(--navy-900)}
+    .cal-col-body{padding:10px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1}
+    .cal-empty{background:var(--gray-100);border-radius:var(--radius-md);padding:24px 10px;text-align:center;color:var(--gray-500);font-size:12.5px;display:flex;flex-direction:column;align-items:center;gap:8px}
+    .cal-empty-ic{color:var(--gray-400);display:flex}
+    .cal-card{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--green-500);border-radius:var(--radius-md);padding:10px 11px;box-shadow:var(--shadow-sm);font-size:12px;min-width:0}
+    .cal-card.fu{background:var(--amber-light)}
+    .cal-card.done{opacity:.55}
+    .cal-card-top{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+    .cal-time{font-family:var(--font-display);font-weight:600;font-size:13px;color:var(--navy-900)}
+    .cal-dur{font-family:var(--font-body);font-weight:400;font-size:11px;color:var(--gray-500)}
+    .cal-status{font-size:10px;font-weight:500;padding:1px 7px;border-radius:var(--radius-full);border:1px solid;white-space:nowrap}
+    .cal-name{font-weight:500;font-size:13.5px;color:var(--navy-900);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cal-name:hover{color:var(--green-700);text-decoration:underline}
+    .cal-meta{font-size:11.5px;color:var(--gray-500);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cal-note{font-size:11.5px;color:var(--gray-600);font-style:italic;margin-top:5px}
+    .cal-fu{margin-top:6px;font-size:11px;color:var(--amber);font-weight:500}
+    .cal-actions{display:flex;gap:5px;margin-top:8px}
+    .cal-btn{flex:1;border:1px solid var(--border-strong);background:var(--white);border-radius:8px;padding:5px 2px;font-family:var(--font-body);font-size:11px;font-weight:500;cursor:pointer;color:var(--navy-900);white-space:nowrap}
+    .cal-btn-call{background:var(--green-500);border-color:var(--green-500);color:#000}
+    .cal-btn-done{color:var(--green-700)}
+    .cal-add{margin-top:auto;border:1px dashed var(--border-strong);background:transparent;border-radius:var(--radius-md);padding:8px;font-size:12px;color:var(--gray-500);cursor:pointer;font-family:var(--font-body)}
+    .cal-add:hover{color:var(--green-700);border-color:var(--green-500)}
+    .cal-month{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;box-shadow:var(--shadow-sm)}
+    .cal-month-head{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+    .cal-month-head div{font-size:11px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:.7px;text-align:center;padding:6px 0}
+    .cal-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .cal-mcell{background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:8px;min-height:120px;cursor:pointer;display:flex;flex-direction:column;gap:4px;min-width:0;transition:border-color .12s}
+    .cal-mcell:hover{border-color:var(--green-500)}
+    .cal-mcell.out{opacity:.4}
+    .cal-mcell.today{background:var(--green-50);border-color:var(--green-300)}
+    .cal-mcell-top{display:flex;justify-content:space-between;align-items:center}
+    .cal-mday{font-family:var(--font-display);font-weight:600;font-size:13px;color:var(--navy-900);display:flex;align-items:center;gap:6px}
+    .cal-today-tag{background:var(--green-500);color:#000;font-size:8.5px;font-weight:500;padding:1px 6px;border-radius:var(--radius-full);letter-spacing:.4px}
+    .cal-mitem{background:var(--white);border-left:3px solid;padding:3px 6px;border-radius:4px;font-size:11px;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cal-mitem:hover{background:var(--green-50)}
+    .cal-more{font-size:10.5px;color:var(--gray-500);font-weight:500}
+  </style>
+
+  <div class="cal-bar">
+    <div class="cal-range">
+      <button type="button" class="cal-nav" onclick="setCalendarMonth(-1)" title="${s.view === 'week' ? 'Previous week' : 'Previous month'}">‹</button>
+      <label class="cal-range-lbl" title="Pick a date"><span>${rangeLabel}</span><span class="cal-ic">${calIcon}</span><input type="date" value="${pickerValue}" onchange="setCalendarStart(this.value)"></label>
+      <button type="button" class="cal-nav" onclick="setCalendarMonth(1)" title="${s.view === 'week' ? 'Next week' : 'Next month'}">›</button>
+      <button type="button" class="cal-today" onclick="jumpToToday()">Today</button>
     </div>
-    <div class="btn-group">
-      <button class="btn btn-ghost">⬇ Export</button>
-      <button class="btn btn-ghost">🔗 Sync Google</button>
-      <button class="btn btn-primary">+ New Appointment</button>
+    <div class="cal-tools">
+      <div class="cal-seg"><button type="button" class="${s.view === 'week' ? 'on' : ''}" onclick="setCalendarView('week')">Week</button><button type="button" class="${s.view === 'month' ? 'on' : ''}" onclick="setCalendarView('month')">Month</button></div>
+      <label class="cal-toggle" onclick="toggleCalendarCompleted()"><span>Hide Completed?</span><span class="cal-switch${s.hideCompleted ? ' on' : ''}"><span class="cal-knob"></span></span></label>
+      <button type="button" class="cal-filter-btn${s.filtersOpen || activeFilters ? ' on' : ''}" onclick="toggleCalendarFilters()">Filters ${activeFilters ? `<span class="cal-filter-badge">${activeFilters}</span>` : slidersIcon}</button>
+      <button type="button" class="btn btn-primary" style="height:42px" onclick="openAddApptModal('${todayISO}')">+ New Appointment</button>
     </div>
   </div>
-
-  <!-- STATS ROW -->
-  <div class="kpi-grid" style="margin-bottom:16px">
-    <div class="kpi-card accent"><div class="kpi-label">Today's Appointments</div><div class="kpi-value">${todaysAppts.length}</div><div class="kpi-sub">${todaysAppts.filter(a=>a.status==='Appointment Set').length} confirmed · ${todaysAppts.filter(a=>a.status==='Quoted').length} quoted</div></div>
-    <div class="kpi-card accent-navy"><div class="kpi-label">This Week</div><div class="kpi-value">${weekAppts.length}</div><div class="kpi-sub">${weekAppts.filter(a=>a.sold).length} closed · ${weekAppts.filter(calendarNeedsFollowUp).length} need follow-up</div></div>
-    <div class="kpi-card accent-navy"><div class="kpi-label">Need Follow-Up</div><div class="kpi-value">${followUpAppts.length}</div><div class="kpi-sub">Quoted & not sold yet</div></div>
-    <div class="kpi-card accent"><div class="kpi-label">Booked-to-Sold</div><div class="kpi-value green">${soldRate}%</div><div class="kpi-sub">Conversion this month</div></div>
-  </div>
-
-  <!-- MAIN: GRID + SELECTED DAY -->
-  <div style="display:grid;grid-template-columns:1.7fr 1fr;gap:14px;margin-bottom:16px">
-    <div class="card">
-      <div class="card-header"><div class="card-title">${monthName}</div><span style="font-size:11px;color:var(--gray-400)">Click a day to view appointments</span></div>
-      <div class="card-body" style="padding:14px">
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:8px">
-          ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div style="font-size:10.5px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.7px;text-align:center;padding:6px 0">${d}</div>`).join('')}
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">${dayCellHTML}</div>
-      </div>
-    </div>
-    ${selPanel}
-  </div>
-
-  <!-- NEEDS FOLLOW-UP STRIP -->
-  ${followUpAppts.length > 0 ? `
-  <div class="card">
-    <div class="card-header"><div class="card-title">⚠️ Needs Follow-Up — Across All Dates</div><span style="font-size:11px;color:var(--navy-700);font-weight:500">${followUpAppts.length} appointments</span></div>
-    <div class="card-body" style="padding:14px 16px">
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">
-        ${followUpAppts.slice(0,8).map(a=>`
-          <div style="border:1px solid var(--navy-200);background:var(--navy-50);border-radius:var(--radius-md);padding:11px 13px;cursor:pointer" onclick="selectCalendarDay('${a.date}')">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-              <div style="font-weight:500;font-size:12.5px;color:var(--navy-900)">${a.lead}</div>
-              <span style="font-size:9.5px;font-weight:500;color:var(--navy-700);background:var(--white);padding:1px 7px;border-radius:var(--radius-full);border:1px solid var(--navy-200)">${a.daysSinceContact}d cold</span>
-            </div>
-            <div style="font-size:11px;color:var(--gray-500);margin-bottom:6px">${a.date} at ${a.time} · ${a.status}</div>
-            <div style="display:flex;align-items:center;gap:9px;font-size:11px"><span style="color:var(--green-700);font-weight:500">📞 ${a.calls}</span><span style="color:var(--navy-600);font-weight:500">💬 ${a.texts}</span><span style="color:var(--gray-500);margin-left:auto">${a.agent}</span></div>
-          </div>
-        `).join('')}
-      </div>
-    </div>
+  ${s.filtersOpen ? `
+  <div class="cal-filters">
+    <label>Agent</label>
+    <select class="form-control" style="width:auto" onchange="window.CALENDAR_STATE.agentFilter=this.value;refreshCalendar()">
+      <option ${s.agentFilter === 'All' ? 'selected' : ''}>All</option>
+      ${agentNames.map(n => `<option ${s.agentFilter === n ? 'selected' : ''}>${esc(n)}</option>`).join('')}
+    </select>
+    <label>Type</label>
+    <select class="form-control" style="width:auto" onchange="window.CALENDAR_STATE.typeFilter=this.value;refreshCalendar()">
+      <option ${s.typeFilter === 'All' ? 'selected' : ''}>All</option>
+      ${types.map(t => `<option ${s.typeFilter === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}
+    </select>
+    <button type="button" class="btn btn-ghost" style="font-size:12px" onclick="clearCalendarFilters()">Clear</button>
+    <span style="margin-left:auto;font-size:12px;color:var(--gray-500)">${appts.length} appointment${appts.length === 1 ? '' : 's'} shown</span>
   </div>` : ''}
+
+  ${s.view === 'week' ? weekHTML : monthHTML}
   `;
 }
 
