@@ -889,12 +889,13 @@
         panel('applications', actionRow(pill('addQuote()', '＋ Add Quote', true)) + '<div id="quotesList">' + quotesHTML(L) + '</div>') +
         panel('activities', '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px"><div style="font-size:14px;font-weight:500;color:var(--navy-900)">Calls with this lead <span style="font-weight:400;color:var(--gray-500);font-size:12.5px">· every agent</span></div>' + pill('leadCall(\'' + L.id + '\')', '📞 Call ' + esc(L.first || 'lead'), true) + '</div>' + callRows + '<div style="font-size:14px;font-weight:500;color:var(--navy-900);margin:22px 0 10px">All activity</div><div id="leadTimeline">' + timelineHTML(L) + '</div>') +
         panel('sms',
-          '<div id="ldThread" style="max-height:420px;overflow-y:auto;padding:4px 2px">' + smsRows + '</div>' +
-          '<div style="background:var(--gray-50);border-radius:14px;padding:12px;margin-top:12px">' +
+          '<div style="display:flex;flex-direction:column;height:640px">' +
+          '<div id="ldThread" style="flex:1;min-height:0;overflow-y:auto;padding:4px 2px">' + smsRows + '</div>' +
+          '<div style="background:var(--gray-50);border-radius:14px;padding:12px;margin-top:12px;flex-shrink:0">' +
             '<select id="ldTextTemplate" class="form-control" style="width:100%;font-size:13px;margin-bottom:8px" onchange="MSIHub.applyLeadTextTemplate(this)"><option value="">Insert a template…</option>' + (window.TEMPLATES || []).map((t) => '<option value="' + esc(String(t.id)) + '">' + esc((t.emoji ? t.emoji + ' ' : '') + t.name) + '</option>').join('') + '</select>' +
             '<div style="display:flex;gap:8px;align-items:flex-end"><textarea id="ldTextInput" class="form-control" rows="4" placeholder="Text ' + esc(L.first || 'this lead') + '…" style="flex:1;height:112px;min-height:112px;resize:none;font-family:var(--font-body);font-size:14px;line-height:1.45;border-radius:12px;padding:12px 14px;background:#fff" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();MSIHub.sendLeadText()}"></textarea>' + pill('MSIHub.sendLeadText()', 'Send', true) + '</div>' +
             '<div style="font-size:11.5px;color:var(--gray-400);margin-top:6px">To ' + esc(L.phone || 'no phone on file') + ' &middot; Enter sends, Shift+Enter adds a line</div>' +
-          '</div>') +
+          '</div></div>') +
         panel('task', actionRow(pill('openTaskModal()', '＋ Add Task', true)) + taskRows) +
         panel('appointments', actionRow(pill('openAppointment()', '＋ Set Appointment', true)) + apptRows) +
         panel('files', '<div id="customerFilesList">' + filesHTML(leadFiles(L)) + '</div><div id="customerFileDrop" style="border:2px dashed var(--border-strong);border-radius:12px;padding:16px;text-align:center;cursor:pointer;margin-top:12px" onclick="document.getElementById(\'customerFileInput\').click()" ondragover="event.preventDefault()" ondrop="event.preventDefault();handleCustomerFiles(event.dataTransfer.files)"><div style="font-size:13.5px;color:var(--navy-900)">Add files</div><div style="font-size:12px;color:var(--gray-400);margin-top:2px">Click or drag &amp; drop</div></div><input id="customerFileInput" type="file" multiple style="display:none" onchange="handleCustomerFiles(this.files)">') +
