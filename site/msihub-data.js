@@ -889,7 +889,7 @@
         panel('applications', actionRow(pill('addQuote()', '＋ Add Quote', true)) + '<div id="quotesList">' + quotesHTML(L) + '</div>') +
         panel('activities', '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px"><div style="font-size:14px;font-weight:500;color:var(--navy-900)">Calls with this lead <span style="font-weight:400;color:var(--gray-500);font-size:12.5px">· every agent</span></div>' + pill('leadCall(\'' + L.id + '\')', '📞 Call ' + esc(L.first || 'lead'), true) + '</div>' + callRows + '<div style="font-size:14px;font-weight:500;color:var(--navy-900);margin:22px 0 10px">All activity</div><div id="leadTimeline">' + timelineHTML(L) + '</div>') +
         panel('sms',
-          '<div style="display:flex;flex-direction:column;height:640px">' +
+          '<div style="display:flex;flex-direction:column;height:600px">' +
           '<div id="ldThread" style="flex:1;min-height:0;overflow-y:auto;padding:4px 2px">' + smsRows + '</div>' +
           '<div style="background:var(--gray-50);border-radius:14px;padding:12px;margin-top:12px;flex-shrink:0">' +
             '<select id="ldTextTemplate" class="form-control" style="width:100%;font-size:13px;margin-bottom:8px" onchange="MSIHub.applyLeadTextTemplate(this)"><option value="">Insert a template…</option>' + (window.TEMPLATES || []).map((t) => '<option value="' + esc(String(t.id)) + '">' + esc((t.emoji ? t.emoji + ' ' : '') + t.name) + '</option>').join('') + '</select>' +
