@@ -50,8 +50,8 @@ payload (field names and types only, never customer values).
       check was an OR across an unindexed jsonb expression on 150k leads. Fixed with two indexed lookups; re-run; live test passes.
 - [x] **EverQuote is LIVE.** Generic Webhook (JSON → EverQuote URL) added to all 4 campaigns on 2026-10-01 ~4:10 PM PT.
       Ricochet, DYL, PL Rater and the three email recipients are unchanged. First real leads arrived 4:14 PM.
-- [ ] Tony runs rev 2 of `supabase/local-intake.sql` (EverQuote-specific mapping: all vehicles + drivers, license, coverage,
-      credit, home ownership, SR-22, TrustedForm consent URL; includes a backfill of the leads already received).
+- [x] Rev 2 installed 2026-10-01 (EverQuote mapping: vehicles, drivers, license, coverage, credit, SR-22, TrustedForm consent; backfill ran).
+- [x] Rev 3 installed 2026-10-01 evening (body type, commute, garaging ZIP, primary driver per vehicle, driver first/last/license state; backfill ran). Health check 200, 28 leads received on day one, 0 errors.
 - [ ] Delete the test lead "Webhook Test Delete Me" (admin only).
 - [ ] MediaAlpha and "usmg": parked by Tony 2026-10-01 ("EverQuote is the priority").
 - [ ] **DYL top-ups now double up EverQuote leads** (webhook leads have no `dyl_id`). Before any further `dyl-import` run, add
