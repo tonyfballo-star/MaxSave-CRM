@@ -725,6 +725,26 @@
     chars[8] = r === 10 ? 'X' : String(r);
     return chars.join('');
   };
+  // Text tab composer. Same send path as everywhere else (M.recordText), so Telnyx texting applies when it is on.
+  M.sendLeadText = async function () {
+    const L = M.currentLead(); const input = $('ldTextInput'); const text = input ? input.value.trim() : '';
+    if (!L || !input) return;
+    if (!text) { M.toast('Type a message first.', 'warn'); return; }
+    if (!L.phone) { M.toast('No phone number on file', 'warn'); return; }
+    if (L.doNotCall) { M.toast('This lead is marked DO NOT CALL', 'error'); return; }
+    input.disabled = true;
+    try { await M.recordText({ phone: L.phone, name: L.name, text, lead: L }); input.value = ''; }
+    catch (e) { fail('Sending text', e); }
+    input.disabled = false;
+    if (M.currentLeadId === L.id && window.CURRENT_PAGE === 'leaddetail') PAGE_INIT.leaddetail();
+  };
+  M.applyLeadTextTemplate = function (sel) {
+    const t = (window.TEMPLATES || []).find((x) => String(x.id) === sel.value); const L = M.currentLead(); const inp = $('ldTextInput');
+    sel.value = '';
+    if (!t || !inp || !L) return;
+    inp.value = String(t.text || '').replace(/\{\{\s*name\s*\}\}/gi, L.first || L.name).replace(/\{\{\s*agent\s*\}\}/gi, me().full_name).replace(/\{\{\s*phone\s*\}\}/gi, L.phone || '').replace(/\{\{\s*policy\s*\}\}/gi, L.policy || '');
+    inp.focus();
+  };
   M.leadOpen = M.leadOpen || {};   // which of Vehicles / Coverage / Additional Drivers are expanded on the lead card
   M.toggleLeadSection = function (key) {
     M.leadOpen[key] = !M.leadOpen[key];
@@ -857,7 +877,7 @@
       '<div style="display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--border);font-size:13.5px"><div style="flex:1;min-width:0"><div style="color:var(--navy-900)">' + (c.direction === 'inbound' ? 'Inbound' : 'Outbound') + ' · ' + (c.missed ? 'No answer' : 'Completed') + (c.duration_sec ? ' · ' + Math.floor(c.duration_sec / 60) + 'm ' + (c.duration_sec % 60) + 's' : '') + '</div><div style="font-size:12px;color:var(--gray-500);margin-top:2px">' + fmtStamp(c.created_at) + ' · ' + esc(agentName(c.agent_id)) + '</div></div>' +
       (c.recording_url ? '<button type="button" onclick="MSIHub.playRecording(\'' + c.id + '\')" style="padding:7px 14px;border-radius:9px;border:1px solid var(--green-500);background:var(--green-50);color:var(--green-700);font-family:var(--font-body);font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap">▶ Listen</button>' : '<span style="font-size:12px;color:var(--gray-400);white-space:nowrap">No recording</span>') +
       '</div><div id="ldRec-' + c.id + '"></div>').join('') : emptyBox('No calls with this lead yet');
-    const smsRows = texts.length ? texts.map((m) => '<div style="display:flex;flex-direction:column;align-items:' + (m.direction === 'inbound' ? 'flex-start' : 'flex-end') + ';gap:3px;margin-bottom:10px"><div style="max-width:70%;padding:10px 14px;border-radius:14px;background:' + (m.direction === 'inbound' ? 'var(--gray-100)' : 'var(--blue)') + ';color:' + (m.direction === 'inbound' ? 'var(--navy-900)' : '#fff') + ';font-size:13.5px">' + esc(m.body) + '</div><div style="font-size:11px;color:var(--gray-400)">' + fmtStamp(m.created_at) + '</div></div>').join('') : emptyBox('No text messages yet');
+    const smsRows = texts.length ? texts.slice().sort((x, y) => new Date(x.created_at) - new Date(y.created_at)).map((m) => '<div style="display:flex;flex-direction:column;align-items:' + (m.direction === 'inbound' ? 'flex-start' : 'flex-end') + ';gap:3px;margin-bottom:10px"><div style="max-width:70%;padding:10px 14px;border-radius:14px;background:' + (m.direction === 'inbound' ? 'var(--gray-100)' : 'var(--blue)') + ';color:' + (m.direction === 'inbound' ? 'var(--navy-900)' : '#fff') + ';font-size:13.5px">' + esc(m.body) + '</div><div style="font-size:11px;color:var(--gray-400)">' + fmtStamp(m.created_at) + '</div></div>').join('') : emptyBox('No text messages yet');
     const apptRows = appts.length ? appts.map((a) => '<div style="display:flex;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--border);font-size:13.5px"><span>' + esc(a.date) + ' at ' + esc(a.time) + ' · ' + esc(a.type || 'Follow-Up') + '</span><span style="color:var(--gray-500)">' + esc(a.status) + ' · ' + esc(a.agent) + '</span></div>').join('') : emptyBox('No appointments yet');
     const taskRows = tasks.length ? tasks.map((t) => '<div style="display:flex;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--border);font-size:13.5px;' + (t.done ? 'color:var(--gray-400);text-decoration:line-through' : '') + '"><span>' + esc(t.label) + '</span><span style="color:var(--gray-500)">' + esc(t.dueDate) + ' ' + esc(t.dueTime || '') + '</span></div>').join('') : emptyBox('No tasks yet');
     const actionRow = (inner) => '<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px">' + inner + '</div>';
@@ -868,7 +888,13 @@
         panel('comments', '<div style="background:var(--gray-50);border-radius:14px;padding:16px"><textarea id="noteInput" class="form-control" rows="4" placeholder="Add a note for the team…" style="width:100%;resize:vertical;font-family:var(--font-body);font-size:14px;border-radius:12px;padding:12px 14px;background:#fff"></textarea><div style="display:flex;justify-content:flex-end;margin-top:10px">' + pill('addNote()', 'Save', true) + '</div></div><div id="notesList" style="margin-top:16px">' + (leadNotes(L).length ? notesHTML(leadNotes(L)) : emptyBox('No data')) + '</div>') +
         panel('applications', actionRow(pill('addQuote()', '＋ Add Quote', true)) + '<div id="quotesList">' + quotesHTML(L) + '</div>') +
         panel('activities', '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px"><div style="font-size:14px;font-weight:500;color:var(--navy-900)">Calls with this lead <span style="font-weight:400;color:var(--gray-500);font-size:12.5px">· every agent</span></div>' + pill('leadCall(\'' + L.id + '\')', '📞 Call ' + esc(L.first || 'lead'), true) + '</div>' + callRows + '<div style="font-size:14px;font-weight:500;color:var(--navy-900);margin:22px 0 10px">All activity</div><div id="leadTimeline">' + timelineHTML(L) + '</div>') +
-        panel('sms', actionRow(pill('leadText(\'' + L.id + '\')', '✉ Send Text', true)) + smsRows) +
+        panel('sms',
+          '<div id="ldThread" style="max-height:420px;overflow-y:auto;padding:4px 2px">' + smsRows + '</div>' +
+          '<div style="background:var(--gray-50);border-radius:14px;padding:12px;margin-top:12px">' +
+            '<select id="ldTextTemplate" class="form-control" style="width:100%;font-size:13px;margin-bottom:8px" onchange="MSIHub.applyLeadTextTemplate(this)"><option value="">Insert a template…</option>' + (window.TEMPLATES || []).map((t) => '<option value="' + esc(String(t.id)) + '">' + esc((t.emoji ? t.emoji + ' ' : '') + t.name) + '</option>').join('') + '</select>' +
+            '<div style="display:flex;gap:8px;align-items:flex-end"><textarea id="ldTextInput" class="form-control" rows="2" placeholder="Text ' + esc(L.first || 'this lead') + '…" style="flex:1;resize:vertical;font-family:var(--font-body);font-size:14px;border-radius:12px;padding:10px 14px;background:#fff" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();MSIHub.sendLeadText()}"></textarea>' + pill('MSIHub.sendLeadText()', 'Send', true) + '</div>' +
+            '<div style="font-size:11.5px;color:var(--gray-400);margin-top:6px">To ' + esc(L.phone || 'no phone on file') + ' &middot; Enter sends, Shift+Enter adds a line</div>' +
+          '</div>') +
         panel('task', actionRow(pill('openTaskModal()', '＋ Add Task', true)) + taskRows) +
         panel('appointments', actionRow(pill('openAppointment()', '＋ Set Appointment', true)) + apptRows) +
         panel('files', '<div id="customerFilesList">' + filesHTML(leadFiles(L)) + '</div><div id="customerFileDrop" style="border:2px dashed var(--border-strong);border-radius:12px;padding:16px;text-align:center;cursor:pointer;margin-top:12px" onclick="document.getElementById(\'customerFileInput\').click()" ondragover="event.preventDefault()" ondrop="event.preventDefault();handleCustomerFiles(event.dataTransfer.files)"><div style="font-size:13.5px;color:var(--navy-900)">Add files</div><div style="font-size:12px;color:var(--gray-400);margin-top:2px">Click or drag &amp; drop</div></div><input id="customerFileInput" type="file" multiple style="display:none" onchange="handleCustomerFiles(this.files)">') +
@@ -886,6 +912,7 @@
     if (!body) return;
     window._currentLeadName = L.name;
     body.innerHTML = renderLeadDetailBody(L);
+    const th = $('ldThread'); if (th) th.scrollTop = th.scrollHeight;
     const t = $('page-title'); if (t) t.textContent = 'Lead Detail — ' + L.name;
     const lbl = $('apptLeadNameLabel'); if (lbl) lbl.textContent = L.name;
     const prod = $('nsProd');
