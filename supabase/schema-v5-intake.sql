@@ -5,6 +5,7 @@
 -- The secret is the function name. This file is a TEMPLATE: the real names live in
 -- supabase/local-intake.sql (gitignored). Never commit the filled-in version; the repo is public.
 -- Safe to re-run. Revision 2 (2026-10-01): EverQuote-specific mapping (vehicles, drivers, consent) + backfill.
+-- Revision 3 (2026-10-01): vehicle body type, commute, garaging ZIP, each vehicle's primary driver; driver first/last, license state.
 
 -- 1. Every payload is kept verbatim, so a mapping gap never loses a lead.
 create table if not exists public.lead_intake (
@@ -126,7 +127,11 @@ begin
                'year', case when (v ->> 'year') ~ '^\d{4}$' then to_jsonb((v ->> 'year')::int) else v -> 'year' end,
                'make', initcap(v ->> 'make'), 'model', v ->> 'model', 'trim', v ->> 'submodel', 'vin', v ->> 'vin',
                'use', v ->> 'primaryUse', 'mileage', (v ->> 'annualMileage') || ' mi/yr',
-               'ownership', v ->> 'ownership', 'garaging', v ->> 'garageType', 'coverage', v ->> 'coveragePackage')) order by n)
+               'ownership', v ->> 'ownership', 'garaging', v ->> 'garageType', 'garage_zip', v ->> 'garageZipCode', 'coverage', v ->> 'coveragePackage',
+               'type', v ->> 'vehicleType', 'commute', (v ->> 'oneWayDistance') || ' mi one way',
+               'primary_driver', (select nullif(trim(initcap(coalesce(pd ->> 'firstName', '') || ' ' || coalesce(pd ->> 'lastName', ''))), '')
+                                    from jsonb_array_elements(case when jsonb_typeof(ai -> 'drivers') = 'array' then ai -> 'drivers' else '[]'::jsonb end) pd
+                                   where pd ->> 'driverId' = v ->> 'primaryDriverId' limit 1))) order by n)
         into veh from jsonb_array_elements(ai -> 'vehicles') with ordinality as t(v, n);
     end if;
     if jsonb_typeof(ai -> 'drivers') = 'array' then
@@ -134,7 +139,8 @@ begin
                'name', nullif(trim(initcap(coalesce(x ->> 'firstName', '') || ' ' || coalesce(x ->> 'lastName', ''))), ''),
                'dob', public.intake_date(x ->> 'dateOfBirth'), 'gender', x ->> 'gender', 'marital', x ->> 'maritalStatus',
                'license', x ->> 'licenseStatus', 'relationship', x ->> 'relationshipToContact', 'occupation', x ->> 'occupation',
-               'education', x ->> 'educationLevel',
+               'education', x ->> 'educationLevel', 'first', initcap(x ->> 'firstName'), 'last', initcap(x ->> 'lastName'),
+               'license_state', upper(coalesce(x ->> 'licenseState', x ->> 'stateLicensed')), 'age_licensed', x ->> 'licenseObtainedAge',
                'violations', case when public.intake_bool(x ->> 'licenseEverSuspendedOrRevoked') then 'Suspension' end,
                'sr22', public.intake_bool(x ->> 'sr22Required'), 'primary', n = 1)) order by n),
              coalesce(bool_or(public.intake_bool(x ->> 'sr22Required')), false)
@@ -144,7 +150,7 @@ begin
       'dob', public.intake_date(coalesce(ai #>> '{customerProfile,dateOfBirth}', drv #>> '{0,dob}')),
       'gender', coalesce(ai #>> '{customerProfile,gender}', drv #>> '{0,gender}'),
       'marital', coalesce(ai #>> '{customerProfile,maritalStatus}', drv #>> '{0,marital}'),
-      'license', drv #>> '{0,license}', 'violations', drv #>> '{0,violations}', 'occupation', drv #>> '{0,occupation}',
+      'license', drv #>> '{0,license}', 'license_state', drv #>> '{0,license_state}', 'violations', drv #>> '{0,violations}', 'occupation', drv #>> '{0,occupation}',
       'vehicles', veh, 'drivers', drv, 'driver2', drv -> 1,
       'vehicle', case when veh is not null then jsonb_strip_nulls(jsonb_build_object('year', veh #> '{0,year}', 'make', veh #> '{0,make}', 'model', veh #> '{0,model}', 'vin', veh #> '{0,vin}', 'use', veh #> '{0,use}', 'mileage', veh #> '{0,mileage}')) end,
       'coverage', case when veh #>> '{0,coverage}' is not null then jsonb_build_object('type', veh #>> '{0,coverage}') end,
@@ -237,4 +243,4 @@ update public.leads l
 
 notify pgrst, 'reload schema';
 
-select 'lead intake ready (rev 2)' as result;
+select 'lead intake ready (rev 3)' as result;

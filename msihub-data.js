@@ -707,7 +707,25 @@
 
   // ---- Lead profile: identity card (left) + actions/tabs (right) ----
   M.leadTab = M.leadTab || 'sms';
-  M.leadOpen = M.leadOpen || {};   // which of Vehicles / Coverage / Additional Drivers are expanded on the lead card
+  // Placeholder VIN for quoting when the customer has not given one: the manufacturer's real prefix (WMI), the correct
+  // model-year character and a valid check digit, zeros everywhere else. It is a brand + year stub, never a real vehicle,
+  // and is always shown tagged "Placeholder". Returns '' when the make is unknown or the year is out of range.
+  const VIN_WMI = { toyota: '4T1', honda: '1HG', ford: '1FA', chevrolet: '1G1', chevy: '1G1', nissan: '1N4', hyundai: '5NP', kia: '5XX', jeep: '1C4', dodge: '2C3', ram: '1C6', gmc: '1GT',
+    subaru: '4S3', volkswagen: '3VW', vw: '3VW', bmw: 'WBA', 'mercedes-benz': 'WDD', mercedes: 'WDD', audi: 'WAU', lexus: 'JTH', acura: '19U', infiniti: 'JN1', mazda: 'JM1', mitsubishi: 'JA3',
+    tesla: '5YJ', volvo: 'YV1', buick: '1G4', cadillac: '1G6', chrysler: '2C3', lincoln: '1LN', mini: 'WMW', porsche: 'WP0', 'land rover': 'SAL', jaguar: 'SAJ', fiat: '3C3', scion: 'JTK',
+    pontiac: '1G2', saturn: '1G8', mercury: '1ME', genesis: 'KMT', suzuki: 'JS2', saab: 'YS3', smart: 'WME', hummer: '5GR', rivian: '7FC' };
+  M.placeholderVin = function (make, year) {
+    const wmi = VIN_WMI[String(make || '').trim().toLowerCase()]; const y = parseInt(year, 10);
+    if (!wmi || !(y >= 1981 && y <= 2039)) return '';
+    const yearCode = 'ABCDEFGHJKLMNPRSTVWXY123456789'[(y - 1980) % 30];
+    const chars = (wmi + '00000' + '0' + yearCode + '0' + '000000').split('');           // position 9 (index 8) is the check digit
+    const val = (ch) => (/\d/.test(ch) ? +ch : { A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8, J: 1, K: 2, L: 3, M: 4, N: 5, P: 7, R: 9, S: 2, T: 3, U: 4, V: 5, W: 6, X: 7, Y: 8, Z: 9 }[ch] || 0);
+    const w = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
+    const r = chars.reduce((sum, ch, i) => sum + val(ch) * w[i], 0) % 11;
+    chars[8] = r === 10 ? 'X' : String(r);
+    return chars.join('');
+  };
+  M.leadOpen = M.leadOpen || {};   // which of Vehicles/Coverage and Additional Drivers are expanded on the lead card
   M.toggleLeadSection = function (key) {
     M.leadOpen[key] = !M.leadOpen[key];
     const p = $('ldSec-' + key), b = $('ldSecBtn-' + key), c = $('ldSecChev-' + key);
@@ -763,23 +781,47 @@
     const tasks = (window.TASKS_DATA || []).filter((t) => t.lead_id === L.id || (t.label || '').includes(L.name));
     const panel = (key, inner) => '<div id="ldTab-' + key + '" style="display:' + (tab === key ? 'block' : 'none') + '">' + inner + '</div>';
 
-    // ---- lead card body: five plain rows, then three drop-down sections ----
-    const row = (label, value) => '<div style="display:grid;grid-template-columns:110px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px"><div style="' + LABEL + '">' + label + '</div><div style="color:var(--navy-900);min-width:0;overflow-wrap:anywhere">' + (value == null || value === '' ? '<span style="color:var(--gray-300)">—</span>' : esc(String(value))) + '</div></div>';
+    // ---- lead card body: the lead's own details as plain rows, then two drop-down sections ----
+    const dash = '<span style="color:var(--gray-300)">—</span>';
+    const row = (label, value) => '<div style="display:grid;grid-template-columns:118px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px"><div style="' + LABEL + '">' + label + '</div><div style="color:var(--navy-900);min-width:0;overflow-wrap:anywhere">' + (value == null || value === '' ? dash : esc(String(value))) + '</div></div>';
     const addr = [d.address, [d.city, [d.state, d.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ')].filter(Boolean).join(', ');
+    // "Valid · CA" (older imports keep status and state together) → status, state
+    const lic = (text, stateKey) => { const parts = String(text || '').split(' · '); return { status: parts[0] || '', state: stateKey || (parts[1] && /^[A-Za-z]{2}$/.test(parts[1].trim()) ? parts[1].trim().toUpperCase() : '') }; };
+    const myLic = lic(d.license, d.license_state);
     const none = (text) => '<div style="font-size:13px;color:var(--gray-500);padding:10px 2px 2px">' + text + '</div>';
-    const kv = (pairs) => pairs.filter((p) => p[1] != null && p[1] !== '' && p[1] !== false).map((p) => '<div style="display:grid;grid-template-columns:128px 1fr;gap:10px;padding:5px 0;font-size:13px"><div style="color:var(--gray-500)">' + p[0] + '</div><div style="color:var(--navy-900);min-width:0;overflow-wrap:anywhere">' + esc(String(p[1] === true ? 'Yes' : p[1])) + '</div></div>').join('') || '<div style="font-size:13px;color:var(--gray-400);padding:4px 0">Nothing on file</div>';
+    // every listed field is shown; a missing one reads as the fallback so agents can see what still has to be asked
+    const kv = (pairs, fallback) => pairs.map((p) => { const empty = p[1] == null || p[1] === '' || p[1] === false; return '<div style="display:grid;grid-template-columns:132px 1fr;gap:10px;padding:5px 0;font-size:13px"><div style="color:var(--gray-500)">' + p[0] + '</div><div style="color:' + (empty ? 'var(--gray-400)' : 'var(--navy-900)') + ';min-width:0;overflow-wrap:anywhere">' + (empty ? (fallback || '—') : (p[2] ? p[1] : esc(String(p[1] === true ? 'Yes' : p[1])))) + '</div></div>'; }).join('');
     const block = (title, inner) => '<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:8px"><div style="font-weight:500;font-size:13.5px;color:var(--navy-900);margin-bottom:2px">' + title + '</div>' + inner + '</div>';
     const vehicles = Array.isArray(d.vehicles) && d.vehicles.length ? d.vehicles : (v.year || v.make || v.model || v.vin ? [v] : []);
     const allDrivers = Array.isArray(d.drivers) ? d.drivers : [];
     const extraDrivers = allDrivers.length ? allDrivers.filter((x, i) => !(x.primary || i === 0)) : (d.driver2 ? [d.driver2] : []);
-    const vehHTML = vehicles.length ? vehicles.map((x) => block(esc([x.year, x.make, x.model, x.trim].filter(Boolean).join(' ') || 'Vehicle'), kv([['VIN', x.vin], ['Use', x.use], ['Mileage', x.mileage], ['Ownership', x.ownership], ['Garaging', x.garaging], ['Coverage', x.coverage]]))).join('') : none('No vehicles on file');
-    const covHTML = block('Coverage', kv([['Policy type', L.policy], ['Requested', [cov.type, cov.limits].filter(Boolean).join(' · ')], ['Deductible', cov.deductible], ['Uninsured motorist', cov.um], ['Underinsured', cov.uim], ['Prior coverage', L.priorCoverage], ['Current carrier', d.current_carrier], ['Currently insured', d.insured], ['Policy expires', d.policy_expiration], ['SR-22', L.sr22 ? 'Required' : ''], ['Credit', d.credit], ['Home ownership', d.home_ownership], ['Years at address', d.residency_years], ['Bankruptcy', d.bankruptcy]]));
-    const drvHTML = block('Primary driver · ' + esc(L.name), kv([['Gender', d.gender], ['Marital status', d.marital], ['License', d.license], ['Violations', d.violations], ['Occupation', d.occupation], ['Language', L.language]])) +
-      (extraDrivers.length ? extraDrivers.map((x) => block(esc(x.name || 'Additional driver'), kv([['Date of birth', x.dob], ['Gender', x.gender], ['Marital status', x.marital], ['License', x.license], ['Relationship', x.relationship], ['Occupation', x.occupation], ['Violations', x.violations], ['SR-22', x.sr22 ? 'Required' : '']]))).join('') : none('No additional drivers on file'));
-    const secBtn = (key, label, count) => '<button type="button" id="ldSecBtn-' + key + '" onclick="MSIHub.toggleLeadSection(\'' + key + '\')" style="flex:1 1 auto;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 6px;border:none;border-radius:9px;background:' + (M.leadOpen[key] ? 'var(--green-100)' : 'transparent') + ';color:var(--green-700);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap">' + label + (count ? '<span style="background:var(--green-700);color:var(--green-50);font-size:10.5px;min-width:17px;height:17px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px">' + count + '</span>' : '') + '<span id="ldSecChev-' + key + '" style="font-size:9px">' + (M.leadOpen[key] ? '▲' : '▼') + '</span></button>';
+    const vinCell = (x) => {
+      if (x.vin) return '<span style="font-family:monospace;font-size:12.5px">' + esc(x.vin) + '</span>';
+      const ph = M.placeholderVin(x.make, x.year);
+      return ph ? '<span style="font-family:monospace;font-size:12.5px">' + ph + '</span> <span title="Not provided by the customer. Brand and year stub for quoting only; replace with the real VIN before binding." style="background:var(--amber-light);color:var(--amber);font-size:10px;font-weight:500;padding:1px 7px;border-radius:var(--radius-full);white-space:nowrap">Placeholder</span>'
+                : '<span style="color:var(--gray-400)">Not provided</span>';
+    };
+    const ownLabel = (o) => { const t = String(o || '').toLowerCase(); return !t ? '' : /leas/.test(t) ? 'Leased' : /financ|loan|lien/.test(t) ? 'Financed' : /own|paid/.test(t) ? 'Owned' : o; };
+    const vehHTML = vehicles.length ? vehicles.map((x) => block(esc([x.year, x.make, x.model, x.trim].filter(Boolean).join(' ') || 'Vehicle'), kv([
+        ['Year', x.year], ['Make', x.make], ['Model', [x.model, x.trim].filter(Boolean).join(' ')], ['VIN', vinCell(x), true], ['Body type', x.type],
+        ['Own or lease', ownLabel(x.ownership)], ['Annual mileage', x.mileage], ['Vehicle use', x.use], ['Commute', x.commute], ['Garaging', [x.garaging, x.garage_zip].filter(Boolean).join(' · ')],
+        ['Primary driver', x.primary_driver], ['Coverage requested', x.coverage]], 'Not provided'))).join('') : none('No vehicles on file');
+    // Requested coverage. Comprehensive / Collision are read from an explicit field when there is one, otherwise from wording such as "Full coverage" or "Liability only".
+    const covText = [cov.type].concat(vehicles.map((x) => x.coverage)).filter(Boolean).join(' ');
+    const implied = (explicit) => explicit || (/full|compreh|collision/i.test(covText) ? 'Requested' : /liab|minimum/i.test(covText) ? 'Not requested (liability only)' : '');
+    const covHTML = block('Coverage requested', kv([
+        ['Policy type', L.policy], ['Coverage level', cov.type || (vehicles[0] && vehicles[0].coverage)], ['Bodily injury limits', cov.limits], ['Property damage', cov.property_damage],
+        ['Comprehensive', implied(cov.comprehensive)], ['Collision', implied(cov.collision)], ['Deductible', cov.deductible], ['Uninsured motorist', cov.um], ['Underinsured motorist', cov.uim],
+        ['Medical payments', cov.med_pay], ['Towing / roadside', cov.towing], ['Rental car', cov.rental], ['SR-22', L.sr22 ? 'Required' : 'Not required', false]], 'Not specified')) +
+      block('Insurance history', kv([['Current carrier', d.current_carrier], ['Prior coverage', L.priorCoverage], ['Currently insured', d.insured], ['Policy expires', d.policy_expiration], ['Credit', d.credit], ['Home ownership', d.home_ownership], ['Years at address', d.residency_years]], 'Not provided'));
+    const drvHTML = extraDrivers.length ? extraDrivers.map((x) => { const nm = String(x.name || '').trim().split(/\s+/); const xl = lic(x.license, x.license_state);
+        return block(esc(x.name || 'Additional driver'), kv([
+          ['First name', x.first || nm[0]], ['Last name', x.last || nm.slice(1).join(' ')], ['Gender', x.gender], ['Date of birth', x.dob], ['Marital status', x.marital],
+          ['License status', xl.status], ['License state', xl.state], ['Violations', x.violations || 'None reported'], ['Relationship', x.relationship], ['Occupation', x.occupation], ['SR-22', x.sr22 ? 'Required' : 'Not required']], 'Not provided')); }).join('') : none('No additional drivers on file');
+    const secBtn = (key, label, count) => '<button type="button" id="ldSecBtn-' + key + '" onclick="MSIHub.toggleLeadSection(\'' + key + '\')" style="flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 6px;border:none;border-radius:9px;background:' + (M.leadOpen[key] ? 'var(--green-100)' : 'transparent') + ';color:var(--green-700);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap">' + label + (count ? '<span style="background:var(--green-700);color:var(--green-50);font-size:10.5px;min-width:17px;height:17px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px">' + count + '</span>' : '') + '<span id="ldSecChev-' + key + '" style="font-size:9px">' + (M.leadOpen[key] ? '▲' : '▼') + '</span></button>';
     const secPanel = (key, inner) => '<div id="ldSec-' + key + '" style="display:' + (M.leadOpen[key] ? 'block' : 'none') + ';background:var(--green-50);border-radius:12px;padding:2px 10px 10px;margin-top:8px">' + inner + '</div>';
-    const sections = '<div style="display:flex;gap:4px;background:var(--green-50);border-radius:12px;padding:4px;margin-top:16px">' + secBtn('vehicles', 'Vehicles', vehicles.length) + secBtn('coverage', 'Coverage') + secBtn('drivers', 'Additional Drivers', extraDrivers.length) + '</div>' +
-      secPanel('vehicles', vehHTML) + secPanel('coverage', covHTML) + secPanel('drivers', drvHTML);
+    const sections = '<div style="display:flex;gap:4px;background:var(--green-50);border-radius:12px;padding:4px;margin-top:16px">' + secBtn('vehicles', 'Vehicles/Coverage', vehicles.length) + secBtn('drivers', 'Additional Drivers', extraDrivers.length) + '</div>' +
+      secPanel('vehicles', vehHTML + covHTML) + secPanel('drivers', drvHTML);
 
     const left =
       '<div style="' + CARD + ';padding:22px 22px 18px">' +
@@ -794,8 +836,9 @@
         (L.doNotCall ? '<div style="margin-top:8px;font-size:13px;color:#DC2626">Do Not Call: this lead asked not to be contacted</div>' : '') +
         '<div style="height:1px;background:var(--border);margin:16px 0"></div>' +
         row('Name', L.name) +
-        '<div style="display:grid;grid-template-columns:110px 1fr auto;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px;align-items:center"><div style="' + LABEL + '">Phone</div><div style="color:var(--navy-900)">' + esc(L.phone || '—') + '</div><button title="Call" onclick="leadCall(\'' + L.id + '\')" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--gray-600)">📞</button></div>' +
+        '<div style="display:grid;grid-template-columns:118px 1fr auto;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px;align-items:center"><div style="' + LABEL + '">Phone</div><div style="color:var(--navy-900)">' + esc(L.phone || '—') + '</div><button title="Call" onclick="leadCall(\'' + L.id + '\')" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--gray-600)">📞</button></div>' +
         row('Email', L.email) + row('Address', addr) + row('Date of Birth', d.dob) +
+        row('Gender', d.gender) + row('Marital Status', d.marital) + row('License Status', myLic.status) + row('License State', myLic.state) + row('Violations', d.violations || 'None reported') +
         sections +
         '<div style="margin-top:18px"><button onclick="setDisposition(\'Bad Lead\')" title="Mark as bad lead" style="padding:10px 22px;border-radius:10px;border:none;background:#FEE2E2;color:#DC2626;font-size:15px;cursor:pointer">🗑</button></div>' +
       '</div>';
@@ -910,7 +953,7 @@
     return { label: L.name, fields: [
       ['Lead Name', esc(L.name)], ['Date of Birth', esc(d.dob || '—')], ['Gender / Marital', esc((d.gender || '—') + ' · ' + (d.marital || '—'))],
       ['Address', esc([d.address, d.city, (d.state || 'CA') + ' ' + (d.zip || '')].filter(Boolean).join(', ') || '—')], ['Phone / Email', esc(L.phone + (L.email ? ' · ' + L.email : ''))],
-      ['License', esc(d.license || '—')], ['Vehicle', esc([v.year, v.make, v.model].filter(Boolean).join(' ') || '—')], ['VIN', esc(v.vin || '—')],
+      ['License', esc(d.license || '—')], ['Vehicle', esc([v.year, v.make, v.model].filter(Boolean).join(' ') || '—')], [v.vin ? 'VIN' : 'VIN (placeholder)', esc(v.vin || M.placeholderVin(v.make, v.year) || '—')],
       ['Violations', esc(d.violations || '—')], ['Prior Coverage', esc(L.priorCoverage || '—')], ['Requested Coverage', esc([cov.type, cov.limits].filter(Boolean).join(' · ') || L.policy)],
       ['SR-22 Required', L.sr22 ? 'Yes' : 'No'], ['Language', esc(L.language)] ] };
   };
