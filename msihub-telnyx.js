@@ -366,9 +366,10 @@
     const secs = c.answeredAt ? Math.max(0, Math.round((Date.now() - c.answeredAt) / 1000)) : 0;
     if (c.dir === 'outbound') logEnd(c, secs);
     hudEnd(); renderPhone(); beat();
-    const cause = String((c.sdk && c.sdk.cause) || '').replace(/_/g, ' ').toLowerCase();
+    // Telnyx's own explanation when it has one (e.g. an account restriction), otherwise the generic cause.
+    const why = String((c.sdk && c.sdk.sipReason) || '').trim() || String((c.sdk && c.sdk.cause) || '').replace(/_/g, ' ').toLowerCase();
     if (c.answeredAt) M.toast('Call ended · ' + fmtSecs(secs));
-    else if (c.dir === 'outbound') M.toast('Call did not connect' + (cause && cause !== 'normal clearing' ? ' (' + cause + ')' : ''), 'warn');
+    else if (c.dir === 'outbound') M.toast('Call did not connect' + (why && why !== 'normal clearing' ? ': ' + why : ''), 'warn');
   }
 
   T.answer = function () { const c = P.call; if (!c || c.dir !== 'inbound' || c.accepted) return; c.accepted = true; c.label = 'Connecting…'; stopRing(); try { c.sdk.answer(); } catch (e) { H.fail('Answering', e); finishCall(); return; } renderPhone(); };
