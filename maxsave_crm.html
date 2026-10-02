@@ -4221,6 +4221,9 @@ function liveStatusLabel(s) {
 }
 
 function refreshLiveView() {
+  // Hold redraws while a call is being dragged (a redraw would pull the card out from under the cursor); flushed on drop/dragend.
+  if (window._dragCall && Date.now() - (window._dragCall.t || 0) < 60000) { window._hudRefreshPending = true; return; }
+  window._hudRefreshPending = false;
   const c = document.getElementById('content'); if (!c) return;
   c.innerHTML = '';
   const div = document.createElement('div');
@@ -4282,7 +4285,7 @@ function renderLiveView() {
     const canDrop = !onCall;
     return `<div class="hud-agent${isMe ? ' me' : ''}${onCall ? ' live' : ''}${canDrop ? ' drop-zone' : ''}"
         ${onCall ? `draggable="true" ondragstart="onAgentCallDragStart(event,'${safe}')" ondragend="onAgentCallDragEnd(event)" title="Drag this call to an agent, the parking lot, or Transfer to All"` : ''}
-        ${canDrop ? `ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'agent','${safe}')"` : ''}>
+        ${canDrop ? `ondragenter="event.preventDefault()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'agent','${safe}')"` : ''}>
       <span class="hud-dot" style="background:${liveStatusColor(a.status)}"></span>
       <div class="hud-agent-body">
         <div class="hud-agent-name">${esc(a.name)}${isMe ? '<span class="hud-you">YOU</span>' : ''}${a.status === 'wrap-up' ? '<span class="hud-tag">Wrap-up</span>' : ''}${a.status === 'dnd' ? '<span class="hud-tag dnd">DND</span>' : ''}</div>
@@ -4295,7 +4298,7 @@ function renderLiveView() {
       ${onCall ? '<span class="hud-grip">⠿</span>' : ''}
     </div>`;
   };
-  const slotHTML = (p, i) => `<div class="hud-slot drop-zone${p ? ' full' : ''}" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'park',${i})"
+  const slotHTML = (p, i) => `<div class="hud-slot drop-zone${p ? ' full' : ''}" ondragenter="event.preventDefault()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'park',${i})"
       ${p ? `draggable="true" ondragstart="onParkDragStart(event,${i})" ondragend="onAgentCallDragEnd(event)" title="Drag onto an agent to hand the call to them"` : ''}>
     <div class="hud-slot-n">Slot ${i + 1}</div>
     ${p ? `<div class="hud-slot-lead">${esc(p.lead)}</div><div class="hud-sub">${esc(p.phone || '')}${p.phone ? ' · ' : ''}parked ${esc(p.parkedAt)}</div><button type="button" class="hud-mini" onclick="retrieveParkedCall(${i})">Retrieve</button>` : '<div class="hud-sub hud-empty">empty</div>'}
@@ -4325,7 +4328,7 @@ function renderLiveView() {
     .hud-col{background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;display:flex;flex-direction:column;min-width:0}
     .hud-col-title{font-family:var(--font-display);font-weight:600;font-size:19px;color:var(--navy-900);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
     .hud-count{min-width:24px;height:24px;padding:0 7px;border-radius:12px;background:var(--white);border:1px solid var(--border-strong);font-family:var(--font-body);font-size:11.5px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;color:var(--navy-900)}
-    .hud-col-body{background:var(--gray-100);border-radius:var(--radius-md);padding:10px;min-height:400px;display:flex;flex-direction:column;gap:8px;flex:1}
+    .hud-col-body{background:var(--gray-100);border-radius:var(--radius-md);padding:10px;height:clamp(170px,calc(100vh - 480px),400px);overflow-y:auto;display:flex;flex-direction:column;gap:8px}
     .hud-col.mine .hud-col-body{background:var(--green-50)}
     .hud-none{margin:auto;font-size:12.5px;color:var(--gray-400)}
     .hud-agent{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--gray-300);border-radius:var(--radius-md);padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-sm);min-width:0}
@@ -4362,6 +4365,8 @@ function renderLiveView() {
     .hud-slot-lead{font-weight:500;font-size:13.5px;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
     .hud-mini{margin-top:auto;align-self:flex-start;background:var(--green-500);color:#000;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font-body)}
     .hud-tag.dnd{background:#111;color:#fff}
+    .hud.dragging-call .hud-col.available .hud-agent.drop-zone,.hud.dragging-call .hud-slot:not(.full),.hud.dragging-call .hud-transfer{outline:2px dashed var(--green-500);outline-offset:2px}
+    .hud.dragging-call .hud-park{border-color:var(--green-500)}
     .hud-col.mine .hud-agent{flex-wrap:wrap}
     .hud-col.mine .hud-end{order:5;flex-basis:100%;padding:8px 10px;font-size:12px}
     .hud-mon{display:flex;gap:5px;margin-top:8px}
@@ -4407,13 +4412,13 @@ function renderLiveView() {
     </div>
 
     <div class="hud-row2">
-      <div class="hud-transfer drop-zone" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'all-extensions','All Extensions')">
+      <div class="hud-transfer drop-zone" ondragenter="event.preventDefault()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'all-extensions','All Extensions')">
         <div class="hud-transfer-ic">📡</div>
         <div class="hud-transfer-t">Transfer to All</div>
         <div class="hud-transfer-s">Drop a call here to ring every extension</div>
       </div>
-      <div class="hud-park">
-        <div class="hud-park-head"><b>🅿 Parking Lot</b><span class="hud-sub2">Drop a call to hold it &middot; drag a slot onto an agent to hand it over</span></div>
+      <div class="hud-park drop-zone" ondragenter="event.preventDefault()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'park-any')">
+        <div class="hud-park-head"><b>🅿 Parking Lot</b><span class="hud-sub2">Drop a call anywhere here to hold it &middot; drag a slot onto an agent to hand it over</span></div>
         <div class="hud-slots">${s.parkingLot.map(slotHTML).join('')}</div>
       </div>
     </div>
@@ -4577,22 +4582,27 @@ if (!window._hudTick) window._hudTick = setInterval(() => {
 // A drag carries either a live call from an agent card or a parked call from a parking slot;
 // any agent card, parking slot, or Transfer to All can receive it.
 window._dragCall = null;   // { kind:'agent', name } | { kind:'park', idx }
+function hudDragBegin(ev) { const h = document.querySelector('.hud'); if (h) h.classList.add('dragging-call'); ev.currentTarget.classList.add('dragging'); }
+function hudDragFinish() {
+  window._dragCall = null;
+  const h = document.querySelector('.hud'); if (h) h.classList.remove('dragging-call');
+  document.querySelectorAll('.drop-zone.dragover').forEach(z => z.classList.remove('dragover'));
+  document.querySelectorAll('.dragging').forEach(z => z.classList.remove('dragging'));
+  if (window._hudRefreshPending) refreshLiveView();
+}
 function onAgentCallDragStart(ev, agentName) {
-  window._dragCall = { kind: 'agent', name: agentName };
+  window._dragCall = { kind: 'agent', name: agentName, t: Date.now() };
   ev.dataTransfer.effectAllowed = 'move';
   try { ev.dataTransfer.setData('text/plain', 'agent:' + agentName); } catch (_) {}
-  ev.currentTarget.classList.add('dragging');
+  hudDragBegin(ev);
 }
 function onParkDragStart(ev, idx) {
-  window._dragCall = { kind: 'park', idx };
+  window._dragCall = { kind: 'park', idx, t: Date.now() };
   ev.dataTransfer.effectAllowed = 'move';
   try { ev.dataTransfer.setData('text/plain', 'park:' + idx); } catch (_) {}
-  ev.currentTarget.classList.add('dragging');
+  hudDragBegin(ev);
 }
-function onAgentCallDragEnd(ev) {
-  ev.currentTarget.classList.remove('dragging');
-  document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('dragover'));
-}
+function onAgentCallDragEnd(ev) { hudDragFinish(); }
 // Resolve whatever is being dragged into { lead, phone, direction, startedAt, from, release() }.
 function _draggedCall() {
   const d = window._dragCall; if (!d) return null;
@@ -4606,10 +4616,17 @@ function _draggedCall() {
   return { lead: from.leadName, phone: from.leadPhone, direction: from.callDirection, startedAt: from.callStartedAt || (Date.now() - (from.callDuration || 0) * 1000), from: 'agent:' + from.name, release() { hudWrapUp(from.name); } };
 }
 function onTransferDrop(ev, type, target) {
-  ev.preventDefault();
-  ev.currentTarget.classList.remove('dragover');
-  const call = _draggedCall(); window._dragCall = null;
+  ev.preventDefault(); ev.stopPropagation();
+  const src = window._dragCall;
+  const call = _draggedCall();
+  hudDragFinish();
   if (!call) return;
+  if (type === 'park-any') {                      // dropped on the parking lot itself rather than on a slot: use the first free slot
+    if (src && src.kind === 'park') return;       // a parked call dropped back on the lot stays where it is
+    const free = window.LIVEVIEW_STATE.parkingLot.findIndex(p => !p);
+    if (free < 0) { alert('The parking lot is full.'); return; }
+    type = 'park'; target = free;
+  }
   const who = call.lead || call.phone || 'the call';
   if (type === 'agent') {
     const to = window.AGENT_LIVE.find(a => a.name === target);
