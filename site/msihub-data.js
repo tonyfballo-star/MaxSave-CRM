@@ -725,7 +725,7 @@
     chars[8] = r === 10 ? 'X' : String(r);
     return chars.join('');
   };
-  M.leadOpen = M.leadOpen || {};   // which of Vehicles/Coverage and Additional Drivers are expanded on the lead card
+  M.leadOpen = M.leadOpen || {};   // which of Vehicles / Coverage / Additional Drivers are expanded on the lead card
   M.toggleLeadSection = function (key) {
     M.leadOpen[key] = !M.leadOpen[key];
     const p = $('ldSec-' + key), b = $('ldSecBtn-' + key), c = $('ldSecChev-' + key);
@@ -781,7 +781,7 @@
     const tasks = (window.TASKS_DATA || []).filter((t) => t.lead_id === L.id || (t.label || '').includes(L.name));
     const panel = (key, inner) => '<div id="ldTab-' + key + '" style="display:' + (tab === key ? 'block' : 'none') + '">' + inner + '</div>';
 
-    // ---- lead card body: the lead's own details as plain rows, then two drop-down sections ----
+    // ---- lead card body: the lead's own details as plain rows, then three drop-down sections ----
     const dash = '<span style="color:var(--gray-300)">—</span>';
     const row = (label, value) => '<div style="display:grid;grid-template-columns:118px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px"><div style="' + LABEL + '">' + label + '</div><div style="color:var(--navy-900);min-width:0;overflow-wrap:anywhere">' + (value == null || value === '' ? dash : esc(String(value))) + '</div></div>';
     const addr = [d.address, [d.city, [d.state, d.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ')].filter(Boolean).join(', ');
@@ -820,8 +820,8 @@
           ['License status', xl.status], ['License state', xl.state], ['Violations', x.violations || 'None reported'], ['Relationship', x.relationship], ['Occupation', x.occupation], ['SR-22', x.sr22 ? 'Required' : 'Not required']], 'Not provided')); }).join('') : none('No additional drivers on file');
     const secBtn = (key, label, count) => '<button type="button" id="ldSecBtn-' + key + '" onclick="MSIHub.toggleLeadSection(\'' + key + '\')" style="flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 6px;border:none;border-radius:9px;background:' + (M.leadOpen[key] ? 'var(--green-100)' : 'transparent') + ';color:var(--green-700);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap">' + label + (count ? '<span style="background:var(--green-700);color:var(--green-50);font-size:10.5px;min-width:17px;height:17px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px">' + count + '</span>' : '') + '<span id="ldSecChev-' + key + '" style="font-size:9px">' + (M.leadOpen[key] ? '▲' : '▼') + '</span></button>';
     const secPanel = (key, inner) => '<div id="ldSec-' + key + '" style="display:' + (M.leadOpen[key] ? 'block' : 'none') + ';background:var(--green-50);border-radius:12px;padding:2px 10px 10px;margin-top:8px">' + inner + '</div>';
-    const sections = '<div style="display:flex;gap:4px;background:var(--green-50);border-radius:12px;padding:4px;margin-top:16px">' + secBtn('vehicles', 'Vehicles/Coverage', vehicles.length) + secBtn('drivers', 'Additional Drivers', extraDrivers.length) + '</div>' +
-      secPanel('vehicles', vehHTML + covHTML) + secPanel('drivers', drvHTML);
+    const sections = '<div style="display:flex;gap:4px;background:var(--green-50);border-radius:12px;padding:4px;margin-top:16px">' + secBtn('vehicles', 'Vehicles', vehicles.length) + secBtn('coverage', 'Coverage') + secBtn('drivers', 'Additional Drivers', extraDrivers.length) + '</div>' +
+      secPanel('vehicles', vehHTML) + secPanel('coverage', covHTML) + secPanel('drivers', drvHTML);
 
     const left =
       '<div style="' + CARD + ';padding:22px 22px 18px">' +
