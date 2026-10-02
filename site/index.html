@@ -504,6 +504,16 @@ body { font-family: var(--font-body); background: var(--bg-page); color: var(--g
 .form-control:focus { border-color: var(--green-500); box-shadow: 0 0 0 3px var(--green-100); }
 select.form-control { cursor: pointer; }
 
+/* Bulk selection bar: one slim row that stays pinned to the top of the list while scrolling */
+.bulk-bar { position: sticky; top: -12px; z-index: 40; display: flex; align-items: center; gap: 10px; background: #111; color: #fff; border: 1px solid rgba(255,255,255,0.14); border-radius: var(--radius-md); padding: 8px 10px 8px 16px; margin-bottom: 14px; box-shadow: 0 -12px 0 0 var(--bg-page), 0 6px 16px rgba(0,0,0,0.18); font-size: 14px; }   /* the first shadow hides rows scrolling past above the pinned bar */
+.bulk-count { font-family: var(--font-display); font-weight: 600; font-size: 15px; color: #2ECFD7; }
+.bulk-label { color: rgba(255,255,255,0.85); }
+.bulk-spacer { flex: 1; }
+.bulk-btn { height: 34px; padding: 0 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.30); background: transparent; color: #fff; font-family: var(--font-body); font-size: 13.5px; font-weight: 500; cursor: pointer; }
+.bulk-btn:hover { border-color: #fff; }
+.bulk-btn.primary { background: #09C4CD; border-color: #09C4CD; color: #000; }
+.bulk-btn.primary:hover { background: #2ECFD7; border-color: #2ECFD7; }
+.bulk-btn.quiet { border-color: transparent; color: rgba(255,255,255,0.75); }
 .filter-bar { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
 .filter-label { font-size: 11px; font-weight:500; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; }
 .filter-bar .filter-select, .filter-bar input.filter-select { padding: 6px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); font-family: var(--font-body); font-size: 12px; color: var(--navy-900); background: var(--gray-50); outline: none; cursor: pointer; }
@@ -2117,12 +2127,6 @@ function renderLeadsPage(){
         <h1>Lead Management</h1>
         <p>${total} matching leads · Showing page ${s.page} of ${totalPages}${selectedCount?` · <strong style="color:var(--green-700)">${selectedCount} selected</strong>`:''}</p>
       </div>
-      <div id="bulkActions" style="display:${selectedCount?'flex':'none'};gap:8px;align-items:center">
-        <span style="font-size:11.5px;font-weight:500;color:var(--green-700);background:var(--green-50);padding:5px 10px;border-radius:var(--radius-full);border:1px solid var(--green-200)">${selectedCount} selected</span>
-        <button type="button" class="btn" style="background:var(--blue);color:#fff;font-size:13px;padding:7px 16px;font-weight:500;cursor:pointer" onclick="openBulkText()">💬 Bulk Text</button>
-        <button type="button" class="btn" style="background:var(--green-600);color:#fff;font-size:13px;padding:7px 16px;font-weight:500;cursor:pointer" onclick="startPowerDial()">📞 Power Dial</button>
-        <button type="button" class="btn btn-ghost" style="font-size:12px;cursor:pointer" onclick="clearSelection()">Clear</button>
-      </div>
     </div>
     <div class="btn-group">
       <div class="view-toggle" style="display:inline-flex;background:var(--gray-100);border-radius:var(--radius-md);padding:3px;margin-right:6px">
@@ -2140,6 +2144,16 @@ function renderLeadsPage(){
       <button class="btn btn-primary" onclick="openLeadForm()">+ New Lead</button>
     </div>
   </div>
+
+  ${selectedCount ? `
+  <div id="bulkActions" class="bulk-bar">
+    <span class="bulk-count">${selectedCount}</span>
+    <span class="bulk-label">${selectedCount === 1 ? 'lead' : 'leads'} selected</span>
+    <span class="bulk-spacer"></span>
+    <button type="button" class="bulk-btn primary" onclick="openBulkText()">Text</button>
+    <button type="button" class="bulk-btn" onclick="startPowerDial()">Power Dial</button>
+    <button type="button" class="bulk-btn quiet" onclick="clearSelection()">Clear</button>
+  </div>` : ''}
 
   <div class="filter-bar">
     <span class="filter-label">Status:</span>
@@ -3383,13 +3397,6 @@ function renderCustomersPage(){
         <h1>Customers</h1>
         <p>${CUSTOMERS.length} total · ${counts['Active']} active · ${counts['Upcoming Renewals']} renewing in 7d · ${counts['Pending Cancellation']} pending cancel · ${counts['Cancelled']} cancelled${custSelectedCount?` · <strong style="color:var(--green-700)">${custSelectedCount} selected</strong>`:''}</p>
       </div>
-      ${custSelectedCount ? `
-      <div style="display:flex;gap:8px;align-items:center;margin-left:8px">
-        <span style="font-size:11.5px;font-weight:500;color:var(--green-700);background:var(--green-50);padding:5px 10px;border-radius:var(--radius-full);border:1px solid var(--green-200)">${custSelectedCount} selected</span>
-        <button type="button" class="btn" style="background:var(--blue);color:#fff;font-size:13px;padding:7px 16px;font-weight:500;cursor:pointer" onclick="openBulkText()">💬 Bulk Text</button>
-        <button type="button" class="btn" style="background:var(--green-600);color:#fff;font-size:13px;padding:7px 16px;font-weight:500;cursor:pointer" onclick="startPowerDial()">📞 Power Dial</button>
-        <button type="button" class="btn btn-ghost" style="font-size:12px;cursor:pointer" onclick="clearCustomerSelection()">Clear</button>
-      </div>` : ''}
     </div>
     <div class="btn-group">
       <input class="filter-select" placeholder="Search name, phone, policy #…" value="${s.search}" oninput="window.CUSTOMERS_STATE.search=this.value;refreshCustomers()" style="font-family:var(--font-body);min-width:220px;font-size:13px">
@@ -3397,6 +3404,16 @@ function renderCustomersPage(){
       <button class="btn btn-primary">+ Add Customer</button>
     </div>
   </div>
+
+  ${custSelectedCount ? `
+  <div id="bulkActions" class="bulk-bar">
+    <span class="bulk-count">${custSelectedCount}</span>
+    <span class="bulk-label">${custSelectedCount === 1 ? 'customer' : 'customers'} selected</span>
+    <span class="bulk-spacer"></span>
+    <button type="button" class="bulk-btn primary" onclick="openBulkText()">Text</button>
+    <button type="button" class="bulk-btn" onclick="startPowerDial()">Power Dial</button>
+    <button type="button" class="bulk-btn quiet" onclick="clearCustomerSelection()">Clear</button>
+  </div>` : ''}
 
   ${filterOpen ? `
   <div class="filter-bar" style="margin-bottom:14px">

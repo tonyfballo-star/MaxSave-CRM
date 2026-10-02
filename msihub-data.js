@@ -661,7 +661,7 @@
   function leadNotes(L) { return M.data.notes.filter((n) => n.lead_id === L.id); }
   function leadQuotes(L) { return M.data.quotes.filter((q) => q.lead_id === L.id); }
   function leadFiles(L) { return M.data.files.filter((f) => f.lead_id === L.id); }
-  function leadCalls(L) { return M.data.calls.filter((c) => c.lead_id === L.id); }
+  function leadCalls(L) { return M.data.calls.filter((c) => c.lead_id === L.id || (!c.lead_id && L.phone && fmtPhone(c.phone) === L.phone)); }   // all agents
   function leadTexts(L) { return M.data.messages.filter((m) => m.lead_id === L.id || (L.phone && fmtPhone(m.phone) === L.phone)); }
 
   function notesHTML(list) {
@@ -706,7 +706,24 @@
   }
 
   // ---- Lead profile: identity card (left) + actions/tabs (right) ----
-  M.leadTab = M.leadTab || 'comments';
+  M.leadTab = M.leadTab || 'sms';
+  M.leadOpen = M.leadOpen || {};   // which of Vehicles / Coverage / Additional Drivers are expanded on the lead card
+  M.toggleLeadSection = function (key) {
+    M.leadOpen[key] = !M.leadOpen[key];
+    const p = $('ldSec-' + key), b = $('ldSecBtn-' + key), c = $('ldSecChev-' + key);
+    if (p) p.style.display = M.leadOpen[key] ? 'block' : 'none';
+    if (b) b.style.background = M.leadOpen[key] ? 'var(--green-100)' : 'transparent';
+    if (c) c.textContent = M.leadOpen[key] ? '▲' : '▼';
+  };
+  // Play a call recording inline (any agent). Recordings appear once the phone system stores call_log.recording_url.
+  M.playRecording = function (id) {
+    const c = M.data.calls.find((x) => x.id === id); const box = $('ldRec-' + id);
+    if (!c || !box) return;
+    if (box.firstChild) { box.innerHTML = ''; return; }
+    if (!/^https:\/\//i.test(c.recording_url || '')) { M.toast('No recording is available for this call.', 'warn'); return; }
+    const a = document.createElement('audio'); a.controls = true; a.autoplay = true; a.src = c.recording_url; a.style.cssText = 'width:100%;margin:6px 0 10px';
+    box.appendChild(a);
+  };
   M.hideEmpty = M.hideEmpty == null ? true : M.hideEmpty;
   M.setLeadTab = function (t) { M.leadTab = t; PAGE_INIT.leaddetail(); };
   M.toggleHideEmpty = function () { M.hideEmpty = !M.hideEmpty; PAGE_INIT.leaddetail(); };
@@ -738,13 +755,31 @@
     const agentOpts = '<option value=""' + (!L.agent_id ? ' selected' : '') + '>Unassigned</option>' + M.agents().map((p) => '<option value="' + p.id + '"' + (L.agent_id === p.id ? ' selected' : '') + '>' + esc(p.full_name) + '</option>').join('');
     const stages = ['New Lead', 'Contacted', 'Quoted', 'Appointment Set', 'Sold', 'Bad Lead'];
     const dispOpts = ['Quoted', 'Bad Lead', 'Do Not Call', 'Refund', 'HR', 'Already Sold', 'Spanish', 'Rewrite', 'Cancelled', 'Follow Up'];
-    const tabs = [['comments', 'Comments', '💬'], ['call', 'Call', '📞'], ['applications', 'Applications', '📄'], ['activities', 'Activities', '☰'], ['sms', 'SMS', '✉'], ['task', 'Task', '☑'], ['appointments', 'Appointments', '📅'], ['files', 'Files', '📎']];
-    const tab = tabs.some((t) => t[0] === M.leadTab) ? M.leadTab : 'comments';
+    const tabs = [['sms', 'Text', '✉'], ['comments', 'Notes', '📝'], ['appointments', 'Appointment', '📅'], ['task', 'Task', '☑'], ['files', 'Files', '📎'], ['activities', 'History', '☰'], ['applications', 'Quotes', '📄']];
+    const tab = tabs.some((t) => t[0] === M.leadTab) ? M.leadTab : tabs[0][0];
     const created = L.createdAt || L.receivedAt;
     const calls = leadCalls(L), texts = leadTexts(L);
     const appts = (typeof APPOINTMENTS !== 'undefined' ? APPOINTMENTS : []).filter((a) => a.lead_id === L.id);
     const tasks = (window.TASKS_DATA || []).filter((t) => t.lead_id === L.id || (t.label || '').includes(L.name));
     const panel = (key, inner) => '<div id="ldTab-' + key + '" style="display:' + (tab === key ? 'block' : 'none') + '">' + inner + '</div>';
+
+    // ---- lead card body: five plain rows, then three drop-down sections ----
+    const row = (label, value) => '<div style="display:grid;grid-template-columns:110px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px"><div style="' + LABEL + '">' + label + '</div><div style="color:var(--navy-900);min-width:0;overflow-wrap:anywhere">' + (value == null || value === '' ? '<span style="color:var(--gray-300)">—</span>' : esc(String(value))) + '</div></div>';
+    const addr = [d.address, [d.city, [d.state, d.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ')].filter(Boolean).join(', ');
+    const none = (text) => '<div style="font-size:13px;color:var(--gray-500);padding:10px 2px 2px">' + text + '</div>';
+    const kv = (pairs) => pairs.filter((p) => p[1] != null && p[1] !== '' && p[1] !== false).map((p) => '<div style="display:grid;grid-template-columns:128px 1fr;gap:10px;padding:5px 0;font-size:13px"><div style="color:var(--gray-500)">' + p[0] + '</div><div style="color:var(--navy-900);min-width:0;overflow-wrap:anywhere">' + esc(String(p[1] === true ? 'Yes' : p[1])) + '</div></div>').join('') || '<div style="font-size:13px;color:var(--gray-400);padding:4px 0">Nothing on file</div>';
+    const block = (title, inner) => '<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:8px"><div style="font-weight:500;font-size:13.5px;color:var(--navy-900);margin-bottom:2px">' + title + '</div>' + inner + '</div>';
+    const vehicles = Array.isArray(d.vehicles) && d.vehicles.length ? d.vehicles : (v.year || v.make || v.model || v.vin ? [v] : []);
+    const allDrivers = Array.isArray(d.drivers) ? d.drivers : [];
+    const extraDrivers = allDrivers.length ? allDrivers.filter((x, i) => !(x.primary || i === 0)) : (d.driver2 ? [d.driver2] : []);
+    const vehHTML = vehicles.length ? vehicles.map((x) => block(esc([x.year, x.make, x.model, x.trim].filter(Boolean).join(' ') || 'Vehicle'), kv([['VIN', x.vin], ['Use', x.use], ['Mileage', x.mileage], ['Ownership', x.ownership], ['Garaging', x.garaging], ['Coverage', x.coverage]]))).join('') : none('No vehicles on file');
+    const covHTML = block('Coverage', kv([['Policy type', L.policy], ['Requested', [cov.type, cov.limits].filter(Boolean).join(' · ')], ['Deductible', cov.deductible], ['Uninsured motorist', cov.um], ['Underinsured', cov.uim], ['Prior coverage', L.priorCoverage], ['Current carrier', d.current_carrier], ['Currently insured', d.insured], ['Policy expires', d.policy_expiration], ['SR-22', L.sr22 ? 'Required' : ''], ['Credit', d.credit], ['Home ownership', d.home_ownership], ['Years at address', d.residency_years], ['Bankruptcy', d.bankruptcy]]));
+    const drvHTML = block('Primary driver · ' + esc(L.name), kv([['Gender', d.gender], ['Marital status', d.marital], ['License', d.license], ['Violations', d.violations], ['Occupation', d.occupation], ['Language', L.language]])) +
+      (extraDrivers.length ? extraDrivers.map((x) => block(esc(x.name || 'Additional driver'), kv([['Date of birth', x.dob], ['Gender', x.gender], ['Marital status', x.marital], ['License', x.license], ['Relationship', x.relationship], ['Occupation', x.occupation], ['Violations', x.violations], ['SR-22', x.sr22 ? 'Required' : '']]))).join('') : none('No additional drivers on file'));
+    const secBtn = (key, label, count) => '<button type="button" id="ldSecBtn-' + key + '" onclick="MSIHub.toggleLeadSection(\'' + key + '\')" style="flex:1 1 auto;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 6px;border:none;border-radius:9px;background:' + (M.leadOpen[key] ? 'var(--green-100)' : 'transparent') + ';color:var(--green-700);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap">' + label + (count ? '<span style="background:var(--green-700);color:var(--green-50);font-size:10.5px;min-width:17px;height:17px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px">' + count + '</span>' : '') + '<span id="ldSecChev-' + key + '" style="font-size:9px">' + (M.leadOpen[key] ? '▲' : '▼') + '</span></button>';
+    const secPanel = (key, inner) => '<div id="ldSec-' + key + '" style="display:' + (M.leadOpen[key] ? 'block' : 'none') + ';background:var(--green-50);border-radius:12px;padding:2px 10px 10px;margin-top:8px">' + inner + '</div>';
+    const sections = '<div style="display:flex;gap:4px;background:var(--green-50);border-radius:12px;padding:4px;margin-top:16px">' + secBtn('vehicles', 'Vehicles', vehicles.length) + secBtn('coverage', 'Coverage') + secBtn('drivers', 'Additional Drivers', extraDrivers.length) + '</div>' +
+      secPanel('vehicles', vehHTML) + secPanel('coverage', covHTML) + secPanel('drivers', drvHTML);
 
     const left =
       '<div style="' + CARD + ';padding:22px 22px 18px">' +
@@ -758,13 +793,10 @@
         '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:16px;font-size:13px;color:var(--gray-600)"><span>Source: <span style="color:var(--navy-900)">' + esc(L.source || '—') + '</span></span><span>Received: <span style="color:var(--navy-900)">' + (created ? new Date(created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—') + '</span></span></div>' +
         (L.doNotCall ? '<div style="margin-top:8px;font-size:13px;color:#DC2626">Do Not Call: this lead asked not to be contacted</div>' : '') +
         '<div style="height:1px;background:var(--border);margin:16px 0"></div>' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div style="font-size:14px;font-weight:500;color:var(--navy-900)">User Info</div><label style="font-size:12.5px;color:var(--gray-600);display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" ' + (M.hideEmpty ? 'checked' : '') + ' onchange="MSIHub.toggleHideEmpty()" style="accent-color:var(--green-500)">Hide empty values</label></div>' +
-        infoRow('First Name', L.first) + infoRow('Last Name', L.last) +
-        '<div style="display:grid;grid-template-columns:150px 1fr auto;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px;align-items:center"><div style="' + LABEL + '">Phone</div><div style="color:var(--navy-900)">' + esc(L.phone || '—') + '</div><button title="Call" onclick="leadCall(\'' + L.id + '\')" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--gray-600)">📞</button></div>' +
-        infoRow('Email', L.email) + infoRow('Address', d.address) + infoRow('City', d.city) + infoRow('State', d.state) + infoRow('Zip', d.zip) + infoRow('Date of Birth', d.dob) +
-        infoRow('Gender', d.gender) + infoRow('Marital Status', d.marital) + infoRow('Language', L.language) + infoRow('License', d.license) + infoRow('Violations', d.violations) + infoRow('SR-22', L.sr22 ? 'Required' : '') +
-        infoRow('Policy Type', L.policy) + infoRow('Prior Coverage', L.priorCoverage) + infoRow('Requested Coverage', [cov.type, cov.limits].filter(Boolean).join(' · ')) +
-        infoRow('Vehicle', [v.year, v.make, v.model].filter(Boolean).join(' ')) + infoRow('VIN', v.vin) + infoRow('Lead Score', L.leadScore) +
+        row('Name', L.name) +
+        '<div style="display:grid;grid-template-columns:110px 1fr auto;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px;align-items:center"><div style="' + LABEL + '">Phone</div><div style="color:var(--navy-900)">' + esc(L.phone || '—') + '</div><button title="Call" onclick="leadCall(\'' + L.id + '\')" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--gray-600)">📞</button></div>' +
+        row('Email', L.email) + row('Address', addr) + row('Date of Birth', d.dob) +
+        sections +
         '<div style="margin-top:18px"><button onclick="setDisposition(\'Bad Lead\')" title="Mark as bad lead" style="padding:10px 22px;border-radius:10px;border:none;background:#FEE2E2;color:#DC2626;font-size:15px;cursor:pointer">🗑</button></div>' +
       '</div>';
 
@@ -778,7 +810,10 @@
 
     const tabBar = '<div style="display:flex;gap:4px;border-bottom:1px solid var(--border);padding:0 8px;overflow-x:auto">' + tabs.map(([k, label, ico]) => '<button onclick="MSIHub.setLeadTab(\'' + k + '\')" style="background:none;border:none;border-bottom:2px solid ' + (tab === k ? 'var(--green-500)' : 'transparent') + ';padding:16px 14px;font-family:var(--font-body);font-size:14px;color:' + (tab === k ? 'var(--green-700)' : 'var(--gray-600)') + ';cursor:pointer;white-space:nowrap"><span style="margin-right:6px;opacity:0.8">' + ico + '</span>' + label + '</button>').join('') + '</div>';
 
-    const callRows = calls.length ? calls.slice().reverse().map((c) => '<div style="display:flex;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--border);font-size:13.5px"><span>' + (c.direction === 'inbound' ? 'Inbound' : 'Outbound') + ' · ' + (c.missed ? 'No answer' : 'Completed') + (c.duration_sec ? ' · ' + Math.floor(c.duration_sec / 60) + 'm ' + (c.duration_sec % 60) + 's' : '') + '</span><span style="color:var(--gray-500)">' + fmtStamp(c.created_at) + ' · ' + esc(agentName(c.agent_id)) + '</span></div>').join('') : emptyBox('No calls yet');
+    const callRows = calls.length ? calls.slice().sort((x, y) => new Date(y.created_at) - new Date(x.created_at)).map((c) =>
+      '<div style="display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--border);font-size:13.5px"><div style="flex:1;min-width:0"><div style="color:var(--navy-900)">' + (c.direction === 'inbound' ? 'Inbound' : 'Outbound') + ' · ' + (c.missed ? 'No answer' : 'Completed') + (c.duration_sec ? ' · ' + Math.floor(c.duration_sec / 60) + 'm ' + (c.duration_sec % 60) + 's' : '') + '</div><div style="font-size:12px;color:var(--gray-500);margin-top:2px">' + fmtStamp(c.created_at) + ' · ' + esc(agentName(c.agent_id)) + '</div></div>' +
+      (c.recording_url ? '<button type="button" onclick="MSIHub.playRecording(\'' + c.id + '\')" style="padding:7px 14px;border-radius:9px;border:1px solid var(--green-500);background:var(--green-50);color:var(--green-700);font-family:var(--font-body);font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap">▶ Listen</button>' : '<span style="font-size:12px;color:var(--gray-400);white-space:nowrap">No recording</span>') +
+      '</div><div id="ldRec-' + c.id + '"></div>').join('') : emptyBox('No calls with this lead yet');
     const smsRows = texts.length ? texts.map((m) => '<div style="display:flex;flex-direction:column;align-items:' + (m.direction === 'inbound' ? 'flex-start' : 'flex-end') + ';gap:3px;margin-bottom:10px"><div style="max-width:70%;padding:10px 14px;border-radius:14px;background:' + (m.direction === 'inbound' ? 'var(--gray-100)' : 'var(--blue)') + ';color:' + (m.direction === 'inbound' ? 'var(--navy-900)' : '#fff') + ';font-size:13.5px">' + esc(m.body) + '</div><div style="font-size:11px;color:var(--gray-400)">' + fmtStamp(m.created_at) + '</div></div>').join('') : emptyBox('No text messages yet');
     const apptRows = appts.length ? appts.map((a) => '<div style="display:flex;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--border);font-size:13.5px"><span>' + esc(a.date) + ' at ' + esc(a.time) + ' · ' + esc(a.type || 'Follow-Up') + '</span><span style="color:var(--gray-500)">' + esc(a.status) + ' · ' + esc(a.agent) + '</span></div>').join('') : emptyBox('No appointments yet');
     const taskRows = tasks.length ? tasks.map((t) => '<div style="display:flex;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--border);font-size:13.5px;' + (t.done ? 'color:var(--gray-400);text-decoration:line-through' : '') + '"><span>' + esc(t.label) + '</span><span style="color:var(--gray-500)">' + esc(t.dueDate) + ' ' + esc(t.dueTime || '') + '</span></div>').join('') : emptyBox('No tasks yet');
@@ -787,10 +822,9 @@
     const right =
       '<div style="display:flex;flex-direction:column;gap:22px">' + header +
       '<div style="' + CARD + '">' + tabBar + '<div style="padding:22px">' +
-        panel('comments', '<div style="background:var(--gray-50);border-radius:14px;padding:16px"><textarea id="noteInput" class="form-control" rows="4" placeholder="Add a comment for the team…" style="width:100%;resize:vertical;font-family:var(--font-body);font-size:14px;border-radius:12px;padding:12px 14px;background:#fff"></textarea><div style="display:flex;justify-content:flex-end;margin-top:10px">' + pill('addNote()', 'Save', true) + '</div></div><div id="notesList" style="margin-top:16px">' + (leadNotes(L).length ? notesHTML(leadNotes(L)) : emptyBox('No data')) + '</div>') +
-        panel('call', actionRow(pill('leadCall(\'' + L.id + '\')', '📞 Call ' + esc(L.first || 'lead'), true)) + callRows) +
+        panel('comments', '<div style="background:var(--gray-50);border-radius:14px;padding:16px"><textarea id="noteInput" class="form-control" rows="4" placeholder="Add a note for the team…" style="width:100%;resize:vertical;font-family:var(--font-body);font-size:14px;border-radius:12px;padding:12px 14px;background:#fff"></textarea><div style="display:flex;justify-content:flex-end;margin-top:10px">' + pill('addNote()', 'Save', true) + '</div></div><div id="notesList" style="margin-top:16px">' + (leadNotes(L).length ? notesHTML(leadNotes(L)) : emptyBox('No data')) + '</div>') +
         panel('applications', actionRow(pill('addQuote()', '＋ Add Quote', true)) + '<div id="quotesList">' + quotesHTML(L) + '</div>') +
-        panel('activities', '<div id="leadTimeline">' + timelineHTML(L) + '</div>') +
+        panel('activities', '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px"><div style="font-size:14px;font-weight:500;color:var(--navy-900)">Calls with this lead <span style="font-weight:400;color:var(--gray-500);font-size:12.5px">· every agent</span></div>' + pill('leadCall(\'' + L.id + '\')', '📞 Call ' + esc(L.first || 'lead'), true) + '</div>' + callRows + '<div style="font-size:14px;font-weight:500;color:var(--navy-900);margin:22px 0 10px">All activity</div><div id="leadTimeline">' + timelineHTML(L) + '</div>') +
         panel('sms', actionRow(pill('leadText(\'' + L.id + '\')', '✉ Send Text', true)) + smsRows) +
         panel('task', actionRow(pill('openTaskModal()', '＋ Add Task', true)) + taskRows) +
         panel('appointments', actionRow(pill('openAppointment()', '＋ Set Appointment', true)) + apptRows) +
