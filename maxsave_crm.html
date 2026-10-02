@@ -4264,12 +4264,19 @@ function renderLiveView() {
   };
   const dnd = allAgents.filter(a => a.status === 'dnd').length;
   const offline = allAgents.filter(a => a.status === 'offline').length;
+  const isAdminUser = hudIsAdmin();
+  // Supervisor monitoring ends by itself when the watched agent's call ends.
+  if (s.monitor && !allAgents.find(a => a.name === s.monitor.agent && a.status === 'on-call')) s.monitor = null;
+  const mon = s.monitor || null;
+  const notMe = a => !me || a.name !== me.name;
   const cols = [
-    { key: 'live',      title: 'On live calls', agents: allAgents.filter(a => a.status === 'on-call') },
-    { key: 'available', title: 'Available',     agents: allAgents.filter(a => a.status === 'available' || a.status === 'wrap-up') },
-    { key: 'dnd',       title: 'On DND',        agents: allAgents.filter(a => a.status === 'dnd') },
-    { key: 'offline',   title: 'Offline',       agents: allAgents.filter(a => a.status === 'offline') },
+    { key: 'mine',      title: 'My Call',      agents: me ? [me] : [], empty: 'Not signed in' },
+    { key: 'available', title: 'Available',    agents: allAgents.filter(a => notMe(a) && (a.status === 'available' || a.status === 'wrap-up')), empty: 'No one is available' },
+    { key: 'live',      title: 'On the Phone', agents: allAgents.filter(a => notMe(a) && a.status === 'on-call'), empty: 'No one else is on a call' },
+    { key: 'offline',   title: 'Offline',      agents: allAgents.filter(a => notMe(a) && (a.status === 'dnd' || a.status === 'offline')).sort((x, y) => (x.status === 'dnd' ? 0 : 1) - (y.status === 'dnd' ? 0 : 1)), empty: 'Everyone is online' },
   ];
+  const MON = { listen: ['Listen', 'Listening to', 'Hear the call silently; neither side hears you'], whisper: ['Whisper', 'Whispering to', 'Only the agent hears you; the caller does not'], barge: ['Barge', 'Barged into', 'Join the call; both sides hear you'] };
+  const monButtons = (name, compact) => Object.keys(MON).map(m => `<button type="button" class="hud-mon-btn${mon && mon.agent === name && mon.mode === m ? ' on' : ''}" title="${MON[m][2]}" onclick="hudMonitor('${m}','${safeN(name)}')">${MON[m][0]}</button>`).join('');
   const agentCard = a => {
     const onCall = a.status === 'on-call', isMe = me && a.name === me.name, safe = safeN(a.name), ls = lastSeen(a.name);
     const canDrop = !onCall;
@@ -4278,10 +4285,11 @@ function renderLiveView() {
         ${canDrop ? `ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="onTransferDrop(event,'agent','${safe}')"` : ''}>
       <span class="hud-dot" style="background:${liveStatusColor(a.status)}"></span>
       <div class="hud-agent-body">
-        <div class="hud-agent-name">${esc(a.name)}${isMe ? '<span class="hud-you">YOU</span>' : ''}${a.status === 'wrap-up' ? '<span class="hud-tag">Wrap-up</span>' : ''}</div>
+        <div class="hud-agent-name">${esc(a.name)}${isMe ? '<span class="hud-you">YOU</span>' : ''}${a.status === 'wrap-up' ? '<span class="hud-tag">Wrap-up</span>' : ''}${a.status === 'dnd' ? '<span class="hud-tag dnd">DND</span>' : ''}</div>
         ${onCall
           ? `<div class="hud-call"><span>${a.callDirection === 'outbound' ? '↗' : '↙'}</span><span class="hud-lead">${esc(a.leadName || 'Unknown')}</span><span class="hud-phone">${esc(a.leadPhone || '')}</span><span class="hud-dur" data-started="${a.callStartedAt || ''}">${fmtCallDuration(hudCallSecs(a))}</span></div>`
           : `<div class="hud-sub">${[a.ext ? 'Ext ' + esc(a.ext) : '', ls].filter(Boolean).join(' · ') || '&nbsp;'}</div>`}
+        ${isAdminUser && onCall && !isMe ? `<div class="hud-mon">${monButtons(a.name)}</div>` : ''}
       </div>
       ${onCall && isMe ? '<button type="button" class="hud-end" onclick="hudEndCall()">End call</button>' : ''}
       ${onCall ? '<span class="hud-grip">⠿</span>' : ''}
@@ -4311,14 +4319,14 @@ function renderLiveView() {
     .hud-seg button{height:38px;padding:0 16px;border:none;background:transparent;font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--navy-900);cursor:pointer}
     .hud-seg button:disabled{opacity:.5;cursor:not-allowed}
     .hud-seg button.on{background:var(--green-500);color:#000}
-    .hud-seg button.on.dnd{background:var(--navy-900);color:#fff}
+    .hud-seg button.on.dnd{background:#111;color:#fff}
     .hud-seg button.on.offline{background:var(--gray-300);color:var(--navy-900)}
     .hud-cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
     .hud-col{background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;display:flex;flex-direction:column;min-width:0}
     .hud-col-title{font-family:var(--font-display);font-weight:600;font-size:19px;color:var(--navy-900);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
     .hud-count{min-width:24px;height:24px;padding:0 7px;border-radius:12px;background:var(--white);border:1px solid var(--border-strong);font-family:var(--font-body);font-size:11.5px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;color:var(--navy-900)}
     .hud-col-body{background:var(--gray-100);border-radius:var(--radius-md);padding:10px;min-height:400px;display:flex;flex-direction:column;gap:8px;flex:1}
-    .hud-col.live .hud-col-body{background:var(--green-50)}
+    .hud-col.mine .hud-col-body{background:var(--green-50)}
     .hud-none{margin:auto;font-size:12.5px;color:var(--gray-400)}
     .hud-agent{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--gray-300);border-radius:var(--radius-md);padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-sm);min-width:0}
     .hud-agent.me{border-color:var(--green-300);border-left-color:var(--green-500)}
@@ -4353,6 +4361,19 @@ function renderLiveView() {
     .hud-slot-n{font-size:10px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px}
     .hud-slot-lead{font-weight:500;font-size:13.5px;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
     .hud-mini{margin-top:auto;align-self:flex-start;background:var(--green-500);color:#000;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font-body)}
+    .hud-tag.dnd{background:#111;color:#fff}
+    .hud-col.mine .hud-agent{flex-wrap:wrap}
+    .hud-col.mine .hud-end{order:5;flex-basis:100%;padding:8px 10px;font-size:12px}
+    .hud-mon{display:flex;gap:5px;margin-top:8px}
+    .hud-mon-btn{flex:1;border:1px solid var(--border-strong);background:var(--white);border-radius:8px;padding:4px 6px;font-family:var(--font-body);font-size:11px;font-weight:500;cursor:pointer;color:var(--navy-900);white-space:nowrap}
+    .hud-mon-btn:hover{border-color:var(--green-500)}
+    .hud-mon-btn.on{background:var(--green-500);border-color:var(--green-500);color:#000}
+    .hud-monbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#111;color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:14px;font-size:13.5px}
+    .hud-monbar b{font-weight:600}
+    .hud-monbar .hud-mon{margin-top:0}
+    .hud-monbar .hud-mon-btn{flex:none;padding:5px 12px;background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+    .hud-monbar .hud-mon-btn.on{background:var(--green-500);border-color:var(--green-500);color:#000}
+    .hud-monbar .hud-mon-btn.stop{margin-left:auto;background:var(--red);border-color:var(--red);color:#fff}
     .hud-end{background:var(--red);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--font-body);flex-shrink:0;white-space:nowrap}
     @media (max-width:1100px){.hud-cols{grid-template-columns:repeat(2,minmax(0,1fr))}.hud-row2{grid-template-columns:1fr}.hud-slots{grid-template-columns:repeat(3,minmax(0,1fr))}}
   </style>
@@ -4360,8 +4381,8 @@ function renderLiveView() {
   <div class="hud">
     <div class="hud-bar">
       <div>
-        <div class="hud-title"><span class="hud-live"></span>Phone HUD</div>
-        <div class="hud-sub2">${onCalls} on calls &middot; ${available} available &middot; ${dnd} on DND &middot; ${offline} offline &middot; drag a live call onto an agent, a parking slot, or Transfer to All</div>
+        <div class="hud-title"><span class="hud-live"></span>Live View</div>
+        <div class="hud-sub2">${onCalls} on calls &middot; ${available} available &middot; ${dnd} on DND &middot; ${offline} offline &middot; drag your call onto an available agent, a parking slot, or Transfer to All</div>
       </div>
       <div class="hud-tools">
         <span class="hud-lbl">My status</span>
@@ -4369,11 +4390,19 @@ function renderLiveView() {
       </div>
     </div>
 
+    ${mon ? `
+    <div class="hud-monbar">
+      <span class="hud-live"></span>
+      <span><b>${MON[mon.mode][1]}</b> ${esc(mon.agent)}${mon.lead ? ' &middot; ' + esc(mon.lead) : ''}</span>
+      <span class="hud-mon">${monButtons(mon.agent)}</span>
+      <button type="button" class="hud-mon-btn stop" onclick="hudMonitorStop()">Stop</button>
+    </div>` : ''}
+
     <div class="hud-cols">
       ${cols.map(c => `
       <div class="hud-col ${c.key}">
-        <div class="hud-col-title"><span>${c.title}</span><span class="hud-count">${c.agents.length}</span></div>
-        <div class="hud-col-body">${c.agents.length ? c.agents.map(agentCard).join('') : '<div class="hud-none">No one here</div>'}</div>
+        <div class="hud-col-title"><span>${c.title}</span>${c.key === 'mine' ? '' : `<span class="hud-count">${c.agents.length}</span>`}</div>
+        <div class="hud-col-body">${c.agents.length ? c.agents.map(agentCard).join('') : `<div class="hud-none">${c.empty}</div>`}${c.key === 'mine' && me && me.status !== 'on-call' ? '<div class="hud-none">You are not on a call.<br>Calls you place or answer appear here.</div>' : ''}</div>
       </div>`).join('')}
     </div>
 
@@ -4619,6 +4648,29 @@ function setMyLiveStatus(status) {
   if (!me || me.status === 'on-call') return;
   me.status = status;
   refreshLiveView();
+}
+
+// ---- Supervisor monitoring (admins only): listen / whisper / barge on any live call ----
+// The CRM tracks who is monitoring whom and shows it. The actual audio leg is the phone layer's job: it can set
+// window.hudMonitorHook = ({action:'start'|'stop', agent, mode, lead}) => … to perform the real supervise action.
+function hudIsAdmin() { return (window.CURRENT_USER || {}).role === 'Admin'; }
+function hudMonitor(mode, agentName) {
+  if (!hudIsAdmin()) { alert('Only admins can listen to, whisper on, or barge into calls.'); return; }
+  const st = window.LIVEVIEW_STATE;
+  const a = (window.AGENT_LIVE || []).find(x => x.name === agentName);
+  if (!a || a.status !== 'on-call') { alert(agentName + ' is not on a call.'); return; }
+  if (st.monitor && st.monitor.agent === agentName && st.monitor.mode === mode) return hudMonitorStop();
+  st.monitor = { agent: agentName, mode, lead: a.leadName || a.leadPhone || '', since: Date.now() };
+  try { if (typeof window.hudMonitorHook === 'function') window.hudMonitorHook(Object.assign({ action: 'start' }, st.monitor)); } catch (e) { console.warn('[LiveView] monitor hook failed', e); }
+  const verb = { listen: 'Listening to', whisper: 'Whispering to', barge: 'Barged into the call with' }[mode] || mode;
+  alert(verb + ' ' + agentName + (st.monitor.lead ? ' (' + st.monitor.lead + ')' : ''));
+  hudRefresh();
+}
+function hudMonitorStop() {
+  const st = window.LIVEVIEW_STATE; if (!st.monitor) return;
+  try { if (typeof window.hudMonitorHook === 'function') window.hudMonitorHook(Object.assign({ action: 'stop' }, st.monitor)); } catch (e) { console.warn('[LiveView] monitor hook failed', e); }
+  st.monitor = null;
+  hudRefresh();
 }
 
 PAGES.liveview = '';

@@ -103,3 +103,9 @@ Real calls/texts, email inbox, e-sign delivery, payment terminal. Everything els
 - `maxsave_crm.html` uses CRLF line endings; the patch scripts handle it.
 - Never commit `*.xlsx` (customer data) — the repo is public.
 - Deleting records is admin-only by design; agents can deactivate/hide instead.
+
+## Live View layout + supervisor controls (2026-10-01, desktop session)
+- Boxes are now: **My Call** (the signed-in agent and who they are talking to, draggable, End call), **Available** (drop targets), **On the Phone** (other agents' live calls), **Offline** (DND agents listed first with a DND tag). Parking Lot and Transfer to All unchanged.
+- Admins (`CURRENT_USER.role === 'Admin'`) get Listen / Whisper / Barge on every other agent's live call, plus a banner with mode switch and Stop. State lives in `LIVEVIEW_STATE.monitor = {agent, mode, lead, since}` and clears when that call ends.
+- **Visual only until the phone layer implements it.** Contract: set `window.hudMonitorHook = ({action:'start'|'stop', agent, mode:'listen'|'whisper'|'barge', lead}) => …` and perform the real supervise leg there (Telnyx: dial the admin in with `supervise_call_control_id` + `supervisor_role` monitor/whisper/barge). Function names the Telnyx layer relies on (`hudStartCall`, `hudWrapUp`, `hudMe`, `hudRefresh`, `hudEndCall`, `setMyLiveStatus`) are unchanged.
+- Vendor lead intake (EverQuote webhook, live since 2026-10-01 4:10 PM PT) is documented in `supabase/INTAKE.md`.
