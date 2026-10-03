@@ -697,5 +697,7 @@ do $$ begin
   begin alter publication supabase_realtime add table public.automation_log; exception when duplicate_object then null; when undefined_object then null; end;
 end $$;
 
+analyze public.leads; analyze public.policies; analyze public.customers;   -- new columns: give the planner real statistics right away
+
 notify pgrst, 'reload schema';
 select 'automation schema v6 ready' as result;

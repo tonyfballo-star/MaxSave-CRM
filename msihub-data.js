@@ -205,7 +205,7 @@
   // (timestamp + id), which stays fast at any depth; small tables use plain ranges.
   const TABLES = {
     profiles:     (q) => q,
-    leads:        (q) => q.or('received_at.gte.' + daysAgo(90) + ',status.in.("Quoted","Appointment Set")' + (M.v6 ? ',recycled_at.gte.' + daysAgo(90) : '')),
+    leads:        (q) => q.or('received_at.gte.' + daysAgo(90) + ',status.in.("Quoted","Appointment Set")'),   // recycled (X-date) leads are added by fetchTable below
     customers:    (q) => q,
     policies:     (q) => q,
     vehicles:     (q) => q,
@@ -255,6 +255,10 @@
       if (col && (last[col] == null)) break;
     }
     if (SORT_AFTER[key]) out.sort((a, b) => new Date(a[SORT_AFTER[key]]) - new Date(b[SORT_AFTER[key]]));
+    if (key === 'leads' && M.v6) {   // X-date recycled leads are old by received_at; its own small indexed query (an OR here makes the paging tail time out)
+      const { data } = await M.sb.from(name).select('*').gte('recycled_at', daysAgo(90)).order('recycled_at', { ascending: false }).limit(2000);
+      if (data && data.length) { const ids = new Set(out.map((r) => r.id)); data.forEach((r) => { if (!ids.has(r.id)) out.push(r); }); }
+    }
     return out;
   }
   function mergeExtras(key, rows) {

@@ -23,6 +23,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   page.on('console', (m) => { const t = m.text(); if (m.type() === 'error' && !/favicon|Tracking Prevention/.test(t)) errors.push('console: ' + t); });
   page.on('dialog', async (d) => { toasts.push('DIALOG: ' + d.message()); await d.accept(); });
+  page.on('response', async (r) => { if (r.status() >= 500) { let b = ''; try { b = (await r.text()).slice(0, 200); } catch (_e) { /* gone */ } errors.push('http ' + r.status() + ' ' + r.request().method() + ' ' + r.url().slice(0, 260) + ' → ' + b); } });
 
   if (LOCAL_DATA) { await page.setRequestInterception(true); page.on('request', (r) => { const u = r.url(); if (/msihub-data(-2)?.js/.test(u)) { const f = LOCAL_DATA + '/' + u.split('/').pop().split('?')[0]; r.respond({ status: 200, contentType: 'application/javascript', body: require('fs').readFileSync(f, 'utf8') }); } else r.continue(); }); }
   await page.goto(URL, { waitUntil: 'load' });
@@ -30,7 +31,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   await page.type('#authEmail', EMAIL); await page.type('#authPassword', PASS);
   await page.click('#authSubmit');
   let ready = false;
-  for (let i = 0; i < 60 && !ready; i++) { await wait(500); ready = await page.evaluate(() => !!(window.MSIHub && MSIHub.ready)); }
+  for (let i = 0; i < 180 && !ready; i++) { await wait(500); ready = await page.evaluate(() => !!(window.MSIHub && MSIHub.ready)); }
   const out = { url: URL, signedIn: ready, errors, steps: [] };
   if (!ready) { out.authMsg = await page.evaluate(() => (document.getElementById('authMsg') || {}).textContent); console.log(JSON.stringify(out, null, 2)); await browser.close(); return; }
   // Capture toasts (the app's own feedback messages)
@@ -45,13 +46,13 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
     ['leads', () => nav('leads', null)],
     ['leads-board', () => setLeadsView('board')],
     ['leads-table', () => setLeadsView('table')],
-    ['lead-create', async (tag) => { openLeadForm(); await new Promise((r) => setTimeout(r, 100)); document.getElementById('lf_first').value = tag; document.getElementById('lf_last').value = 'Test'; document.getElementById('lf_phone').value = '6195550199'; await saveLeadForm(null); await new Promise((r) => setTimeout(r, 800)); if (!LEADS.find((l) => l.first === tag)) throw new Error('lead not created'); }],
+    ['lead-create', async (tag) => { openLeadForm(); await new Promise((r) => setTimeout(r, 100)); document.getElementById('lf_first').value = tag; document.getElementById('lf_last').value = 'Test'; document.getElementById('lf_phone').value = '6195550199'; const p = saveLeadForm(null); await new Promise((r) => setTimeout(r, 2500)); const dup = document.querySelector('#msihubModal button[data-i="1"]'); if (dup && document.getElementById('msihubModal').style.display !== 'none') dup.click(); await p; await new Promise((r) => setTimeout(r, 800)); if (!LEADS.find((l) => l.first === tag)) throw new Error('lead not created'); }],
     ['lead-detail-name', (tag) => { const L = LEADS.find((l) => l.first === tag); openLeadDetail(L.id); return new Promise((r) => setTimeout(() => { if (!document.getElementById('leadDetailBody').textContent.includes(tag)) throw new Error('detail missing'); r(); }, 400)); }],
     ['lead-note', async () => { document.getElementById('noteInput').value = 'QA note'; await addNote(); if (!document.getElementById('notesList').textContent.includes('QA note')) throw new Error('note missing'); }],
     ['lead-quote', async () => { addQuote(); document.getElementById('q_premium').value = '999'; await saveQuote(); await new Promise((r) => setTimeout(r, 400)); }],
     ['lead-appt', async () => { openAppointment(); document.getElementById('apptTime').value = '14:00'; await confirmAppointment(); }],
     ['lead-text', async (tag) => { const L = LEADS.find((l) => l.first === tag); leadText(L.id); document.getElementById('textThreadInput').value = 'QA text (not delivered — no carrier yet)'; sendTextReply(); await new Promise((r) => setTimeout(r, 500)); closeTextThread(); }],
-    ['lead-hide', async (tag) => { const L = LEADS.find((l) => l.first === tag); MSIHub.currentLeadId = L.id; await setDisposition('Bad Lead'); await new Promise((r) => setTimeout(r, 600)); }],
+    ['lead-hide', async (tag) => { const L = LEADS.find((l) => l.first === tag); MSIHub.currentLeadId = L.id; const p = setDisposition('Bad Lead'); await new Promise((r) => setTimeout(r, 400)); const sel = document.getElementById('lr_reason'); if (sel) { sel.value = sel.options[1].value; document.querySelector('#msihubModal button[data-i="0"]').click(); } await p; await new Promise((r) => setTimeout(r, 600)); }],
     ['customers', () => nav('customers', null)],
     ['customer-detail', () => { if (CUSTOMERS.length) openCustomerDetail(CUSTOMERS[0].id); }],
     ['calendar', () => nav('calendar', null)],
