@@ -636,6 +636,10 @@ h1, h2, h3, h4 { font-weight: 500; letter-spacing: -0.01em; }
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" stroke-linecap="round"/></svg>
       Customers
     </div>
+    <div class="nav-item" onclick="nav('renewals',this)">
+      <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M13.5 8a5.5 5.5 0 11-1.6-3.9" stroke-linecap="round"/><path d="M13.5 1.5v3h-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Renewals
+    </div>
     <div class="nav-item" onclick="nav('calendar',this)">
       <svg class="nav-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="2" width="14" height="13" rx="1.5"/><path d="M5 1v2M11 1v2M1 6h14" stroke-linecap="round"/><rect x="4" y="8.5" width="2" height="2" rx=".5" fill="currentColor" stroke="none"/><rect x="7" y="8.5" width="2" height="2" rx=".5" fill="currentColor" stroke="none"/><rect x="10" y="8.5" width="2" height="2" rx=".5" fill="currentColor" stroke="none"/></svg>
       Calendar
@@ -923,7 +927,7 @@ function nav(page, el) {
     agents:'Agent Management', reports:'Reports & Analytics', goals:'Goals & Tiers',
     finance:'Finance & Broker Fees', tasks:'Tasks & Follow-Ups',
     esignatures:'E Signatures', payment:'Payment Terminal', reputation:'Reputation Manager',
-    agency:'Teams & Agents', admin:'Settings', agentprofile:'Agent Profile'
+    agency:'Teams & Agents', admin:'Settings', agentprofile:'Agent Profile', renewals:'Renewals & X-Dates'
   };
   document.getElementById('page-title').textContent = titles[page] || page;
   document.getElementById('content').innerHTML = '';
@@ -2100,6 +2104,7 @@ function renderLeadsPage(){
   if (s.agentFilter  !== 'All') filtered = filtered.filter(l => l.agent  === s.agentFilter);
   if (s.sourceFilter !== 'All') filtered = filtered.filter(l => l.source === s.sourceFilter);
   if (s.dispositionFilter !== 'All') filtered = filtered.filter(l => (l.disposition || 'None') === s.dispositionFilter);
+  if (s.tagFilter && s.tagFilter !== 'All') filtered = filtered.filter(l => (l.tags || []).includes(s.tagFilter));
   if (s.dateFrom) filtered = filtered.filter(l => l.received >= s.dateFrom);
   if (s.dateTo)   filtered = filtered.filter(l => l.received <= s.dateTo);
   if (s.search)   { const q = s.search.toLowerCase(); filtered = filtered.filter(l => l.name.toLowerCase().includes(q) || l.phone.includes(q)); }
@@ -2114,7 +2119,8 @@ function renderLeadsPage(){
     ? ['All','New Lead','Contacted','Quoted','Sold','Appointment Set','Bad Lead']
     : ['All','New Lead','Contacted','Quoted','Appointment Set','Bad Lead'];
   const agents = ['All', ...AGENTS.map(a=>a.name), 'Unassigned'];
-  const sources = ['All','Everquote','Facebook Ads','Google Ads','Referral','Direct Call','Cold Call'];
+  const sources = ['All', ...new Set([...((window.LEAD_SOURCES || []).filter(x => x.active !== false).map(x => x.name)), ...LEADS.map(l => l.source).filter(Boolean)])];
+  const tagNames = ['All', ...new Set([...((window.TAG_LIST || []).map(t => t.name)), ...LEADS.flatMap(l => l.tags || [])])];
   const dispositions = ['All','None','Quoted','Bad Lead','Do Not Call','Refund','HR','Already Sold','Spanish','Rewrite','Cancelled','Follow Up'];
 
   // selected count for bulk-action buttons
@@ -2171,6 +2177,10 @@ function renderLeadsPage(){
     <span class="filter-label">Disposition:</span>
     <select class="filter-select" onchange="window.LEADS_STATE.dispositionFilter=this.value;window.LEADS_STATE.page=1;refreshLeads()">
       ${dispositions.map(x=>`<option ${s.dispositionFilter===x?'selected':''}>${x}</option>`).join('')}
+    </select>
+    <span class="filter-label">Tag:</span>
+    <select class="filter-select" onchange="window.LEADS_STATE.tagFilter=this.value;window.LEADS_STATE.page=1;refreshLeads()">
+      ${tagNames.map(x=>`<option ${(s.tagFilter||'All')===x?'selected':''}>${x}</option>`).join('')}
     </select>
     <span class="filter-label" style="margin-left:8px">Date Received:</span>
     <input type="date" class="filter-select" value="${s.dateFrom}" onchange="window.LEADS_STATE.dateFrom=this.value;window.LEADS_STATE.page=1;refreshLeads()" style="font-family:var(--font-body)">
@@ -2261,6 +2271,7 @@ function renderLeadsPage(){
           <td>
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
               <div class="lead-name-link" onclick="openLeadDetail('${l.id}')" style="font-weight:500;color:var(--navy-900);cursor:pointer;font-size:18px">${l.name}</div>
+              ${window.MSIHub && MSIHub.tagChips ? MSIHub.tagChips(l.tags) : ''}
 
             </div>
             <div style="font-size:14px;color:var(--gray-500);margin-top:2px">${l.phone}</div>
@@ -3509,7 +3520,7 @@ function openCustomerDetail(id) {
 
 PAGES.customerdetail = '';
 window.cdTab = function(id) {
-  ['cd-calls','cd-text','cd-notes'].forEach(function(t) {
+  ['cd-calls','cd-text','cd-email','cd-notes'].forEach(function(t) {
     var el = document.getElementById(t); if (el) el.style.display = 'none';
     var btn = document.getElementById('cdBtn-'+t);
     if (btn) { btn.style.color='var(--gray-500)'; btn.style.fontWeight='600'; btn.style.borderBottom='2.5px solid transparent'; }
@@ -3568,7 +3579,7 @@ window.PAGE_INIT.customerdetail = function(){
         <button onclick="openTextThread('${c.first} ${c.last}','${c.phone}')" style="display:flex;align-items:center;gap:6px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:10px 22px;font-size:13.5px;font-weight:500;cursor:pointer;font-family:var(--font-body)">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>Text
         </button>
-        <button onclick="alert('Email: ${c.email||'—'}')" style="display:flex;align-items:center;gap:6px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:10px 22px;font-size:13.5px;font-weight:500;cursor:pointer;font-family:var(--font-body)">
+        <button onclick="cdTab('cd-email');var _i=document.getElementById('cdEmailSubject');if(_i)_i.focus()" style="display:flex;align-items:center;gap:6px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:10px 22px;font-size:13.5px;font-weight:500;cursor:pointer;font-family:var(--font-body)">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke-linecap="round" stroke-linejoin="round"/><polyline points="22,6 12,13 2,6"/></svg>Email
         </button>
       </div>
@@ -3581,6 +3592,8 @@ window.PAGE_INIT.customerdetail = function(){
       <div class="kpi-card ${openBal>0?'accent-red':'accent'}"><div class="kpi-label">Open Balance</div><div class="kpi-value ${openBal>0?'red':'green'}" style="font-size:20px">${openBal>0?fmt$(openBal):'$0'}</div><div class="kpi-sub">${openBal>0?'Outstanding':'All paid up'}</div></div>
       <div class="kpi-card accent-amber"><div class="kpi-label">Days to Renewal</div><div class="kpi-value amber" style="font-size:20px">${daysToRenewal(c)===null?'&mdash;':daysToRenewal(c)+'d'}</div><div class="kpi-sub">${activePol?'Expires '+activePol.expires:'No active policy'}</div></div>
     </div>
+
+    <div id="cdExtras">${window.MSIHub && MSIHub.customerExtrasHTML ? MSIHub.customerExtrasHTML(c) : ''}</div>
 
     <!-- DISPOSITION BAR -->
     <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -3606,6 +3619,9 @@ window.PAGE_INIT.customerdetail = function(){
         </button>
         <button id="cdBtn-cd-text" onclick="cdTab('cd-text')" style="padding:12px 18px;border:none;background:transparent;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--gray-500);border-bottom:2.5px solid transparent;font-family:var(--font-body);margin-bottom:-2px;transition:all 0.15s">
           Text / SMS <span style="font-size:11px;background:var(--gray-100);color:var(--gray-500);padding:1px 7px;border-radius:var(--radius-full);margin-left:5px;font-weight:500">5</span>
+        </button>
+        <button id="cdBtn-cd-email" onclick="cdTab('cd-email')" style="padding:12px 18px;border:none;background:transparent;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--gray-500);border-bottom:2.5px solid transparent;font-family:var(--font-body)">
+          Email <span style="font-size:11px;background:var(--gray-100);color:var(--gray-500);padding:1px 7px;border-radius:var(--radius-full);margin-left:5px;font-weight:500">${window.MSIHub && MSIHub.emailCount ? MSIHub.emailCount({ customer: c }) : 0}</span>
         </button>
         <button id="cdBtn-cd-notes" onclick="cdTab('cd-notes')" style="padding:12px 18px;border:none;background:transparent;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--gray-500);border-bottom:2.5px solid transparent;font-family:var(--font-body);margin-bottom:-2px;transition:all 0.15s">
           Notes <span style="font-size:11px;background:var(--gray-100);color:var(--gray-500);padding:1px 7px;border-radius:var(--radius-full);margin-left:5px;font-weight:500">2</span>
@@ -3641,6 +3657,9 @@ window.PAGE_INIT.customerdetail = function(){
           <button class="btn btn-primary" style="padding:10px 22px;font-weight:500;font-size:13px" onclick="MSIHub.sendCustomerText()">Send</button>
         </div>
       </div>
+
+      <!-- EMAIL -->
+      <div id="cd-email" style="display:none;padding:16px 20px">${window.MSIHub && MSIHub.emailPanelHTML ? MSIHub.emailPanelHTML({ customer: c }) : ''}</div>
 
       <!-- NOTES -->
       <div id="cd-notes" style="display:none;padding:16px 20px">
@@ -3717,7 +3736,7 @@ window.PAGE_INIT.customerdetail = function(){
       <!-- COL 3: Policies + Files -->
       <div style="display:flex;flex-direction:column;gap:14px">
         <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden">
-          ${secHdr('Policies ('+c.policies.length+')','<span style="font-size:11px;color:var(--gray-400)">All-time</span>')}
+          ${secHdr('Policies ('+c.policies.length+')','<button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="MSIHub.openPolicyForm(\''+c.id+'\')">+ Add Policy</button>')}
           ${c.policies.map((p,i) => {
             const bal = customerBalance(p);
             const sc = p.status==='Active'?'#09C4CD':(p.status==='Cancelled'||p.status==='Voided')?'#EF4444':'#696969';
@@ -3729,13 +3748,17 @@ window.PAGE_INIT.customerdetail = function(){
                 <span style="font-size:10px;font-weight:500;background:${sc}22;color:${sc};padding:2px 9px;border-radius:var(--radius-full);border:1px solid ${sc}55">${p.status}</span>
               </div>
               ${infoRow('Policy #','<span style="font-family:monospace;font-size:11.5px">'+p.number+'</span>')}
-              ${infoRow('Period',p.effective+' &rarr; '+p.expires)}
+              ${infoRow('Period',p.effective+' &rarr; '+p.expires+(p.termMonths?' <span style="color:var(--gray-400);font-size:11px">('+p.termMonths+' mo)</span>':''))}
+              ${infoRow('Producer / CSR',(p.soldBy||'&mdash;')+(p.csr?' / '+p.csr:''))}
+              ${p.status==='Cancelled'&&p.cancelReason?infoRow('Cancelled',escAttr(p.cancelReason)+(p.cancelledAt?' &middot; '+p.cancelledAt:'')):''}
               ${infoRow('Annual Premium',fmt$(p.premium))}
               ${infoRow('Fee Collected',fmt$(p.feeCollected))}
               ${infoRow('Balance',bal>0?'<span style="color:var(--red);font-weight:500">'+fmt$(bal)+'</span>':'<span style="color:var(--green-700);font-weight:500">$0.00</span>',true)}
               ${isActive ? `<div style="display:flex;gap:8px;padding:10px 0 2px">
                 ${canVoid ? `<button onclick="voidPolicy('${escAttr(c.id)}','${escAttr(p.number)}')" style="flex:1;padding:7px 0;font-size:11.5px;font-weight:500;font-family:var(--font-body);background:#FEF2F2;color:#DC2626;border:1.5px solid #FECACA;border-radius:var(--radius-md);cursor:pointer">&#128683; Void</button>` : ''}
-                <button onclick="cancelPolicy('${escAttr(c.id)}','${escAttr(p.number)}')" style="flex:1;padding:7px 0;font-size:11.5px;font-weight:500;font-family:var(--font-body);background:#F7F7F7;color:#2E2E2E;border:1.5px solid #D9D9D9;border-radius:var(--radius-md);cursor:pointer">&#10006; Cancel Policy</button>
+                <button onclick="MSIHub.openPolicyForm('${escAttr(c.id)}','${escAttr(p.id)}')" style="flex:1;padding:7px 0;font-size:11.5px;font-weight:500;font-family:var(--font-body);background:#F7F7F7;color:#2E2E2E;border:1.5px solid #D9D9D9;border-radius:var(--radius-md);cursor:pointer">&#9998; Edit</button>
+                <button onclick="MSIHub.renewPolicy('${escAttr(p.id)}')" style="flex:1;padding:7px 0;font-size:11.5px;font-weight:500;font-family:var(--font-body);background:#E6F9FA;color:#067C83;border:1.5px solid #5FD9DF;border-radius:var(--radius-md);cursor:pointer">&#8635; Renew</button>
+                <button onclick="MSIHub.cancelPolicyDb('${escAttr(p.id)}')" style="flex:1;padding:7px 0;font-size:11.5px;font-weight:500;font-family:var(--font-body);background:#F7F7F7;color:#2E2E2E;border:1.5px solid #D9D9D9;border-radius:var(--radius-md);cursor:pointer">&#10006; Cancel Policy</button>
               </div>` : ''}
             </div>`;
           }).join('')}
@@ -10006,7 +10029,7 @@ function syncLCStepsFromDOM() {
 
 function renderLCStepsEditor() {
   const steps = window._lcSteps || [];
-  const times = ['6:00 AM','7:00 AM','8:00 AM','9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM','8:00 PM'];
+  const times = ['Right away','6:00 AM','7:00 AM','8:00 AM','9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM','8:00 PM'];
   const html = steps.map((step, i) => `
 <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
@@ -10146,7 +10169,7 @@ function openLifecycleEditor(id) {
     document.body.appendChild(overlay);
   }
 
-  const triggers = ['Lead is created','Lead is marked Quoted','Lead is marked Appointment Set','Lead has no contact in','Lead is marked Bad Lead','Policy expires in','Extended fee unpaid for','On customer birthday'];
+  const triggers = ['Lead is created','Lead is marked Quoted','Lead is marked Appointment Set','Lead has no contact in','Lead is recycled (X-date)','Lead is marked Bad Lead','Policy expires in','Extended fee unpaid for','On customer birthday'];
 
   overlay.innerHTML = `
 <div style="background:#fff;border-radius:var(--radius-xl);width:680px;max-width:96vw;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3)" onclick="event.stopPropagation()">
@@ -10173,8 +10196,8 @@ function openLifecycleEditor(id) {
     </div>
 
     <div style="background:#F7F7F7;border:1px solid #D9D9D9;border-radius:var(--radius-md);padding:10px 14px;font-size:12.5px;color:#1F1F1F;margin-bottom:18px">
-      <strong>Tip:</strong> Day 1 = the day the trigger fires. Day 2 = next day. Texts go at the send time you choose. Emails can include a subject line and a longer body.
-      Available tokens: <strong>{{name}}</strong> · <strong>{{agent}}</strong> · <strong>{{amount}}</strong> · <strong>{{policy}}</strong>
+      <strong>Tip:</strong> Day 1 = the day the trigger fires, Day 2 = the next day ("Right away" sends the moment the lead comes in, inside business hours). For <strong>Policy expires in</strong>, the day number means <em>days before</em> the expiration date. Steps wait for business hours and skip non-business days (Settings below). A sequence stops on its own when the lead replies, a call connects, the stage changes, or the lead is sold or marked Do Not Call.
+      Tokens: <strong>{{name}}</strong> · <strong>{{full_name}}</strong> · <strong>{{agent}}</strong> · <strong>{{agent_phone}}</strong> · <strong>{{policy}}</strong> · <strong>{{carrier}}</strong> · <strong>{{expires}}</strong> · <strong>{{amount}}</strong>
     </div>
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -11292,5 +11315,6 @@ window.addEventListener('DOMContentLoaded', () => {
 <script src="msihub-data.js"></script>
 <script src="msihub-data-2.js"></script>
 <script src="msihub-telnyx.js"></script>
+<script src="msihub-automation.js"></script>
 </body>
 </html>

@@ -16,7 +16,7 @@ const puppeteer = require('puppeteer-core');
 const path = require('path'); const fs = require('fs'); const os = require('os');
 const { spawn } = require('child_process'); const http = require('http');
 const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
-const PORTS = { everquote: 9381, mediaalpha: 9382, usmg: 9383 };
+const PORTS = { everquote: 9381, mediaalpha: 9382, usmg: 9383, agencyzoom: 9384 };
 const [vendor, cmd, a1, a2] = process.argv.slice(2);
 if (!PORTS[vendor]) { console.error('vendor must be one of: ' + Object.keys(PORTS).join(', ')); process.exit(2); }
 const PORT = PORTS[vendor]; const PROFILE = path.join(__dirname, 'prof-' + vendor);

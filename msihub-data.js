@@ -16,7 +16,8 @@
     hooks: { remap: [] },
     missingTables: new Set(),
     data: { profiles: [], leads: [], customers: [], policies: [], vehicles: [], drivers: [], claims: [],
-            sales: [], appointments: [], notes: [], quotes: [], calls: [], messages: [], templates: [], files: [], tasks: [], agency_settings: [] },
+            sales: [], appointments: [], notes: [], quotes: [], calls: [], messages: [], templates: [], files: [], tasks: [], agency_settings: [],
+            emails: [], enrollments: [], automation_log: [] },
   };
 
   // ------------------------------------------------------------------
@@ -204,7 +205,7 @@
   // (timestamp + id), which stays fast at any depth; small tables use plain ranges.
   const TABLES = {
     profiles:     (q) => q,
-    leads:        (q) => q.or('received_at.gte.' + daysAgo(90) + ',status.in.("Quoted","Appointment Set")'),
+    leads:        (q) => q.or('received_at.gte.' + daysAgo(90) + ',status.in.("Quoted","Appointment Set")' + (M.v6 ? ',recycled_at.gte.' + daysAgo(90) : '')),
     customers:    (q) => q,
     policies:     (q) => q,
     vehicles:     (q) => q,
@@ -220,12 +221,15 @@
     files:        (q) => q,
     tasks:        (q) => q.order('due_date').order('id'),
     agency_settings: (q) => q,
+    emails:         (q) => q.gte('created_at', daysAgo(90)),                                   // schema-v6
+    enrollments:    (q) => q.or('status.eq.active,updated_at.gte.' + daysAgo(30)),
+    automation_log: (q) => q.gte('created_at', daysAgo(30)),
   };
   const KEYSET = { leads: 'received_at', customers: 'created_at', policies: 'created_at', vehicles: 'created_at', drivers: 'created_at', claims: 'created_at', sales: 'created_at', appointments: 'starts_at', notes: 'created_at', quotes: 'created_at', calls: 'created_at', messages: 'created_at', files: 'created_at' };
   const SORT_AFTER = { messages: 'created_at', appointments: 'starts_at' };   // consumers expect ascending order
   const CAPS = { leads: 20000, customers: 30000, policies: 40000, vehicles: 40000, drivers: 40000, claims: 10000, files: 10000, sales: 20000, appointments: 10000, notes: 10000, quotes: 10000, calls: 10000, messages: 10000, templates: 500, tasks: 5000, agency_settings: 100, profiles: 500 };
-  const TABLE_NAME = { calls: 'call_log' };
-  const OPTIONAL = new Set(['tasks', 'agency_settings']);   // added by schema-v2.sql
+  const TABLE_NAME = { calls: 'call_log', enrollments: 'automation_enrollments' };
+  const OPTIONAL = new Set(['tasks', 'agency_settings', 'emails', 'enrollments', 'automation_log']);   // schema-v2 / schema-v6
   const PAGE = 1000;
   M.extra = { leads: new Map() };   // leads pulled in by search / direct open, kept across reloads
 
@@ -284,7 +288,13 @@
     if (failed.length) fail(label, new Error(failed.join(' · ')));
   }
 
+  // schema-v6 (automation) present? Decides whether the leads query may mention recycled_at.
+  async function probeV6() {
+    try { const { error } = await M.sb.from('automation_enrollments').select('id').limit(1); M.v6 = !error; } catch (_e) { M.v6 = false; }
+    if (!M.v6) M.missingTables.add('automation_enrollments');
+  }
   M.loadAll = async function () {
+    await probeV6();
     await loadKeys(Object.keys(TABLES), 'Loading data');
     remapAll();
     if (M.missingTables.size && isAdmin()) M.toast('Tasks & Settings are not synced yet — run supabase/schema-v2.sql in the Supabase SQL Editor.', 'warn');
@@ -385,6 +395,7 @@
       attempts: { calls: calls[r.id] || 0, texts: texts[r.id] || 0 },
       sr22: !!r.sr22, language: r.language || 'English', priorCoverage: r.prior_coverage || '', bestTime: r.best_time || '',
       leadScore: r.lead_score == null ? 70 : r.lead_score, doNotCall: !!r.do_not_call, details: r.details || {}, createdAt: r.created_at,
+      tags: Array.isArray(r.tags) ? r.tags : [], lossReason: r.loss_reason || '', closedAt: r.closed_at || null, xDate: r.x_date || '', recycledAt: r.recycled_at || null,
     }));
     LEADS.length = 0; rows.forEach((l) => LEADS.push(l));
   }
@@ -393,7 +404,8 @@
     return { id: p.id, line: p.line || 'Auto', carrier: p.carrier || '', number: p.policy_number || '', soldBy: agentName(p.sold_by_id), sold_by_id: p.sold_by_id,
       effective: p.effective_date || '', expires: p.expires_date || '', premium: num(p.premium), towingPremium: num(p.towing_premium),
       feeTotal: num(p.fee_total), feeCollected: num(p.fee_collected), feeExtended: num(p.fee_extended), hccCollected: !!p.hcc_collected,
-      status: p.status || 'Active', saleId: p.sale_id, customer_id: p.customer_id };
+      status: p.status || 'Active', saleId: p.sale_id, customer_id: p.customer_id,
+      termMonths: p.term_months || 6, csr_id: p.csr_id || null, csr: p.csr_id ? agentName(p.csr_id) : '', cancelReason: p.cancel_reason || '', cancelledAt: p.cancelled_at || '', notes: p.notes || '', renewedFrom: p.renewed_from || null };
   }
 
   function mapCustomers() {
@@ -481,7 +493,7 @@
   // ------------------------------------------------------------------
   // Realtime: keep every agent's screen current
   // ------------------------------------------------------------------
-  const RT = { leads: ['leads'], customers: ['customers'], policies: ['policies'], sales: ['sales'], appointments: ['appointments'], notes: ['notes'], call_log: ['calls'], messages: ['messages'], tasks: ['tasks'], agency_settings: ['agency_settings'], profiles: ['profiles'] };
+  const RT = { emails: ['emails'], automation_enrollments: ['enrollments'], automation_log: ['automation_log'], leads: ['leads'], customers: ['customers'], policies: ['policies'], sales: ['sales'], appointments: ['appointments'], notes: ['notes'], call_log: ['calls'], messages: ['messages'], tasks: ['tasks'], agency_settings: ['agency_settings'], profiles: ['profiles'] };
   const pending = new Set();
   const flush = debounce(async () => {
     const keys = [...pending]; pending.clear();
@@ -557,8 +569,10 @@
     if (!phone) return;
     const lead = LEADS.find((l) => l.phone === phone);
     if (!lead || lead.status === newStatus) { refreshLeads(); return; }
-    const prev = lead.status; lead.status = newStatus; refreshLeads();
-    try { await update('leads', lead.id, { status: newStatus }); } catch (e) { lead.status = prev; refreshLeads(); fail('Updating lead', e); }
+    const patch = { status: newStatus };
+    if (newStatus === 'Bad Lead' && M.askLossReason) { const r = await M.askLossReason(lead); if (!r) { refreshLeads(); return; } patch.loss_reason = r.reason; if (r.note) insert('notes', { lead_id: lead.id, author_id: myId(), body: 'Lost: ' + r.reason + ' — ' + r.note }).catch(() => {}); }
+    const prev = lead.status; lead.status = newStatus; if (patch.loss_reason) lead.lossReason = patch.loss_reason; refreshLeads();
+    try { await update('leads', lead.id, patch); } catch (e) { lead.status = prev; refreshLeads(); fail('Updating lead', e); }
   };
 
   window.setDisposition = async function (value) {
@@ -569,9 +583,13 @@
     if (value === 'Already Sold') patch.status = 'Sold';
     if (value === 'Quoted' && lead.status === 'New Lead') patch.status = 'Quoted';
     if (value === 'Do Not Call') patch.do_not_call = true;
+    if (patch.status === 'Bad Lead' && lead.status !== 'Bad Lead' && M.askLossReason) {
+      const r = await M.askLossReason(lead); if (!r) return;
+      patch.loss_reason = r.reason; if (r.note) insert('notes', { lead_id: lead.id, author_id: myId(), body: 'Lost: ' + r.reason + ' — ' + r.note }).catch(() => {});
+    }
     try {
       await update('leads', lead.id, patch);
-      Object.assign(lead, { disposition: value }, patch.status ? { status: patch.status } : {}, patch.do_not_call ? { doNotCall: true } : {});
+      Object.assign(lead, { disposition: value }, patch.status ? { status: patch.status } : {}, patch.do_not_call ? { doNotCall: true } : {}, patch.loss_reason ? { lossReason: patch.loss_reason } : {});
       M.toast('Disposition set to ' + value + ((patch.status === 'Bad Lead' || patch.status === 'Sold') ? ' — removed from the lead list' : ''));
       if (patch.status === 'Bad Lead' || patch.status === 'Sold') setTimeout(() => nav('leads', document.querySelector('[onclick*="leads"]')), 250);
       else PAGE_INIT.leaddetail();
@@ -605,7 +623,7 @@
       '<div class="form-grid" style="grid-template-columns:1fr 1fr;gap:10px 14px">' +
       fg('First Name *', inp('lf_first', L && L.first)) + fg('Last Name', inp('lf_last', L && L.last)) +
       fg('Phone *', inp('lf_phone', L && L.phone, '(619) 555-0100', 'tel')) + fg('Email', inp('lf_email', L && L.email, '', 'email')) +
-      fg('Source', '<select id="lf_source" class="form-control">' + opt(LEAD_SOURCES, L ? L.source || 'Other' : 'Everquote') + '</select>') +
+      fg('Source', '<select id="lf_source" class="form-control">' + opt(M.sourceNames ? M.sourceNames(L && L.source) : LEAD_SOURCES, L ? L.source || 'Other' : (M.sourceNames ? M.sourceNames()[0] : 'Everquote')) + '</select>') +
       fg('Policy Type', '<select id="lf_policy" class="form-control">' + opt(['Auto', 'Home', 'Renters', 'Commercial', 'Motorcycle', 'Life', 'Bundle'], L ? L.policy : 'Auto') + '</select>') +
       fg('Status', '<select id="lf_status" class="form-control">' + opt(LEAD_STATUSES, L ? L.status : 'New Lead') + '</select>') +
       fg('Assigned Agent', '<select id="lf_agent" class="form-control">' + agentOpts + '</select>') +
@@ -619,7 +637,8 @@
       fg('City', inp('lf_city', d.city || '')) + fg('ZIP', inp('lf_zip', d.zip || '')) +
       fg('Vehicle Year', inp('lf_vyear', v.year || '')) + fg('Make', inp('lf_vmake', v.make || '')) + fg('Model', inp('lf_vmodel', v.model || '')) + fg('VIN', inp('lf_vin', v.vin || '')) +
       fg('Coverage Requested', inp('lf_covtype', cov.type || '', 'e.g. Liability + UM/UIM')) + fg('Limits', inp('lf_covlimits', cov.limits || '', 'e.g. 50/100')) +
-      fg('Violations', inp('lf_violations', d.violations || '', 'e.g. None'), true) +
+      fg('Violations', inp('lf_violations', d.violations || '', 'e.g. None')) +
+      fg('Current policy renews (X-date)', inp('lf_xdate', L && L.xDate ? String(L.xDate).slice(0, 10) : '', '', 'date')) +
       (L ? '' : fg('First Note (optional)', '<textarea id="lf_note" class="form-control" rows="2"></textarea>', true)) +
       '</div><div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-primary" style="flex:1;justify-content:center" onclick="saveLeadForm(' + (L ? "'" + L.id + "'" : 'null') + ')">' + (L ? 'Save Changes' : 'Create Lead') + '</button><button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="document.getElementById(\'leadFormOverlay\').style.display=\'none\'">Cancel</button></div></div>';
     o.style.display = 'flex';
@@ -630,6 +649,11 @@
     const g = (i) => { const el = $(i); return el ? el.value.trim() : ''; };
     if (!g('lf_first')) { M.toast('First name is required', 'warn'); return; }
     if (!g('lf_phone')) { M.toast('Phone is required', 'warn'); return; }
+    if (M.checkRequiredLeadFields && !M.checkRequiredLeadFields(g)) return;
+    if (!id && M.findDuplicateLead) {
+      const dup = await M.findDuplicateLead(g('lf_phone'), g('lf_email'));
+      if (dup) { const choice = await M.confirmDuplicate(dup); if (choice === 'open') { $('leadFormOverlay').style.display = 'none'; openLeadDetail(dup.id); return; } if (choice !== 'create') return; }
+    }
     const existing = id ? leadById(id) : null;
     const details = Object.assign({}, existing ? existing.details : {}, {
       dob: g('lf_dob'), gender: g('lf_gender'), marital: g('lf_marital'), license: g('lf_license'), address: g('lf_address'), city: g('lf_city'), state: 'CA', zip: g('lf_zip'), violations: g('lf_violations'),
@@ -638,6 +662,7 @@
     });
     const row = { first_name: g('lf_first'), last_name: g('lf_last'), phone: fmtPhone(g('lf_phone')), email: g('lf_email') || null, source: g('lf_source'), policy_type: g('lf_policy'), status: g('lf_status'),
       agent_id: g('lf_agent') || null, language: g('lf_lang'), best_time: g('lf_best') || null, sr22: g('lf_sr22') === 'yes', prior_coverage: g('lf_prior') || null, details };
+    if (M.v6) row.x_date = g('lf_xdate') || null;
     try {
       let saved;
       if (id) saved = await update('leads', id, row);
@@ -770,9 +795,13 @@
     const patch = { status: ($('ldStage') || {}).value || L.status, agent_id: ($('ldAgent') || {}).value || null, disposition: ($('dispositionSelect') || {}).value || null };
     if (patch.disposition === 'Bad Lead' || patch.disposition === 'Do Not Call') patch.status = 'Bad Lead';
     if (patch.disposition === 'Do Not Call') patch.do_not_call = true;
+    if (patch.status === 'Bad Lead' && L.status !== 'Bad Lead' && M.askLossReason) {
+      const r = await M.askLossReason(L); if (!r) { PAGE_INIT.leaddetail(); return; }
+      patch.loss_reason = r.reason; if (r.note) insert('notes', { lead_id: L.id, author_id: myId(), body: 'Lost: ' + r.reason + ' — ' + r.note }).catch(() => {});
+    }
     try {
       await update('leads', L.id, patch);
-      Object.assign(L, { status: patch.status, disposition: patch.disposition || '', agent_id: patch.agent_id, agent: patch.agent_id ? agentName(patch.agent_id) : 'Unassigned' }, patch.do_not_call ? { doNotCall: true } : {});
+      Object.assign(L, { status: patch.status, disposition: patch.disposition || '', agent_id: patch.agent_id, agent: patch.agent_id ? agentName(patch.agent_id) : 'Unassigned' }, patch.do_not_call ? { doNotCall: true } : {}, patch.loss_reason ? { lossReason: patch.loss_reason } : {});
       M.toast('Lead updated'); PAGE_INIT.leaddetail();
     } catch (e) { fail('Updating lead', e); }
   };
@@ -793,7 +822,7 @@
     const agentOpts = '<option value=""' + (!L.agent_id ? ' selected' : '') + '>Unassigned</option>' + M.agents().map((p) => '<option value="' + p.id + '"' + (L.agent_id === p.id ? ' selected' : '') + '>' + esc(p.full_name) + '</option>').join('');
     const stages = ['New Lead', 'Contacted', 'Quoted', 'Appointment Set', 'Sold', 'Bad Lead'];
     const dispOpts = ['Quoted', 'Bad Lead', 'Do Not Call', 'Refund', 'HR', 'Already Sold', 'Spanish', 'Rewrite', 'Cancelled', 'Follow Up'];
-    const tabs = [['sms', 'Text', '✉'], ['comments', 'Notes', '📝'], ['appointments', 'Appointment', '📅'], ['task', 'Task', '☑'], ['files', 'Files', '📎'], ['activities', 'History', '☰'], ['applications', 'Quotes', '📄']];
+    const tabs = [['sms', 'Text', '✉'], ['email', 'Email', '📧'], ['comments', 'Notes', '📝'], ['appointments', 'Appointment', '📅'], ['task', 'Task', '☑'], ['files', 'Files', '📎'], ['activities', 'History', '☰'], ['applications', 'Quotes', '📄']];
     const tab = tabs.some((t) => t[0] === M.leadTab) ? M.leadTab : tabs[0][0];
     const created = L.createdAt || L.receivedAt;
     const calls = leadCalls(L), texts = leadTexts(L);
@@ -854,11 +883,13 @@
         '<button onclick="openNewSale()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-radius:12px;border:none;background:var(--green-50);color:var(--green-700);font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer"><span>＋ &nbsp;New Sale</span><span>→</span></button>' +
         '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:16px;font-size:13px;color:var(--gray-600)"><span>Source: <span style="color:var(--navy-900)">' + esc(L.source || '—') + '</span></span><span>Received: <span style="color:var(--navy-900)">' + (created ? new Date(created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—') + '</span></span></div>' +
         (L.doNotCall ? '<div style="margin-top:8px;font-size:13px;color:#DC2626">Do Not Call: this lead asked not to be contacted</div>' : '') +
+        (M.leadExtrasHTML ? M.leadExtrasHTML(L) : '') +
         '<div style="height:1px;background:var(--border);margin:16px 0"></div>' +
         row('Name', L.name) +
         '<div style="display:grid;grid-template-columns:118px 1fr auto;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:13.5px;align-items:center"><div style="' + LABEL + '">Phone</div><div style="color:var(--navy-900)">' + esc(L.phone || '—') + '</div><button title="Call" onclick="leadCall(\'' + L.id + '\')" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--gray-600)">📞</button></div>' +
         row('Email', L.email) + row('Address', addr) + row('Date of Birth', d.dob) +
         row('Gender', d.gender) + row('Marital Status', d.marital) + row('License Status', myLic.status) + row('License State', myLic.state) + row('Violations', d.violations || 'None reported') +
+        (M.leadXDateRow ? M.leadXDateRow(L) : '') +
         sections +
         '<div style="margin-top:18px"><button onclick="setDisposition(\'Bad Lead\')" title="Mark as bad lead" style="padding:10px 22px;border-radius:10px;border:none;background:#FEE2E2;color:#DC2626;font-size:15px;cursor:pointer">🗑</button></div>' +
       '</div>';
@@ -896,6 +927,7 @@
             '<div style="display:flex;gap:8px;align-items:flex-end"><textarea id="ldTextInput" class="form-control" rows="4" placeholder="Text ' + esc(L.first || 'this lead') + '…" style="flex:1;height:112px;min-height:112px;resize:none;font-family:var(--font-body);font-size:14px;line-height:1.45;border-radius:12px;padding:12px 14px;background:#fff" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();MSIHub.sendLeadText()}"></textarea>' + pill('MSIHub.sendLeadText()', 'Send', true) + '</div>' +
             '<div style="font-size:11.5px;color:var(--gray-400);margin-top:6px">To ' + esc(L.phone || 'no phone on file') + ' &middot; Enter sends, Shift+Enter adds a line</div>' +
           '</div></div>') +
+        panel('email', M.emailPanelHTML ? M.emailPanelHTML({ lead: L }) : emptyBox('Email is not set up yet')) +
         panel('task', actionRow(pill('openTaskModal()', '＋ Add Task', true)) + taskRows) +
         panel('appointments', actionRow(pill('openAppointment()', '＋ Set Appointment', true)) + apptRows) +
         panel('files', '<div id="customerFilesList">' + filesHTML(leadFiles(L)) + '</div><div id="customerFileDrop" style="border:2px dashed var(--border-strong);border-radius:12px;padding:16px;text-align:center;cursor:pointer;margin-top:12px" onclick="document.getElementById(\'customerFileInput\').click()" ondragover="event.preventDefault()" ondrop="event.preventDefault();handleCustomerFiles(event.dataTransfer.files)"><div style="font-size:13.5px;color:var(--navy-900)">Add files</div><div style="font-size:12px;color:var(--gray-400);margin-top:2px">Click or drag &amp; drop</div></div><input id="customerFileInput" type="file" multiple style="display:none" onchange="handleCustomerFiles(this.files)">') +
@@ -1173,11 +1205,12 @@
         await insert('drivers', { customer_id: row.id, name, dob: usToISO(d.dob), gender: d.gender || null, license: d.license || null, violations: d.violations || null, is_primary: true });
         cust = { id: row.id };
       }
-      const expires = (() => { const x = new Date(effDate); x.setFullYear(x.getFullYear() + 1); return localISODate(x); })();
+      const term = M.policyTerm ? M.policyTerm(policyType) : 12;
+      const expires = (() => { const x = new Date(effDate + 'T00:00:00'); x.setMonth(x.getMonth() + term); return localISODate(x); })();
       const sale = await insert('sales', { sale_date: todayISO(), agent_id: agent.id, lead_id: L ? L.id : null, customer_id: cust.id, carrier, policy_type: policyType, policy_number: policyNum,
         fee_total: feeTotal, fee_collected: feeCollected, fee_extended: feeExtended, premium, towing_premium: towing, effective_date: effDate, additional_policies: addl, total_policies: 1 + addl.length });
-      await insert('policies', { customer_id: cust.id, sale_id: sale.id, line: policyType, carrier, policy_number: policyNum, sold_by_id: agent.id, effective_date: effDate, expires_date: expires,
-        premium, towing_premium: towing, fee_total: feeTotal, fee_collected: feeCollected, fee_extended: feeExtended, hcc_collected: false, status: 'Active' });
+      await insert('policies', Object.assign({ customer_id: cust.id, sale_id: sale.id, line: policyType, carrier, policy_number: policyNum, sold_by_id: agent.id, effective_date: effDate, expires_date: expires,
+        premium, towing_premium: towing, fee_total: feeTotal, fee_collected: feeCollected, fee_extended: feeExtended, hcc_collected: false, status: 'Active' }, M.v6 ? { term_months: term } : {}));
       for (const p of addl) {
         await insert('policies', { customer_id: cust.id, sale_id: sale.id, line: p.type || p.line || 'Auto', carrier: p.carrier || carrier, policy_number: p.number || '', sold_by_id: agent.id, effective_date: effDate, expires_date: expires,
           premium: num(p.premium), fee_total: num(p.fee || 0), fee_collected: num(p.down || 0), fee_extended: 0, hcc_collected: false, status: 'Active' });

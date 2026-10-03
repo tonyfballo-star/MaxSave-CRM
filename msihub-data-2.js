@@ -219,13 +219,14 @@
     const vendors = window.LEAD_VENDORS || [];
     const touched = new Set([...D.calls.map((c) => c.lead_id), ...D.messages.map((m) => m.lead_id)].filter(Boolean));
     const quotedLead = new Set(D.quotes.map((q) => q.lead_id).filter(Boolean));
-    const sourceNames = uniq([...(window.LEAD_SOURCES || []).filter((x) => x.active !== false).map((x) => x.name), ...leads.map((l) => l.source)].filter(Boolean));
+    const sourceNames = Object.values(Object.fromEntries([...leads.map((l) => l.source), ...(window.LEAD_SOURCES || []).filter((x) => x.active !== false).map((x) => x.name)].filter(Boolean).map((x) => [String(x).toLowerCase(), x])));   // one row per source, Settings spelling wins
     fillArr(RPT.sources, sourceNames.map((source) => {
       const ls = leads.filter((l) => (l.source || '').toLowerCase() === source.toLowerCase());
       const vendor = vendors.find((v) => (v.name || '').toLowerCase() === source.toLowerCase());
+      const srcCfg = (window.LEAD_SOURCES || []).find((x) => (x.name || '').toLowerCase() === source.toLowerCase());
       return { source, leads: ls.length, contacted: ls.filter((l) => l.status !== 'New Lead' || touched.has(l.id)).length,
         quoted: ls.filter((l) => ['Quoted', 'Appointment Set', 'Sold'].includes(l.status) || quotedLead.has(l.id)).length,
-        apps: ls.filter((l) => l.status === 'Sold').length, cost: vendor ? Math.round(n(vendor.ppl) * ls.length) : 0 };
+        apps: ls.filter((l) => l.status === 'Sold').length, cost: vendor ? Math.round(n(vendor.ppl) * ls.length) : Math.round(n(srcCfg && srcCfg.cost) * ls.length) };
     }));
 
     // Policy types

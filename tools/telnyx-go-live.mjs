@@ -99,7 +99,7 @@ else {
   const git = (...a) => execFileSync('git', a, { cwd: ROOT, maxBuffer: 64 * 1024 * 1024 });
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'msihub-site-'));
   fs.cpSync(path.join(ROOT, 'site'), tmp, { recursive: true });
-  for (const [src, dst] of [['maxsave_crm.html', 'index.html'], ['msihub-data.js', 'msihub-data.js'], ['msihub-data-2.js', 'msihub-data-2.js'], ['msihub-telnyx.js', 'msihub-telnyx.js']]) fs.writeFileSync(path.join(tmp, dst), git('show', 'HEAD:' + src));
+  for (const [src, dst] of [['maxsave_crm.html', 'index.html'], ['msihub-data.js', 'msihub-data.js'], ['msihub-data-2.js', 'msihub-data-2.js'], ['msihub-telnyx.js', 'msihub-telnyx.js'], ['msihub-automation.js', 'msihub-automation.js']]) fs.writeFileSync(path.join(tmp, dst), git('show', 'HEAD:' + src));
   fs.mkdirSync(path.join(tmp, 'fonts'), { recursive: true });
   for (const f of fs.readdirSync(path.join(ROOT, 'fonts')).filter((x) => x.endsWith('.ttf'))) fs.copyFileSync(path.join(ROOT, 'fonts', f), path.join(tmp, 'fonts', f));
   if (!fs.readFileSync(path.join(tmp, 'index.html'), 'utf8').includes('msihub-telnyx.js')) throw new Error('The last commit does not load msihub-telnyx.js — commit first.');
