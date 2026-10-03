@@ -205,7 +205,7 @@
   // (timestamp + id), which stays fast at any depth; small tables use plain ranges.
   const TABLES = {
     profiles:     (q) => q,
-    leads:        (q) => q.or('received_at.gte.' + daysAgo(90) + ',status.in.("Quoted","Appointment Set")'),   // recycled (X-date) leads are added by fetchTable below
+    leads:        (q) => q.gte('received_at', daysAgo(90)),   // + open Quoted/Appointment Set and X-date recycled leads, added by fetchTable below (separate indexed queries; one OR walked the whole index at 150k rows)
     customers:    (q) => q,
     policies:     (q) => q,
     vehicles:     (q) => q,
@@ -255,9 +255,11 @@
       if (col && (last[col] == null)) break;
     }
     if (SORT_AFTER[key]) out.sort((a, b) => new Date(a[SORT_AFTER[key]]) - new Date(b[SORT_AFTER[key]]));
-    if (key === 'leads' && M.v6) {   // X-date recycled leads are old by received_at; its own small indexed query (an OR here makes the paging tail time out)
-      const { data } = await M.sb.from(name).select('*').gte('recycled_at', daysAgo(90)).order('recycled_at', { ascending: false }).limit(2000);
-      if (data && data.length) { const ids = new Set(out.map((r) => r.id)); data.forEach((r) => { if (!ids.has(r.id)) out.push(r); }); }
+    if (key === 'leads') {
+      const extras = [M.sb.from(name).select('*').in('status', ['Quoted', 'Appointment Set']).lt('received_at', daysAgo(90)).order('received_at', { ascending: false }).limit(5000)];
+      if (M.v6) extras.push(M.sb.from(name).select('*').gte('recycled_at', daysAgo(90)).order('recycled_at', { ascending: false }).limit(2000));
+      const ids = new Set(out.map((r) => r.id));
+      for (const r of await Promise.allSettled(extras)) { if (r.status === 'fulfilled' && r.value.data) r.value.data.forEach((row) => { if (!ids.has(row.id)) { ids.add(row.id); out.push(row); } }); else console.warn('[MSIHub] leads extra query failed', r.status === 'fulfilled' ? r.value.error : r.reason); }
     }
     return out;
   }
